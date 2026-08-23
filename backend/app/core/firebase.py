@@ -25,11 +25,17 @@ _app: firebase_admin.App | None = None
 def _build_credential() -> tuple[credentials.Base | None, bool]:
     """Retorna (credential, passar_project_id_explicito)."""
     if settings.service_account_json:
-        data = json.loads(settings.service_account_json)
-        return credentials.Certificate(data), True
+        try:
+            data = json.loads(settings.service_account_json)
+            logger.info("Firebase Admin: usando FIREBASE_SERVICE_ACCOUNT_JSON (project_id=%s)", data.get("project_id"))
+            return credentials.Certificate(data), True
+        except Exception as exc:
+            logger.exception("Falha ao parsear FIREBASE_SERVICE_ACCOUNT_JSON: %s", exc)
+            raise
     if settings.service_account_path.is_file():
+        logger.info("Firebase Admin: usando arquivo local %s", settings.service_account_path)
         return credentials.Certificate(str(settings.service_account_path)), True
-    # ADC: o projeto vem do ambiente (GOOGLE_CLOUD_PROJECT / metadata server).
+    logger.warning("Firebase Admin: sem credencial explícita — tentando ADC")
     return None, False
 
 

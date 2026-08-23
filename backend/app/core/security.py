@@ -1,8 +1,11 @@
 """Segurança: verificação de ID token do Firebase Auth e guards por papel."""
+import logging
 from dataclasses import dataclass
 
 from fastapi import Depends, Header, HTTPException, status
 from firebase_admin import auth as fb_auth
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -21,6 +24,7 @@ def get_current_auth(authorization: str = Header(default="")) -> CurrentAuth:
     try:
         decoded = fb_auth.verify_id_token(token)
     except Exception as exc:  # noqa: BLE001
+        logger.exception("Falha ao verificar ID token: %s", exc)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token inválido ou expirado") from exc
     email = decoded.get("email") or (decoded.get("firebase", {}).get("sign_in_attributes", {}).get("email"))
     return CurrentAuth(
