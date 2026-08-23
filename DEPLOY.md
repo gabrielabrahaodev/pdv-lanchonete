@@ -90,6 +90,21 @@ Sem isso o login retorna `auth/unauthorized-domain`.
 - [ ] PWA instalável (ícone "Instalar app" no Chrome Android)
 - [ ] Pagamento pix quita pedido e DRE em Relatórios reflete a venda
 
+### 8. UptimeRobot (mitigação grátis do sleep do Render)
+
+O plano free da Render dorme após 15 min sem tráfego (~30–60s para acordar).
+Configure 1 monitor no UptimeRobot free (sem limites práticos — 50 monitors, intervalo mínimo 5 min):
+
+1. uptimerobot.com → conta grátis → **Add New Monitor**
+2. Tipo: **HTTP(s)** → URL: `https://pdv-lanchonete-dwiw.onrender.com/health`
+3. Intervalo: **10 min** (ou 5 min)
+4. Alert contacts: opcional (e-mail/Telegram/Discord)
+5. Save
+
+Pronto — a instância permanece "quente" enquanto o monitor roda. Zero custo, sem limites atingíveis.
+
+---
+
 ## Armadilhas conhecidas
 
 - **Segredo**: `service-account.json` NUNCA vai pro GitHub — na Render ele entra como env var.
