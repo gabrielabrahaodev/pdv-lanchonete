@@ -1,0 +1,24 @@
+{
+  "name": "pdv-firestore-init",
+  "version": "1.0.0",
+  "description": "Scripts to initialize Firestore for PDV Lanchonete",
+  "main": "dist/init-firestore.js",
+  "scripts": {
+    "build": "tsc",
+    "init": "ts-node init-firestore.ts",
+    "init:prod": "node dist/init-firestore.js",
+    "seed": "ts-node seed-data.ts",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["firebase", "firestore", "pdv", "lanchonete"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}

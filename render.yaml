@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: pdv-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: CORS_ORIGINS
+        sync: false   # preencher com https://<projeto>.web.app
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false   # colar conteúdo integral do scripts/service-account.json

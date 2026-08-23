@@ -1,0 +1,27 @@
+rules_version = '2';
+
+// PDV Lanchonete — regras de acesso direto ao Firestore.
+//
+// O app opera via API FastAPI (Admin SDK, imune a estas regras). Elas existem
+// para proteger o acesso DIRETO do frontend (ex.: listeners onSnapshot em
+// tempo real). Regra geral: só quem tem o custom claim restaurantId igual ao
+// tenant enxerga os dados dele. Tudo mais: negado.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Onboarding: usuário pode reservar/ler apenas o próprio marcador.
+    // (A escrita real é feita pelo backend com Admin SDK; esta regra cobre leitura.)
+    match /onboarding/{uid} {
+      allow get, list: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Tenant: coleções do restaurante (inclui subcoleção items e doc configuracoes).
+    match /restaurantes/{restaurantId}/{document=**} {
+      allow read, write: if request.auth != null
+        && request.auth.token.restaurantId == restaurantId;
+    }
+
+    // Negado por padrão — qualquer outro caminho não tem regra explícita.
+  }
+}
