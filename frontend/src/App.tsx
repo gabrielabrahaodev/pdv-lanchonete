@@ -1,27 +1,28 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import type { ReactNode } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import AppLayout from './components/layout/AppLayout'
 import { LoadingScreen } from './components/ui'
 
-import LoginPage from './pages/LoginPage'
-import SelectRestaurantPage from './pages/SelectRestaurantPage'
-import CaixaOverviewPage from './pages/caixa/CaixaOverviewPage'
-import MesaDetailPage from './pages/caixa/MesaDetailPage'
-import NovoPedidoPage from './pages/caixa/NovoPedidoPage'
-import PagamentoPage from './pages/caixa/PagamentoPage'
-import ProdutosPage from './pages/produtos/ProdutosPage'
-import ProdutoFormPage from './pages/produtos/ProdutoFormPage'
-import MesasPage from './pages/mesas/MesasPage'
-import EstoquePage from './pages/estoque/EstoquePage'
-import CozinhaPage from './pages/cozinha/CozinhaPage'
-import DeliveryPage from './pages/delivery/DeliveryPage'
-import RelatoriosPage from './pages/relatorios/RelatoriosPage'
-import FechamentoCaixaPage from './pages/relatorios/FechamentoCaixaPage'
-import FinanceiroPage from './pages/financeiro/FinanceiroPage'
-import CardapioPage from './pages/cardapio/CardapioPage'
-import ConfiguracoesPage from './pages/configuracoes/ConfiguracoesPage'
+// Code-splitting por rota: cada página vira um chunk carregado sob demanda.
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const SelectRestaurantPage = lazy(() => import('./pages/SelectRestaurantPage'))
+const CaixaOverviewPage = lazy(() => import('./pages/caixa/CaixaOverviewPage'))
+const MesaDetailPage = lazy(() => import('./pages/caixa/MesaDetailPage'))
+const NovoPedidoPage = lazy(() => import('./pages/caixa/NovoPedidoPage'))
+const PagamentoPage = lazy(() => import('./pages/caixa/PagamentoPage'))
+const ProdutosPage = lazy(() => import('./pages/produtos/ProdutosPage'))
+const ProdutoFormPage = lazy(() => import('./pages/produtos/ProdutoFormPage'))
+const MesasPage = lazy(() => import('./pages/mesas/MesasPage'))
+const EstoquePage = lazy(() => import('./pages/estoque/EstoquePage'))
+const CozinhaPage = lazy(() => import('./pages/cozinha/CozinhaPage'))
+const DeliveryPage = lazy(() => import('./pages/delivery/DeliveryPage'))
+const RelatoriosPage = lazy(() => import('./pages/relatorios/RelatoriosPage'))
+const FechamentoCaixaPage = lazy(() => import('./pages/relatorios/FechamentoCaixaPage'))
+const FinanceiroPage = lazy(() => import('./pages/financeiro/FinanceiroPage'))
+const CardapioPage = lazy(() => import('./pages/cardapio/CardapioPage'))
+const ConfiguracoesPage = lazy(() => import('./pages/configuracoes/ConfiguracoesPage'))
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { fbUser, me, loading } = useAuth()
@@ -45,6 +46,7 @@ export default function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
+        <Suspense fallback={<LoadingScreen />}>
         <Routes>
         <Route path="/m/:restaurantId/:mesaId" element={<CardapioPage />} />
         <Route
@@ -89,6 +91,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/caixa" replace />} />
         </Routes>
+        </Suspense>
       </ThemeProvider>
     </AuthProvider>
   )

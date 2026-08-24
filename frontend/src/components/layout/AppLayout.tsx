@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useAlertasEstoque } from '../../hooks/useAlertasEstoque'
@@ -23,7 +23,19 @@ export default function AppLayout() {
   const { me, logout } = useAuth()
   const navigate = useNavigate()
   const alertas = useAlertasEstoque()
+  const [online, setOnline] = useState(navigator.onLine)
   useRealtime(me?.restaurantId, ['pedidos', 'mesas', 'estoque', 'despesas'])
+
+  useEffect(() => {
+    const on = () => setOnline(true)
+    const off = () => setOnline(false)
+    window.addEventListener('online', on)
+    window.addEventListener('offline', off)
+    return () => {
+      window.removeEventListener('online', on)
+      window.removeEventListener('offline', off)
+    }
+  }, [])
 
   async function handleLogout() {
     setDrawerAberto(false)
@@ -33,6 +45,13 @@ export default function AppLayout() {
 
   return (
     <div className="relative flex h-full">
+      {/* aviso de queda de conexão (leituras caem no cache do SW; escritas falham) */}
+      {!online && (
+        <div className="fixed inset-x-0 top-0 z-[60] bg-amber-500 py-1 text-center text-sm font-medium text-white">
+          Sem conexão — dados podem estar desatualizados. Aguarde para lançar pedidos/pagamentos.
+        </div>
+      )}
+
       {/* backdrop do drawer no mobile */}
       {drawerAberto && (
         <div

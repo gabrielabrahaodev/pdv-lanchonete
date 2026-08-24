@@ -8,6 +8,7 @@
     "init": "ts-node init-firestore.ts",
     "init:prod": "node dist/init-firestore.js",
     "seed": "ts-node seed-data.ts",
+    "backup": "ts-node backup-firestore.ts",
     "clean": "rm -rf dist"
   },
   "keywords": ["firebase", "firestore", "pdv", "lanchonete"],

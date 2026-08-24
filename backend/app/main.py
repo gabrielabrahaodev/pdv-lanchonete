@@ -7,6 +7,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+
+if settings.sentry_dsn:  # pragma: no cover - ativo apenas em produção com DSN
+    try:
+        import sentry_sdk
+
+        sentry_sdk.init(dsn=settings.sentry_dsn, traces_sample_rate=0.0, send_default_pii=False)
+    except ImportError:  # sdk não instalado (dev minimalista)
+        pass
+
 from app.routers import (
     auth,
     caixa,

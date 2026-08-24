@@ -109,6 +109,28 @@ Configure 1 monitor no UptimeRobot free (sem limites práticos — 50 monitors, 
 5. Save
 
 Pronto — a instância permanece "quente" enquanto o monitor roda. Zero custo, sem limites atingíveis.
+> `/health` aceita GET e HEAD (monitores fazem HEAD).
+
+### 9. Backup automático do Firestore (GitHub Actions)
+
+Workflow `.github/workflows/backup.yml`: **todo dia 03:30 (Brasília)** exporta todos os tenants
+em JSON e commita em `backups/` no próprio repo privado. Também roda sob demanda
+(Aba Actions → Backup Firestore → Run workflow).
+
+- Secret necessário: `FIREBASE_SERVICE_ACCOUNT_JSON` no GitHub (Settings → Secrets and variables → Actions).
+- Manual local: `cd scripts && npm run backup` → gera `backups/backup-<data>.json`.
+- Restauração: os JSON são completos por tenant (`config` + todas as coleções) — reimportar
+  com um script Admin (`set`) quando necessário.
+
+### 10. Sentry (alerta de erros, opcional mas recomendado)
+
+O backend já tem integração pronta — fica **inativo** sem a env:
+
+1. Conta grátis em sentry.io → criar projeto **FastAPI** → copiar o DSN
+2. Render → serviço pdv-lanchonete → Environment → adicionar `SENTRY_DSN=<dsn>` → Save (redeploy)
+3. Pronto: qualquer exceção 5xx aparece no Sentry com stack trace
+
+Frontend: deixar para depois (custo de bundle vs benefício — prioridade foi o code-splitting).
 
 ---
 

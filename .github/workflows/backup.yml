@@ -1,0 +1,43 @@
+name: Backup Firestore
+
+on:
+  schedule:
+    - cron: '30 6 * * *' # 03:30 horário de Brasília, diário
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: scripts/package-lock.json
+      - name: Instalar deps
+        working-directory: scripts
+        run: npm ci
+      - name: Restaurar credencial do secret
+        run: echo "$FIREBASE_SERVICE_ACCOUNT_JSON" > /tmp/sa.json
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      - name: Exportar dados
+        working-directory: scripts
+        run: npx ts-node backup-firestore.ts
+        env:
+          SERVICE_ACCOUNT_PATH: /tmp/sa.json
+      - name: Commitar backup
+        run: |
+          git config user.name "backup-bot"
+          git config user.email "actions@github.com"
+          git add -f backups/*.json
+          if git diff --cached --quiet; then
+            echo "Nada novo para commitar"
+          else
+            git commit -m "backup automatico $(date -u +%F)"
+            git push
+          fi
