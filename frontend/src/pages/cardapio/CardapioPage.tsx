@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { apiPublico } from '../../lib/apiPublico'
 import { brl } from '../../lib/format'
 import { urlImagemProduto } from '../../lib/imagem'
+import ProdutoCustomModal from '../../components/ProdutoCustomModal'
 
 type Produto = {
   id: string
@@ -15,7 +16,7 @@ type Produto = {
   variacoes: { id: string; nome: string; precoAdicional: number }[]
 }
 type Categoria = { id: string; nome: string; icone?: string | null }
-type ItemCarrinho = { produtoId: string; variacaoId: string | null; nome: string; qtd: number; obs: string }
+type ItemCarrinho = { key: string; produtoId: string; variacaoId: string | null; nome: string; qtd: number; obs: string }
 
 export default function CardapioPage() {
   const { restaurantId = '', mesaId = '' } = useParams()
@@ -23,6 +24,7 @@ export default function CardapioPage() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [enviado, setEnviado] = useState(false)
+  const [customizando, setCustomizando] = useState<Produto | null>(null)
 
   const cardapio = useQuery({
     queryKey: ['cardapio-publico', restaurantId],
@@ -38,14 +40,22 @@ export default function CardapioPage() {
     return grupos
   }, [cardapio])
 
-  function addItem(p: Produto) {
-    const key = (x: ItemCarrinho) => x.produtoId === p.id && !x.variacaoId && !x.obs
-    const existe = carrinho.find(key)
+  function addItem(p: Produto, variacaoId: string | null, qtd: number, obs: string | null) {
+    const variacao = variacaoId ? p.variacoes?.find((v) => v.id === variacaoId) : null
+    const nome = p.nome + (variacao ? ` · ${variacao.nome}` : '')
+    const key = `${p.id}|${variacaoId ?? ''}|${obs ?? ''}`
+    const existe = carrinho.find((i) => i.key === key)
     if (existe) {
-      setCarrinho(carrinho.map((i) => (i === existe ? { ...i, qtd: i.qtd + 1 } : i)))
+      setCarrinho(carrinho.map((i) => (i === existe ? { ...i, qtd: i.qtd + qtd } : i)))
     } else {
-      setCarrinho([...carrinho, { produtoId: p.id, variacaoId: null, nome: p.nome, qtd: 1, obs: '' }])
+      setCarrinho([...carrinho, { key, produtoId: p.id, variacaoId, nome, qtd, obs: obs ?? '' }])
     }
+  }
+
+  function confirmarCustomizacao(sel: { variacaoId: string | null; qtd: number; observacoes: string | null }) {
+    if (!customizando) return
+    addItem(customizando, sel.variacaoId, sel.qtd, sel.observacoes)
+    setCustomizando(null)
   }
 
   function mudarQtd(idx: number, delta: number) {
@@ -120,7 +130,7 @@ export default function CardapioPage() {
                 {produtos.map((p) => (
                   <li key={p.id}>
                     <button
-                      onClick={() => addItem(p)}
+                      onClick={() => setCustomizando(p)}
                       className="flex w-full items-center gap-3 rounded-xl bg-white p-3 text-left shadow-sm transition active:scale-[0.99] hover:shadow"
                     >
                       {p.temImagem || p.imagemUrl ? (
@@ -135,7 +145,9 @@ export default function CardapioPage() {
                       )}
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-semibold text-slate-800">{p.nome}</span>
-                        <span className="block text-sm font-bold text-brand-600">{brl(p.preco)}</span>
+                        <span className="block text-sm font-bold text-brand-600">
+                          {(p.variacoes?.length ?? 0) > 0 ? `a partir de ${brl(p.preco)}` : brl(p.preco)}
+                        </span>
                       </span>
                       <span className="shrink-0 rounded-full bg-brand-600 px-3 py-1 text-xs font-bold text-white">+</span>
                     </button>
@@ -152,9 +164,10 @@ export default function CardapioPage() {
           <div className="mx-auto max-w-lg">
             <ul className="mb-2 max-h-40 space-y-1 overflow-y-auto">
               {carrinho.map((c, idx) => (
-                <li key={`${c.produtoId}-${idx}`} className="flex items-center gap-2 text-sm">
-                  <span className="flex-1 truncate text-slate-700">
+                <li key={c.key} className="flex items-center gap-2 text-sm">
+                  <span className="min-w-0 flex-1 truncate text-slate-700">
                     <b>{c.qtd}×</b> {c.nome}
+                    {c.obs && <span className="block truncate text-xs italic text-slate-400">{c.obs}</span>}
                   </span>
                   <button onClick={() => mudarQtd(idx, -1)} className="h-6 w-6 rounded-full bg-slate-100 font-bold text-slate-600">−</button>
                   <button onClick={() => mudarQtd(idx, +1)} className="h-6 w-6 rounded-full bg-slate-100 font-bold text-slate-600">+</button>
@@ -172,6 +185,13 @@ export default function CardapioPage() {
           </div>
         </div>
       )}
+
+      <ProdutoCustomModal
+        key={customizando?.id ?? 'none'}
+        produto={customizando}
+        onClose={() => setCustomizando(null)}
+        onConfirm={confirmarCustomizacao}
+      />
     </div>
   )
 }

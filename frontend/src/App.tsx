@@ -14,6 +14,7 @@ const NovoPedidoPage = lazy(() => import('./pages/caixa/NovoPedidoPage'))
 const PagamentoPage = lazy(() => import('./pages/caixa/PagamentoPage'))
 const ProdutosPage = lazy(() => import('./pages/produtos/ProdutosPage'))
 const ProdutoFormPage = lazy(() => import('./pages/produtos/ProdutoFormPage'))
+const CategoriasPage = lazy(() => import('./pages/produtos/CategoriasPage'))
 const MesasPage = lazy(() => import('./pages/mesas/MesasPage'))
 const EstoquePage = lazy(() => import('./pages/estoque/EstoquePage'))
 const CozinhaPage = lazy(() => import('./pages/cozinha/CozinhaPage'))
@@ -80,6 +81,7 @@ export default function App() {
           <Route path="produtos" element={<ProdutosPage />} />
           <Route path="produtos/novo" element={<ProdutoFormPage />} />
           <Route path="produtos/editar/:produtoId" element={<ProdutoFormPage />} />
+          <Route path="categorias" element={<CategoriasPage />} />
           <Route path="mesas" element={<MesasPage />} />
           <Route path="estoque" element={<EstoquePage />} />
           <Route path="cozinha" element={<CozinhaPage />} />

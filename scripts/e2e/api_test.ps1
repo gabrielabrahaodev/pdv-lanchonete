@@ -122,6 +122,42 @@ Step 'DELETE /produtos/{id}/imagem + publico 404' {
   catch { if ("$($_.Exception.Message)" -match 'ainda acessivel') { throw } ; return 'HTTP 404 correto' }
 }
 
+Write-Host "`n=== 4c. Cardapio digital: variacao + observacoes ===" -ForegroundColor Cyan
+$null = Step 'POST /produtos com variacao' {
+  $p = Invoke-Api POST '/api/produtos' @{
+    nome = 'QA Produto Variavel'; categoriaId = $catId; preco = 15
+    variacoes = @( @{ id = 'varqa1'; nome = 'Com Bacon'; precoAdicional = 3; ativo = $true } )
+    ingredientes = @()
+  }
+  $script:prodVarId = $p.id
+  return "id=$($p.id)"
+}
+Step 'POST publico /mesas/{m}/pedido com variacao+obs (SEM token)' {
+  $l = Invoke-Api GET '/api/mesas'
+  $livre = @($l | Where-Object { $_.status -eq 'livre' })[0]
+  if (-not $livre) { throw 'nenhuma mesa livre' }
+  $body = @{ itens = @( @{ produtoId = $script:prodVarId; variacaoId = 'varqa1'; qtd = 2; observacoes = 'sem cebola' } ) }
+  $json = ConvertTo-Json -InputObject $body -Depth 6 -Compress
+  $r = Invoke-RestMethod -Method Post -Uri "$Base/api/publico/$restId/mesas/$($livre.id)/pedido" -ContentType 'application/json' -Body ([System.Text.Encoding]::UTF8.GetBytes($json)) -TimeoutSec 120
+  $script:pubPedidoId = $r.pedidoId
+  return "pedido=$($r.pedidoId) mesa=$($livre.numero)"
+}
+Step 'item do pedido publico tem variacao e observacao' {
+  $p = Invoke-Api GET "/api/pedidos/$pubPedidoId"
+  $it = $p.itens[0]
+  if ($it.variacaoId -ne 'varqa1') { throw "variacaoId=$($it.variacaoId)" }
+  if ($it.observacoes -ne 'sem cebola') { throw "obs=$($it.observacoes)" }
+  if ($it.precoUnitario -ne 18) { throw "preco=$($it.precoUnitario) (base 15 + adicional 3)" }
+  return "var=varqa1 obs=ok preco=$($it.precoUnitario)"
+}
+Step 'cancelar pedido publico -> mesa livre' {
+  Invoke-Api POST "/api/pedidos/$pubPedidoId/cancelar" | Out-Null
+  $todas = Invoke-Api GET '/api/mesas'
+  $alvo = @($todas | Where-Object { $_.pedidoAtivoId -eq $pubPedidoId })[0]
+  if ($alvo) { throw "mesa $($alvo.id) ainda presa ao pedido" }
+  return 'mesas livres'
+}
+
 Write-Host "`n=== 5. Mesas ===" -ForegroundColor Cyan
 $mesa = Step 'GET /mesas (livre)' {
   $l = Invoke-Api GET '/api/mesas'

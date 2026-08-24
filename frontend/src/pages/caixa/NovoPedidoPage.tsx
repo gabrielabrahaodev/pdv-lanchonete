@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../../lib/api'
 import type { Category, Product, ProductVariation } from '../../types'
 import { Badge, Button, Card, ErrorState, Input, LoadingScreen, Select } from '../../components/ui'
+import ProdutoCustomModal from '../../components/ProdutoCustomModal'
 import { brl } from '../../lib/format'
 
 interface CartItem {
@@ -26,6 +27,7 @@ export default function NovoPedidoPage() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>('')
   const [busca, setBusca] = useState('')
+  const [customizando, setCustomizando] = useState<{ p: Product; variacaoId?: string } | null>(null)
 
   const categorias = useQuery({
     queryKey: ['categorias'],
@@ -96,13 +98,13 @@ export default function NovoPedidoPage() {
 
   const total = cart.reduce((s, i) => s + i.precoUnitario * i.qtd, 0)
 
-  function addToCart(produto: Product, variacao?: ProductVariation) {
-    const key = `${produto.id}|${variacao?.id ?? ''}`
+  function addToCart(produto: Product, variacao?: ProductVariation, qtd = 1, observacoes?: string) {
+    const key = `${produto.id}|${variacao?.id ?? ''}|${observacoes ?? ''}`
     setCart((prev) => {
       const idx = prev.findIndex((i) => i.key === key)
       if (idx >= 0) {
         const copy = [...prev]
-        copy[idx] = { ...copy[idx], qtd: copy[idx].qtd + 1 }
+        copy[idx] = { ...copy[idx], qtd: copy[idx].qtd + qtd }
         return copy
       }
       return [
@@ -112,11 +114,20 @@ export default function NovoPedidoPage() {
           produtoId: produto.id,
           variacaoId: variacao?.id,
           nome: produto.nome + (variacao ? ` · ${variacao.nome}` : ''),
-          qtd: 1,
+          qtd,
           precoUnitario: produto.preco + (variacao?.precoAdicional ?? 0),
+          observacoes,
         },
       ]
     })
+  }
+
+  function confirmarCustomizacao(sel: { variacaoId: string | null; qtd: number; observacoes: string | null }) {
+    if (!customizando) return
+    const { p } = customizando
+    const variacao = p.variacoes?.find((v) => v.id === sel.variacaoId)
+    addToCart(p, variacao, sel.qtd, sel.observacoes ?? undefined)
+    setCustomizando(null)
   }
 
   function changeQtd(key: string, delta: number) {
@@ -159,20 +170,29 @@ export default function NovoPedidoPage() {
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {produtosFiltrados.map((p) => (
             <Card key={p.id} className="flex flex-col p-4 transition hover:shadow-md">
-              <p className="font-semibold text-slate-800">{p.nome}</p>
-              <p className="text-sm text-brand-600">{brl(p.preco)}</p>
+              <button
+                type="button"
+                onClick={() => setCustomizando({ p })}
+                className="text-left"
+                title="Personalizar e adicionar"
+              >
+                <p className="font-semibold text-slate-800">{p.nome}</p>
+                <p className="text-sm text-brand-600">
+                  {p.variacoes?.some((v) => v.ativo) ? `a partir de ${brl(p.preco)}` : brl(p.preco)}
+                </p>
+              </button>
               <div className="mt-auto pt-3">
                 {p.variacoes?.length ? (
                   <div className="flex flex-wrap gap-1.5">
-                    <Button variant="secondary" className="!px-2 !py-1 !text-xs" onClick={() => addToCart(p)}>
-                      Padrão
+                    <Button variant="secondary" className="!px-2 !py-1 !text-xs" onClick={() => setCustomizando({ p })}>
+                      Personalizar
                     </Button>
                     {p.variacoes
                       .filter((v) => v.ativo)
                       .map((v) => (
                         <button
                           key={v.id}
-                          onClick={() => addToCart(p, v)}
+                          onClick={() => setCustomizando({ p, variacaoId: v.id })}
                           className="rounded-lg bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-100"
                         >
                           {v.nome}
@@ -181,7 +201,7 @@ export default function NovoPedidoPage() {
                       ))}
                   </div>
                 ) : (
-                  <Button variant="secondary" className="w-full !py-1 !text-xs" onClick={() => addToCart(p)}>
+                  <Button variant="secondary" className="w-full !py-1 !text-xs" onClick={() => setCustomizando({ p })}>
                     Adicionar
                   </Button>
                 )}
@@ -205,7 +225,8 @@ export default function NovoPedidoPage() {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-700">{item.nome}</p>
-                  <p className="text-xs text-slate-400">{brl(item.precoUnitario)}</p>
+                  <p className="text-xs text-brand-600">{brl(item.precoUnitario)}</p>
+                  {item.observacoes && <p className="mt-0.5 text-xs italic text-slate-400">✏️ {item.observacoes}</p>}
                 </div>
                 <QtyStepper onDec={() => changeQtd(item.key, -1)} onInc={() => changeQtd(item.key, 1)} qtd={item.qtd} />
               </div>
@@ -229,6 +250,14 @@ export default function NovoPedidoPage() {
           </Button>
         </div>
       </aside>
+
+      <ProdutoCustomModal
+        key={customizando?.p.id ?? 'none'}
+        produto={customizando?.p ?? null}
+        variacaoInicial={customizando?.variacaoId}
+        onClose={() => setCustomizando(null)}
+        onConfirm={confirmarCustomizacao}
+      />
     </div>
   )
 }

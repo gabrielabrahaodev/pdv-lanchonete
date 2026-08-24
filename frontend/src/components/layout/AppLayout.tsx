@@ -9,6 +9,7 @@ const NAV = [
   { to: '/caixa', label: 'Caixa', icon: '🧾' },
   { to: '/mesas', label: 'Mesas', icon: '🍽️' },
   { to: '/produtos', label: 'Produtos', icon: '🍔' },
+  { to: '/categorias', label: 'Categorias', icon: '🗂️' },
   { to: '/estoque', label: 'Estoque', icon: '📦' },
   { to: '/cozinha', label: 'Cozinha (KDS)', icon: '👨‍🍳' },
   { to: '/delivery', label: 'Delivery', icon: '🛵' },
