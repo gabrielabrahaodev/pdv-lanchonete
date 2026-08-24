@@ -28,7 +28,7 @@ Frontend: `cd frontend && npm run dev`. Credenciais de teste: `admin@restaurante
 
 Suíte **versionada no repo** em `scripts/e2e/` (instruções completas no `scripts/e2e/README.md`):
 
-- `api_test.ps1` — suíte de 40 testes da API (auth, CRUDs, **imagem do produto**, pedido→cozinha→pagamento minimalista B1, caixa, estoque, delivery + 422 plataforma inválida M4, **relatório com asserção de venda**, configurações) com cleanup automático. Padrão: produção (`-Base http://127.0.0.1:8000` para local). Estado: **40/40 PASS na produção** (2026-08-23).
+- `api_test.ps1` — suíte de 44 testes da API (auth, CRUDs, imagem do produto, **cardápio digital com variação+observações**, pedido→cozinha→pagamento minimalista B1, caixa, estoque, delivery + 422 plataforma inválida M4, relatório com asserção de venda, configurações) com cleanup automático. Padrão: produção (`-Base http://127.0.0.1:8000` para local). Estado: **44/44 PASS na produção** (2026-08-23).
 - `get-token.js` — login e salva ID token em `token.txt` (expira em 1h; requer `npm install` em `scripts/`).
 - `e2e_test.js` — fluxo do app client direto no Firestore (valida firestore.rules).
 - `scripts/e2e/token.txt` está no `.gitignore`.
@@ -87,6 +87,13 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 - **Frontend**: compressão no cliente (`comprimirImagem`: canvas → JPEG, lado máx 900px, qualidade decrescente até ~140 KB); ProdutoFormPage substituiu o campo "Imagem (URL)" por file picker + preview data-URL + remover; upload acontece na MESMA mutation do salvar (cria produto → PUT imagem com o id novo). Thumbnails em ProdutosPage e CardapioPage (`temImagem ? url pública : placeholder`; `imagemUrl` externa continua como fallback).
 - **Baseline local**: pytest 23/23 · tsc 0 · build PWA ok · suíte E2E **40/40** (`-Base http://127.0.0.1:8000`). **Deploy feito na sequência** (commit `c7afa8b` → Render + Hosting) e suíte revalidada NA PRODUÇÃO: **40/40 PASS**.
 - Correções NA SUÍTE durante esta sessão: `$me` guardava string de resumo do Step (não o objeto `/auth/me`) → usar `$script:restId`; assert 422 do M4 agora lê `Exception.Response.StatusCode` (o stream às vezes chega sem corpo legível e o match de texto `\[422\]` falhava).
+
+### Sessão 2026-08-23 (parte 3): customização no pedido + categorias
+
+- **Modal de customização** (`components/ProdutoCustomModal.tsx`, compartilhado): escolhe variação (radio com preço), quantidade e **retirar/adicionar** via chips de sugestão ("sem cebola", "bem passado"…) + texto livre ≤200 chars. Usado em `NovoPedidoPage` (PDV na mesa) e `CardapioPage` (QR) — clicar no produto abre o modal; chip de variação já abre pré-selecionado. Chave da linha no carrinho inclui variacao+obs (mesmo produto com obs diferentes = linhas separadas). Backend NÃO mudou (`OrderItemAdd` já aceitava variacao_id/observacoes; preço resolvido no servidor).
+- **Categorias**: tela própria `/categorias` (`CategoriasPage.tsx`) — CRUD completo com ícone (emoji), ordem, ativo/inativa; exclusão BLOQUEADA no frontend se houver produtos vinculados (backend não tem guard). Entrada no menu lateral após Produtos.
+- Cardápio QR mostra "a partir de R$ X" quando o produto tem variações.
+- Suíte E2E: seção 4c valida pedido público SEM token com variação+obs → item com `variacaoId`, `observacoes` e preço base+adicional → cancelar libera a mesa. **44/44 PASS produção** (commit `03aeb37`).
 
 ## Bugs já corrigidos (não reintroduzir)
 
