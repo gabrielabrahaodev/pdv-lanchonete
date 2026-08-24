@@ -60,6 +60,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.exception_handler(Exception)
+async def unhandled_exception(request, exc: Exception):
+    """500 com corpo JSON — passa pela pilha de middlewares e volta COM header
+    CORS (exceções não tratadas seriam mascaradas como erro de CORS no browser)."""
+    import logging
+
+    logging.getLogger("uvicorn.error").exception(f"500 em {request.method} {request.url.path}: {exc}")
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(status_code=500, content={"detail": f"Erro interno: {type(exc).__name__}"})
+
 for router in (
     auth.router,
     restaurantes.router,

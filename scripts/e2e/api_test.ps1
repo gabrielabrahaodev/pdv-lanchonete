@@ -190,6 +190,36 @@ Step 'Cozinha: item -> preparo -> pronto' {
   return "pedido=$($p.status) item=$($item.status)"
 }
 
+Write-Host "`n=== 6b. Cozinha bulk (cartao inteiro numa transacao) ===" -ForegroundColor Cyan
+$bulk = Step 'POST /pedidos com 2 itens (produtos distintos)' {
+  $l = Invoke-Api GET '/api/mesas'
+  $livre = @($l | Where-Object { $_.status -eq 'livre' })[0]
+  if (-not $livre) { throw 'nenhuma mesa livre' }
+  $p = Invoke-Api POST "/api/pedidos`?mesa_id=$($livre.id)&tipo=local" @(
+    @{ produtoId = $prodId; qtd = 1 },
+    @{ produtoId = $script:prodVarId; variacaoId = 'varqa1'; qtd = 1; observacoes = 'bem passado' }
+  )
+  $script:bulkPedidoId = $p.id
+  $script:bulkItemIds = @($p.itens | ForEach-Object { $_.id })
+  if ($p.itens.Count -ne 2) { throw "itens=$($p.itens.Count)" }
+  return "pedido=$($p.id) mesa=$($livre.numero)"
+}
+Step 'PATCH bulk preparo (1 chamada, 2 itens)' {
+  $r = Invoke-Api PATCH "/api/cozinha/pedidos/$bulkPedidoId/itens/status" @{ itemIds = $bulkItemIds; novoStatus = 'preparo' }
+  $prep = @($r.itens | Where-Object { $_.status -eq 'preparo' }).Count
+  if ($prep -ne 2) { throw "em preparo=$prep" }
+  return "2/2 em preparo"
+}
+Step 'PATCH bulk pronto + cancelar (mesa livre)' {
+  Invoke-Api PATCH "/api/cozinha/pedidos/$bulkPedidoId/itens/status" @{ itemIds = $bulkItemIds; novoStatus = 'pronto' } | Out-Null
+  $r = Invoke-Api POST "/api/pedidos/$bulkPedidoId/cancelar"
+  if ($r.status -ne 'cancelado') { throw "status=$($r.status)" }
+  $todas = Invoke-Api GET '/api/mesas'
+  $presa = @($todas | Where-Object { $_.pedidoAtivoId -eq $bulkPedidoId })[0]
+  if ($presa) { throw "mesa $($presa.id) ainda presa" }
+  return 'ok'
+}
+
 Write-Host "`n=== 7. Caixa ===" -ForegroundColor Cyan
 Step 'sessao-atual' {
   $s = Invoke-Api GET '/api/caixa/sessao-atual'

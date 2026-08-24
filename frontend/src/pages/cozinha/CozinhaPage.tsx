@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { hora } from '../../lib/format'
@@ -18,14 +18,21 @@ interface FilaItem {
   }[]
 }
 
-const COLUNAS = [
-  { status: 'pendente', titulo: '⏳ Pendente', proximo: 'preparo', acao: 'Iniciar preparo', cor: 'border-slate-300' },
-  { status: 'preparo', titulo: '🔥 Em preparo', proximo: 'pronto', acao: 'Marcar pronto', cor: 'border-sky-300' },
-  { status: 'pronto', titulo: '🔔 Pronto', proximo: 'entregue', acao: 'Entregar', cor: 'border-violet-300' },
+const SECOES = [
+  { status: 'pendente', titulo: '⏳ Pendentes', proximo: 'preparo', acao: '🔥 Iniciar preparo', botao: 'bg-amber-100 text-amber-800 hover:bg-amber-200' },
+  { status: 'preparo', titulo: '🔥 Em preparo', proximo: 'pronto', acao: '🔔 Marcar tudo pronto', botao: 'bg-sky-100 text-sky-800 hover:bg-sky-200' },
+  { status: 'pronto', titulo: '🔔 Prontos para entregar', proximo: 'entregue', acao: '✅ Entregar', botao: 'bg-violet-100 text-violet-800 hover:bg-violet-200' },
 ] as const
 
 export default function CozinhaPage() {
   const qc = useQueryClient()
+  const [, setTick] = useState(0)
+
+  // atualiza o tempo decorrido nos cartões
+  useEffect(() => {
+    const t = setInterval(() => setTick((x) => x + 1), 30_000)
+    return () => clearInterval(t)
+  }, [])
 
   const fila = useQuery({
     queryKey: ['cozinha-fila'],
@@ -39,9 +46,10 @@ export default function CozinhaPage() {
     staleTime: 60_000,
   })
 
+  /** Vários itens do MESMO pedido numa única transação (sem contenção). */
   const mudarStatus = useMutation({
-    mutationFn: ({ pedidoId, itemId, novo }: { pedidoId: string; itemId: string; novo: string }) =>
-      api(`/cozinha/pedidos/${pedidoId}/itens/${itemId}/status?novo_status=${novo}`, { method: 'PATCH' }),
+    mutationFn: ({ pedidoId, itemIds, novo }: { pedidoId: string; itemIds: string[]; novo: string }) =>
+      api(`/cozinha/pedidos/${pedidoId}/itens/status`, { method: 'PATCH', body: { itemIds, novoStatus: novo } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['cozinha-fila'] }),
   })
 
@@ -58,95 +66,118 @@ export default function CozinhaPage() {
   if (fila.isLoading) return <div className="p-6 text-slate-400">Carregando fila…</div>
 
   const pedidos = fila.data ?? []
+  const minutos = (criadoEm?: string | null) =>
+    criadoEm ? Math.max(0, Math.floor((Date.now() - new Date(criadoEm).getTime()) / 60000)) : 0
 
   return (
     <div className="h-full overflow-y-auto bg-slate-900 p-5">
       <header className="mb-5 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white">👨‍🍳 Cozinha — KDS</h1>
-          <p className="text-xs text-slate-400">Atualiza automaticamente a cada 8s</p>
+          <p className="text-xs text-slate-400">Um cartão por mesa · atualiza a cada 8s</p>
         </div>
         <span className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-bold text-emerald-400">
-          {pedidos.length} pedido(s) ativo(s)
+          {pedidos.length} mesa(s) ativa(s)
         </span>
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        {COLUNAS.map((col) => {
-          const cartoes = pedidos
-            .map((p) => ({
-              ...p,
-              itens: p.itens.filter((i) => i.status === col.status),
-            }))
-            .filter((p) => p.itens.length > 0)
+      {/* Um cartão por PEDIDO/MESA: a cozinha vê TUDO da mesa junto */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {pedidos.map((pedido) => {
+          const temPronto = pedido.itens.some((i) => i.status === 'pronto')
+          const emPreparo = pedido.itens.some((i) => i.status === 'preparo')
+          const borda = temPronto ? 'border-l-violet-500' : emPreparo ? 'border-l-sky-500' : 'border-l-slate-600'
 
           return (
-            <section key={col.status} className="space-y-3">
-              <h2 className={`flex items-center justify-between rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-bold text-white`}>
-                {col.titulo}
-                <span className="rounded-md bg-slate-700 px-2 py-0.5 text-xs">{cartoes.length}</span>
-              </h2>
+            <article key={pedido.id} className={`rounded-xl border-l-4 ${borda} bg-white p-4 shadow`}>
+              <div className="mb-3 flex items-center justify-between border-b border-slate-100 pb-2">
+                <span className="text-base font-extrabold text-slate-800">
+                  Mesa {pedido.mesaId?.replace('mesa_', '') ?? '?'}
+                </span>
+                <span className="flex items-center gap-2">
+                  <button
+                    onClick={() =>
+                      imprimir(
+                        `Comanda mesa ${pedido.mesaId}`,
+                        linhasComanda(
+                          pedido,
+                          pedido.itens
+                            .filter((i) => i.status !== 'pronto')
+                            .map((i) => ({
+                              qtd: i.qtd,
+                              nomeProduto: nomeProduto(i.produtoId),
+                              nomeVariacao: nomeVariacao(i.produtoId, i.variacaoId),
+                              observacoes: i.observacoes,
+                            })),
+                        ),
+                      )
+                    }
+                    title="Imprimir o que falta preparar"
+                    className="text-sm text-slate-400 transition hover:text-brand-600"
+                  >
+                    🖨
+                  </button>
+                  <span
+                    className={`rounded-md px-2 py-0.5 text-xs font-bold ${
+                      minutos(pedido.criadoEm) >= 20 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    ⏱ {minutos(pedido.criadoEm)} min
+                  </span>
+                </span>
+              </div>
 
-              {cartoes.map((cartao) => (
-                <article key={cartao.id} className={`rounded-xl border-l-4 ${col.cor} bg-white p-4 shadow`}>
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="font-bold text-slate-700">Mesa {cartao.mesaId?.replace('mesa_', '') ?? '?'}</span>
-                    <span className="flex items-center gap-2">
+              <div className="space-y-3">
+                {SECOES.map((sec) => {
+                  const itensSecao = pedido.itens.filter((i) => i.status === sec.status)
+                  if (!itensSecao.length) return null
+                  return (
+                    <div key={sec.status}>
+                      <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-slate-400">
+                        {sec.titulo} ({itensSecao.length})
+                      </p>
+                      <ul className="mb-1.5 space-y-1">
+                        {itensSecao.map((item) => (
+                          <li key={item.id} className="text-sm">
+                            <b>{item.qtd}×</b> <span className="font-semibold text-slate-700">{nomeProduto(item.produtoId)}</span>
+                            {nomeVariacao(item.produtoId, item.variacaoId) && (
+                              <span className="ml-1 rounded bg-brand-100 px-1.5 py-0.5 text-xs font-bold text-brand-700">
+                                {nomeVariacao(item.produtoId, item.variacaoId)}
+                              </span>
+                            )}
+                            {item.observacoes && (
+                              <span className="block pl-5 text-xs font-semibold italic text-amber-600">✏️ “{item.observacoes}”</span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
                       <button
                         onClick={() =>
-                          imprimir(
-                            `Comanda mesa ${cartao.mesaId}`,
-                            linhasComanda(
-                              cartao,
-                              cartao.itens.map((i) => ({
-                                qtd: i.qtd,
-                                nomeProduto: nomeProduto(i.produtoId),
-                                nomeVariacao: nomeVariacao(i.produtoId, i.variacaoId),
-                                observacoes: i.observacoes,
-                              })),
-                            ),
-                          )
+                          mudarStatus.mutate({
+                            pedidoId: pedido.id,
+                            itemIds: itensSecao.map((i) => i.id),
+                            novo: sec.proximo,
+                          })
                         }
-                        title="Imprimir comanda"
-                        className="text-sm text-slate-400 transition hover:text-brand-600"
+                        disabled={mudarStatus.isPending}
+                        className={`w-full rounded-lg py-1.5 text-xs font-bold transition ${sec.botao}`}
                       >
-                        🖨
+                        {sec.acao} →
                       </button>
-                      <span className="text-xs font-semibold text-slate-400">{hora(cartao.criadoEm)}</span>
-                    </span>
-                  </div>
-                  <ul className="mb-3 space-y-1">
-                    {cartao.itens.map((item) => (
-                      <li key={item.id} className="flex justify-between text-sm">
-                        <span className="text-slate-700">
-                          <b>{item.qtd}×</b> {nomeProduto(item.produtoId)}
-                          {nomeVariacao(item.produtoId, item.variacaoId) && (
-                            <em className="ml-1 text-xs text-slate-400">({nomeVariacao(item.produtoId, item.variacaoId)})</em>
-                          )}
-                          {item.observacoes && <span className="block text-xs italic text-amber-600">“{item.observacoes}”</span>}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    onClick={() => cartao.itens.forEach((i) => mudarStatus.mutate({ pedidoId: cartao.id, itemId: i.id, novo: col.proximo }))}
-                    disabled={mudarStatus.isPending}
-                    className="w-full rounded-lg bg-slate-100 py-1.5 text-xs font-bold text-slate-600 transition hover:bg-brand-50 hover:text-brand-700"
-                  >
-                    {col.acao} →
-                  </button>
-                </article>
-              ))}
-
-              {cartoes.length === 0 && (
-                <div className="rounded-xl border border-dashed border-slate-700 py-10 text-center text-sm text-slate-500">
-                  vazio
-                </div>
-              )}
-            </section>
+                    </div>
+                  )
+                })}
+              </div>
+            </article>
           )
         })}
       </div>
+
+      {pedidos.length === 0 && (
+        <div className="rounded-xl border border-dashed border-slate-700 py-16 text-center text-sm text-slate-500">
+          Nenhum pedido na fila 🎉
+        </div>
+      )}
     </div>
   )
 }

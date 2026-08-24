@@ -145,10 +145,28 @@ def atualizar_status_item(
     pedido_id: str,
     item_id: str,
     novo_status: str,
-    usuario_id: str | None = None,
+    usuario_id: None | str = None,
 ) -> dict:
+    return atualizar_status_itens(restaurant_id, pedido_id, [item_id], novo_status, usuario_id)
+
+
+def atualizar_status_itens(
+    restaurant_id: str,
+    pedido_id: str,
+    item_ids: list[str],
+    novo_status: str,
+    usuario_id: None | str = None,
+) -> dict:
+    """Transita VÁRIOS itens do mesmo pedido numa ÚNICA transação.
+
+    Tudo num doc só (pedido + movimentações de estoque): sem corrida quando
+    o KDS avança um cartão inteiro de uma vez. O consumo de receita dos itens
+    é AGREGADO antes de aplicar a baixa (dois itens que usam o mesmo insumo
+    geram uma única leitura/escrita por ingrediente).
+    """
     if novo_status not in STATUS_ITEM_VALIDOS:
         raise HTTPException(422, f"Status inválido. Use: {', '.join(sorted(STATUS_ITEM_VALIDOS))}")
+    ids = list(dict.fromkeys(item_ids))
 
     def txn(transaction, doc_ref):
         snap = next(iter(transaction.get(doc_ref)), None)
@@ -156,58 +174,71 @@ def atualizar_status_item(
             raise HTTPException(404, "Pedido não encontrado")
         pedido = doc_to_dict_local(snap)
         itens = list(pedido.get("itens", []))
-        alvo = next((i for i in itens if i.get("id") == item_id), None)
-        if not alvo:
-            raise HTTPException(404, "Item não encontrado no pedido")
-
-        baixa = None
-        if novo_status == "preparo" and alvo.get("status") == "pendente" and not alvo.get("baixadoEm"):
-            baixa = _baixar_ingredientes(transaction, restaurant_id, pedido_id, alvo, usuario_id)
-
-        for i in itens:
-            if i.get("id") == item_id:
-                i["status"] = novo_status
-                if baixa is not None:
-                    i["baixadoEm"] = now_utc()
-                break
+        consumo: dict[str, float] = {}
+        algum = False
+        receitas: dict[str, dict] = {}
+        for item in itens:
+            if item.get("id") not in ids or item.get("status") == "cancelado":
+                continue
+            algum = True
+            vai_baixar = (
+                novo_status == "preparo"
+                and item.get("status") == "pendente"
+                and not item.get("baixadoEm")
+            )
+            if vai_baixar:
+                pid = item.get("produtoId")
+                if pid:
+                    if pid not in receitas:
+                        receitas[pid] = _consumo_produto(restaurant_id, pid)
+                    mult = float(item.get("qtd", 1) or 1)
+                    for k, v in receitas[pid].items():
+                        consumo[k] = consumo.get(k, 0.0) + v * mult
+                item["baixadoEm"] = now_utc()
+            item["status"] = novo_status
+        if not algum:
+            raise HTTPException(404, "Nenhum dos itens informados está neste pedido")
+        if consumo:
+            _aplicar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
         transaction.update(doc_ref, stamp_update({"itens": itens}))
 
     return _run_txn(restaurant_id, pedido_id, txn)
 
 
-def _baixar_ingredientes(transaction, restaurant_id: str, pedido_id: str, item: dict, usuario_id: str | None) -> bool:
-    """Baixa os ingredientes da receita do produto no início do preparo.
+def _consumo_produto(restaurant_id: str, produto_id: str) -> dict[str, float]:
+    """Receita do produto agregada por itemId (vazio se sem receita/produto removido)."""
+    try:
+        produto = produtos_service.obter(restaurant_id, produto_id)
+    except HTTPException:
+        return {}
+    return calculos.agregar_consumo_receita((produto or {}).get("ingredientes") or [], 1)
 
-    Dentro da MESMA transação do update do pedido. Respeita o flag
-    `baixaEstoqueAutomatica` das configurações. Saldo pode ficar negativo
-    (não trava a operação). Sem receita/ingrediente válido, não faz nada —
-    quem marca a baixa (idempotência) é o campo `baixadoEm` no item.
-    Retorna True se houve qualquer escrita de movimentação.
-    """
+
+def _aplicar_consumo(
+    transaction,
+    restaurant_id: str,
+    pedido_id: str,
+    consumo: dict[str, float],
+    usuario_id: str | None,
+) -> bool:
+    """Escreve as saídas de estoque do consumo já agregado. Respeita o flag
+    `baixaEstoqueAutomatica`; saldo pode ficar negativo (não trava preparo).
+    Retorna True se houve qualquer escrita."""
     cfg_snap = next(iter(transaction.get(config_doc(restaurant_id))), None)
     if cfg_snap and cfg_snap.exists:
         if not (cfg_snap.to_dict() or {}).get("baixaEstoqueAutomatica", True):
             return False  # controle desativado pelo admin
 
-    try:
-        produto = (
-            produtos_service.obter(restaurant_id, item["produtoId"]) if item.get("produtoId") else None
-        )
-    except HTTPException:
-        produto = None  # produto removido: segue sem baixa, sem travar o preparo
-    consumo = calculos.agregar_consumo_receita(
-        (produto or {}).get("ingredientes") or [], item.get("qtd", 1)
-    )
-    if not consumo:
-        return False
-
     escreveu = False
     for iid, total in consumo.items():
+        total = round(total, 3)
+        if total <= 0:
+            continue
         ref = item_doc(restaurant_id, "estoque", iid)
         snap = next(iter(transaction.get(ref)), None)
         if not snap or not snap.exists:
             continue  # ingrediente removido do estoque: ignora sem travar o preparo
-        atual = float((snap.to_dict() or {}).get("quantidadeAtual", 0))
+        atual = float((snap.to_dict() or {}).get("quantidadeAtual", 0) or 0)
         novo_saldo = round(atual - total, 3)
         mov_ref = items_col(restaurant_id, "movimentacoes_estoque").document()
         transaction.set(

@@ -161,6 +161,18 @@ class OrderItemStatusUpdate(CamelModel):
     status: str  # preparo | pronto | entregue | cancelado
 
 
+class ItensStatusBulk(CamelModel):
+    """Transição de status de VÁRIOS itens do mesmo pedido numa ÚNICA transação.
+
+    Evita contenção de transação Firestore quando o KDS avança um cartão
+    inteiro (várias chamadas paralelas tocando o mesmo doc do pedido e os
+    mesmos ingredientes da receita).
+    """
+
+    item_ids: list[str] = Field(min_length=1, max_length=50)
+    novo_status: str
+
+
 class Payment(CamelModel):
     id: str
     tipo: str  # dinheiro | pix | credito | debito

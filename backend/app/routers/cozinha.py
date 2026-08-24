@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends
 
 from app.core.security import CurrentAuth, require_restaurant, require_roles
+from app.models.models import ItensStatusBulk
 from app.services import cozinha_service, pedidos_service
 
 router = APIRouter(prefix="/cozinha", tags=["cozinha"])
@@ -23,4 +24,16 @@ def status_item(
 ) -> dict:
     return pedidos_service.atualizar_status_item(
         auth.restaurant_id, pedido_id, item_id, novo_status, usuario_id=auth.uid
+    )
+
+
+@router.patch("/pedidos/{pedido_id}/itens/status")
+def status_itens_bulk(
+    pedido_id: str,
+    payload: ItensStatusBulk,
+    auth: CurrentAuth = Depends(STATUS),
+) -> dict:
+    """Avança vários itens do mesmo pedido numa ÚNICA transação (botão do cartão no KDS)."""
+    return pedidos_service.atualizar_status_itens(
+        auth.restaurant_id, pedido_id, payload.item_ids, payload.novo_status, usuario_id=auth.uid
     )
