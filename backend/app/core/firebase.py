@@ -24,9 +24,9 @@ _app: firebase_admin.App | None = None
 
 def _build_credential() -> tuple[credentials.Base | None, bool]:
     """Retorna (credential, passar_project_id_explicito)."""
-    if settings.service_account_json:
+    if settings.firebase_service_account_json:
         try:
-            data = json.loads(settings.service_account_json)
+            data = json.loads(settings.firebase_service_account_json)
             logger.info("Firebase Admin: usando FIREBASE_SERVICE_ACCOUNT_JSON (project_id=%s)", data.get("project_id"))
             return credentials.Certificate(data), True
         except Exception as exc:
