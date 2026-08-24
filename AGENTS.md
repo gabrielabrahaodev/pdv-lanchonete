@@ -28,7 +28,7 @@ Frontend: `cd frontend && npm run dev`. Credenciais de teste: `admin@restaurante
 
 Suíte **versionada no repo** em `scripts/e2e/` (instruções completas no `scripts/e2e/README.md`):
 
-- `api_test.ps1` — suíte de 40 testes da API (auth, CRUDs, **imagem do produto**, pedido→cozinha→pagamento minimalista B1, caixa, estoque, delivery + 422 plataforma inválida M4, **relatório com asserção de venda**, configurações) com cleanup automático. Padrão: produção (`-Base http://127.0.0.1:8000` para local). Estado: **40/40 PASS local** (produção ainda sem os endpoints de imagem — deploy pendente).
+- `api_test.ps1` — suíte de 40 testes da API (auth, CRUDs, **imagem do produto**, pedido→cozinha→pagamento minimalista B1, caixa, estoque, delivery + 422 plataforma inválida M4, **relatório com asserção de venda**, configurações) com cleanup automático. Padrão: produção (`-Base http://127.0.0.1:8000` para local). Estado: **40/40 PASS na produção** (2026-08-23).
 - `get-token.js` — login e salva ID token em `token.txt` (expira em 1h; requer `npm install` em `scripts/`).
 - `e2e_test.js` — fluxo do app client direto no Firestore (valida firestore.rules).
 - `scripts/e2e/token.txt` está no `.gitignore`.
@@ -85,7 +85,7 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 - **Rotas autenticadas**: `PUT/DELETE /api/produtos/{id}/imagem` (ESCRITA: admin/gerente/caixa). `DELETE /api/produtos/{id}` apaga a imagem junto (cascade).
 - **Rota pública**: `GET /api/publico/{rid}/imagens/{produto_id}` serve os BYTES (`Response`, `Cache-Control: public, max-age=3600`) — `<img>` não envia Authorization, então app e cardápio QR usam essa URL via `urlImagemProduto()` (`lib/imagem.ts`). FORA do rate limit de propósito (cardápio dispara N fotos em rajada) e sem gate `cardapioDigitalAtivo` (foto é conteúdo público; quem desativa o cardápio perde o menu que lista produtos).
 - **Frontend**: compressão no cliente (`comprimirImagem`: canvas → JPEG, lado máx 900px, qualidade decrescente até ~140 KB); ProdutoFormPage substituiu o campo "Imagem (URL)" por file picker + preview data-URL + remover; upload acontece na MESMA mutation do salvar (cria produto → PUT imagem com o id novo). Thumbnails em ProdutosPage e CardapioPage (`temImagem ? url pública : placeholder`; `imagemUrl` externa continua como fallback).
-- **Baseline local**: pytest 23/23 · tsc 0 · build PWA ok · suíte E2E **40/40** (`-Base http://127.0.0.1:8000`). Produção pendente de deploy (backend sem as rotas de imagem → os 5 casos novos falham lá até o push).
+- **Baseline local**: pytest 23/23 · tsc 0 · build PWA ok · suíte E2E **40/40** (`-Base http://127.0.0.1:8000`). **Deploy feito na sequência** (commit `c7afa8b` → Render + Hosting) e suíte revalidada NA PRODUÇÃO: **40/40 PASS**.
 - Correções NA SUÍTE durante esta sessão: `$me` guardava string de resumo do Step (não o objeto `/auth/me`) → usar `$script:restId`; assert 422 do M4 agora lê `Exception.Response.StatusCode` (o stream às vezes chega sem corpo legível e o match de texto `\[422\]` falhava).
 
 ## Bugs já corrigidos (não reintroduzir)
