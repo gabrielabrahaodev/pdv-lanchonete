@@ -56,6 +56,7 @@ Step '401 sem token' {
 $me = Step '/auth/me' {
   $m = Invoke-Api GET '/api/auth/me'
   if (-not $m.restaurantId) { throw 'restaurantId ausente' }
+  $script:restId = $m.restaurantId
   return "uid=$($m.uid) papel=$($m.papel) rest=$($m.restaurantId)"
 }
 
@@ -85,6 +86,41 @@ Step 'PATCH /produtos/{id} preco=12.5' {
   return "preco=$($p.preco)"
 }
 Step 'GET /produtos/{id}' { $p = Invoke-Api GET "/api/produtos/$prodId"; return $p.nome }
+
+Write-Host "`n=== 4b. Imagem do produto ===" -ForegroundColor Cyan
+# PNG 1x1 valido em base64 (payload minimo que passa na validacao do modelo)
+$png1px = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+Step 'PUT /produtos/{id}/imagem' {
+  $r = Invoke-Api PUT "/api/produtos/$prodId/imagem" @{ imagemBase64 = $png1px; mime = 'image/png' }
+  if ($r.mime -ne 'image/png') { throw "mime=$($r.mime)" }
+  return "produtoId=$($r.produtoId)"
+}
+Step 'produto ficou temImagem=true' {
+  $p = Invoke-Api GET "/api/produtos/$prodId"
+  if (-not $p.temImagem) { throw 'temImagem ausente/falso' }
+  return 'temImagem=True'
+}
+Step 'GET publico da foto SEM token -> bytes' {
+  # <img> nao envia Authorization: a foto precisa ser servida publica (com cache)
+  $resp = Invoke-WebRequest "$Base/api/publico/$restId/imagens/$prodId" -UseBasicParsing -TimeoutSec 120
+  if ([int]$resp.StatusCode -ne 200) { throw "status=$($resp.StatusCode)" }
+  if ($resp.Headers['Content-Type'] -notlike 'image/*') { throw "ct=$($resp.Headers['Content-Type'])" }
+  return "ct=$($resp.Headers['Content-Type']) bytes=$($resp.RawContentLength)"
+}
+Step 'cardapio publico traz temImagem' {
+  $c = Invoke-RestMethod "$Base/api/publico/$restId/cardapio" -TimeoutSec 120
+  $alvo = @($c.produtos | Where-Object { $_.id -eq $prodId })[0]
+  if (-not $alvo) { throw 'produto ausente no cardapio' }
+  if ($alvo.temImagem -ne $true) { throw "temImagem=$($alvo.temImagem)" }
+  return 'temImagem=True'
+}
+Step 'DELETE /produtos/{id}/imagem + publico 404' {
+  Invoke-Api DELETE "/api/produtos/$prodId/imagem" | Out-Null
+  $p = Invoke-Api GET "/api/produtos/$prodId"
+  if ($p.temImagem) { throw 'temImagem ainda verdadeiro' }
+  try { Invoke-WebRequest "$Base/api/publico/$restId/imagens/$prodId" -UseBasicParsing -TimeoutSec 120 | Out-Null; throw 'foto ainda acessivel' }
+  catch { if ("$($_.Exception.Message)" -match 'ainda acessivel') { throw } ; return 'HTTP 404 correto' }
+}
 
 Write-Host "`n=== 5. Mesas ===" -ForegroundColor Cyan
 $mesa = Step 'GET /mesas (livre)' {
@@ -190,7 +226,12 @@ Step 'POST delivery platform invalida -> 422 (M4)' {
     }
     throw 'deveria falhar'
   } catch {
-    if ($_.Exception.Message -match '\[422\]') { return 'HTTP 422 correto' }
+    # status direto da resposta OU do detalhe decorado pelo Invoke-Api (o stream
+    # as vezes chega sem corpo legivel e a mensagem cai no formato "(422) ...")
+    $code = 0
+    if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+    elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+    if ($code -eq 422) { return 'HTTP 422 correto' }
     throw
   }
 }

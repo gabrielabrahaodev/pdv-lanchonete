@@ -28,7 +28,7 @@ Frontend: `cd frontend && npm run dev`. Credenciais de teste: `admin@restaurante
 
 Suíte **versionada no repo** em `scripts/e2e/` (instruções completas no `scripts/e2e/README.md`):
 
-- `api_test.ps1` — suíte de 35 testes da API (auth, CRUDs, pedido→cozinha→pagamento minimalista B1, caixa, estoque, delivery + 422 plataforma inválida M4, **relatório com asserção de venda**, configurações) com cleanup automático. Padrão: produção (`-Base http://127.0.0.1:8000` para local). Estado: **35/35 PASS** na produção.
+- `api_test.ps1` — suíte de 40 testes da API (auth, CRUDs, **imagem do produto**, pedido→cozinha→pagamento minimalista B1, caixa, estoque, delivery + 422 plataforma inválida M4, **relatório com asserção de venda**, configurações) com cleanup automático. Padrão: produção (`-Base http://127.0.0.1:8000` para local). Estado: **40/40 PASS local** (produção ainda sem os endpoints de imagem — deploy pendente).
 - `get-token.js` — login e salva ID token em `token.txt` (expira em 1h; requer `npm install` em `scripts/`).
 - `e2e_test.js` — fluxo do app client direto no Firestore (valida firestore.rules).
 - `scripts/e2e/token.txt` está no `.gitignore`.
@@ -78,6 +78,15 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 - `/health` aceita **GET e HEAD** (`@app.api_route`) — monitores externos (UptimeRobot) fazem HEAD e antes recebiam 405.
 - Release do frontend: `$env:VITE_API_URL='https://pdv-lanchonete-dwiw.onrender.com'; npm run build; Remove-Item Env:VITE_API_URL` → `firebase deploy --only hosting`.
 - **Decisão registrada**: usuário optou por NÃO fechar o auto-cadastro — Firebase Auth e-mail/senha segue aberto e `POST /restaurantes/primeiro` também (conta órfã pode virar admin de restaurante novo no mesmo projeto, consumindo quota Spark; dados do tenant continuam protegidos por claims + firestore.rules). Se um dia quiser restringir: flag `onboarding_aberto` em config + gate no service (plano já discutido).
+
+### Sessão 2026-08-23 (parte 2): foto do produto no Firestore
+
+- **Modelo**: imagem vive em coleção própria `imagens/items/{produtoId}` (mesmo id do produto) para não pesar listagens; produto ganha flag `temImagem`. Payload `ImagemCreate {imagemBase64 ≤200k chars (~150 KB), mime jpeg|png|webp}`.
+- **Rotas autenticadas**: `PUT/DELETE /api/produtos/{id}/imagem` (ESCRITA: admin/gerente/caixa). `DELETE /api/produtos/{id}` apaga a imagem junto (cascade).
+- **Rota pública**: `GET /api/publico/{rid}/imagens/{produto_id}` serve os BYTES (`Response`, `Cache-Control: public, max-age=3600`) — `<img>` não envia Authorization, então app e cardápio QR usam essa URL via `urlImagemProduto()` (`lib/imagem.ts`). FORA do rate limit de propósito (cardápio dispara N fotos em rajada) e sem gate `cardapioDigitalAtivo` (foto é conteúdo público; quem desativa o cardápio perde o menu que lista produtos).
+- **Frontend**: compressão no cliente (`comprimirImagem`: canvas → JPEG, lado máx 900px, qualidade decrescente até ~140 KB); ProdutoFormPage substituiu o campo "Imagem (URL)" por file picker + preview data-URL + remover; upload acontece na MESMA mutation do salvar (cria produto → PUT imagem com o id novo). Thumbnails em ProdutosPage e CardapioPage (`temImagem ? url pública : placeholder`; `imagemUrl` externa continua como fallback).
+- **Baseline local**: pytest 23/23 · tsc 0 · build PWA ok · suíte E2E **40/40** (`-Base http://127.0.0.1:8000`). Produção pendente de deploy (backend sem as rotas de imagem → os 5 casos novos falham lá até o push).
+- Correções NA SUÍTE durante esta sessão: `$me` guardava string de resumo do Step (não o objeto `/auth/me`) → usar `$script:restId`; assert 422 do M4 agora lê `Exception.Response.StatusCode` (o stream às vezes chega sem corpo legível e o match de texto `\[422\]` falhava).
 
 ## Bugs já corrigidos (não reintroduzir)
 

@@ -82,6 +82,17 @@ class ProductUpdate(CamelModel):
     estoque_minimo: Optional[int] = None
 
 
+class ImagemCreate(CamelModel):
+    """Imagem do produto comprimida no cliente e transportada em base64.
+
+    Gravada em coleção própria (`imagens/items/{produtoId}`) para não pesar
+    as listagens; limite de ~150 KB reais (~200 mil chars base64).
+    """
+
+    imagem_base64: str = Field(min_length=16, max_length=200_000)
+    mime: Literal["image/jpeg", "image/png", "image/webp"]
+
+
 class Category(CamelModel):
     id: str
     restaurant_id: str

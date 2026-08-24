@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { comprimirImagem, urlImagemProduto } from '../../lib/imagem'
 import type { Category, InventoryItem, ProductDraft } from '../../types'
 import { Button, Card, ErrorState, Field, Input, LoadingScreen, Select } from '../../components/ui'
+import { useAuth } from '../../context/AuthContext'
 
 type VariacaoForm = { id: string; nome: string; precoAdicional: string; ativo: boolean }
 type IngredienteForm = { itemId: string; qtd: string }
@@ -13,6 +15,7 @@ export default function ProdutoFormPage() {
   const editando = !!produtoId
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const { me } = useAuth()
 
   const categorias = useQuery({
     queryKey: ['categorias'],
@@ -34,13 +37,17 @@ export default function ProdutoFormPage() {
     nome: '',
     categoriaId: '',
     preco: '',
-    imagemUrl: '',
     estoqueMinimo: '0',
     ativo: true,
   })
   const [variacoes, setVariacoes] = useState<VariacaoForm[]>([])
   const [ingredientes, setIngredientes] = useState<IngredienteForm[]>([])
   const [erro, setErro] = useState<string | null>(null)
+
+  const [temImagem, setTemImagem] = useState(false)
+  const [novaImagem, setNovaImagem] = useState<{ imagemBase64: string; mime: 'image/jpeg' } | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [removerImagem, setRemoverImagem] = useState(false)
 
   useEffect(() => {
     if (produto.data) {
@@ -49,10 +56,13 @@ export default function ProdutoFormPage() {
         nome: p.nome,
         categoriaId: p.categoriaId,
         preco: String(p.preco).replace('.', ','),
-        imagemUrl: p.imagemUrl ?? '',
         estoqueMinimo: String(p.estoqueMinimo ?? 0),
         ativo: p.ativo,
       })
+      setTemImagem(!!p.temImagem)
+      setNovaImagem(null)
+      setPreview(null)
+      setRemoverImagem(false)
       setVariacoes(
         (p.variacoes ?? []).map((v) => ({
           id: v.id,
@@ -67,13 +77,33 @@ export default function ProdutoFormPage() {
     }
   }, [produto.data])
 
+  async function escolherImagem(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // permite re-selecionar o mesmo arquivo
+    if (!file) return
+    try {
+      const img = await comprimirImagem(file)
+      setNovaImagem(img)
+      setPreview(`data:image/jpeg;base64,${img.imagemBase64}`)
+      setRemoverImagem(false)
+      setErro(null)
+    } catch {
+      setErro('Não foi possível ler a imagem escolhida')
+    }
+  }
+
+  function limparImagem() {
+    setNovaImagem(null)
+    setPreview(null)
+    setRemoverImagem(true)
+  }
+
   const salvar = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const body = {
         nome: form.nome.trim(),
         categoriaId: form.categoriaId,
         preco: Number(form.preco.replace(',', '.')),
-        imagemUrl: form.imagemUrl || null,
         estoqueMinimo: Number(form.estoqueMinimo) || 0,
         ativo: form.ativo,
         variacoes: variacoes.map((v) => ({
@@ -86,9 +116,19 @@ export default function ProdutoFormPage() {
           .filter((i) => i.itemId && Number(i.qtd.replace(',', '.')) > 0)
           .map((i) => ({ itemId: i.itemId, qtd: Number(i.qtd.replace(',', '.')) })),
       }
-      return editando
-        ? api(`/produtos/${produtoId}`, { method: 'PATCH', body })
-        : api('/produtos', { method: 'POST', body })
+      const salvo = editando
+        ? await api<{ id?: string }>(`/produtos/${produtoId}`, { method: 'PATCH', body })
+        : await api<{ id?: string }>('/produtos', { method: 'POST', body })
+      const pid = editando ? produtoId! : salvo.id!
+      if (novaImagem) {
+        await api(`/produtos/${pid}/imagem`, {
+          method: 'PUT',
+          body: { imagemBase64: novaImagem.imagemBase64, mime: novaImagem.mime },
+        })
+      } else if (removerImagem && produto.data?.temImagem) {
+        await api(`/produtos/${pid}/imagem`, { method: 'DELETE' })
+      }
+      return salvo
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['produtos'] })
@@ -132,9 +172,32 @@ export default function ProdutoFormPage() {
           <Field label="Estoque mínimo (produção)">
             <Input inputMode="numeric" value={form.estoqueMinimo} onChange={(e) => setForm({ ...form, estoqueMinimo: e.target.value })} />
           </Field>
-          <Field label="Imagem (URL)">
-            <Input value={form.imagemUrl} onChange={(e) => setForm({ ...form, imagemUrl: e.target.value })} placeholder="https://…" />
-          </Field>
+          <div className="col-span-2">
+            <span className="mb-1 block text-sm font-medium text-slate-600">Foto</span>
+            <div className="flex items-center gap-3">
+              {preview || (temImagem && !removerImagem && produtoId) ? (
+                <img
+                  src={preview ?? urlImagemProduto(me?.restaurantId ?? '', produtoId!)}
+                  alt=""
+                  className="h-16 w-16 rounded-lg border border-slate-200 object-cover dark:border-slate-700"
+                />
+              ) : (
+                <span className="grid h-16 w-16 place-items-center rounded-lg border border-dashed border-slate-300 text-xl text-slate-400">🖼️</span>
+              )}
+              <div>
+                <label className="inline-block cursor-pointer rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+                  {novaImagem ? 'Trocar foto' : 'Escolher foto'}
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => void escolherImagem(e)} />
+                </label>
+                {(temImagem || novaImagem) && (
+                  <button type="button" onClick={limparImagem} className="ml-3 text-xs text-rose-500 hover:underline">
+                    Remover
+                  </button>
+                )}
+                <p className="mt-1 text-xs text-slate-400">JPG/PNG · comprimida automaticamente (~140 KB)</p>
+              </div>
+            </div>
+          </div>
           <label className="flex items-end gap-2 pb-1 text-sm font-medium text-slate-600">
             <input
               type="checkbox"

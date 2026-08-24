@@ -2,6 +2,9 @@ import { auth } from './firebase'
 
 const BASE = import.meta.env.VITE_API_URL ?? ''
 
+/** Base da API (para montar URLs de <img>, ex.: foto do produto). */
+export const API_BASE = BASE
+
 export class ApiError extends Error {
   status: number
   constructor(status: number, message: string) {

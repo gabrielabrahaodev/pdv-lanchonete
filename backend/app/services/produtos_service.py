@@ -1,9 +1,11 @@
-"""CRUD de produtos (com variações e ingredientes)."""
+"""CRUD de produtos (com variações, ingredientes e imagem)."""
 from __future__ import annotations
+
+import base64
 
 from fastapi import HTTPException
 
-from app.models.models import ProductCreate, ProductUpdate
+from app.models.models import ImagemCreate, ProductCreate, ProductUpdate
 from app.services.base import ensure_parent, get_item, item_doc, items_col, list_items, stamp_create, stamp_update
 
 
@@ -41,3 +43,40 @@ def atualizar(restaurant_id: str, produto_id: str, payload: ProductUpdate) -> di
 
 def remover(restaurant_id: str, produto_id: str) -> None:
     item_doc(restaurant_id, "produtos", produto_id).delete()
+    # imagem é opcional; apaga se existir (evita órfão)
+    item_doc(restaurant_id, "imagens", produto_id).delete()
+
+
+# ------------------------------------------------------------------ imagem
+def obter_imagem(restaurant_id: str, produto_id: str) -> dict | None:
+    return get_item(restaurant_id, "imagens", produto_id)
+
+
+def definir_imagem(restaurant_id: str, produto_id: str, payload: ImagemCreate) -> dict:
+    obter(restaurant_id, produto_id)  # 404 se produto não existe
+    ensure_parent(restaurant_id, "imagens")
+    data = {"produtoId": produto_id, "mime": payload.mime, "base64": payload.imagem_base64}
+    ref = item_doc(restaurant_id, "imagens", produto_id)
+    if get_item(restaurant_id, "imagens", produto_id):
+        ref.update(stamp_update(data))
+    else:
+        ref.set(stamp_create(data))
+    item_doc(restaurant_id, "produtos", produto_id).update(stamp_update({"temImagem": True}))
+    return {"produtoId": produto_id, "mime": payload.mime}
+
+
+def remover_imagem(restaurant_id: str, produto_id: str) -> None:
+    obter(restaurant_id, produto_id)  # 404 se produto não existe
+    item_doc(restaurant_id, "imagens", produto_id).delete()
+    item_doc(restaurant_id, "produtos", produto_id).update(stamp_update({"temImagem": False}))
+
+
+def bytes_imagem(restaurant_id: str, produto_id: str) -> tuple[bytes, str] | None:
+    """Retorna (conteúdo, mime) da foto do produto, ou None se não houver."""
+    doc = get_item(restaurant_id, "imagens", produto_id)
+    if not doc or not doc.get("base64"):
+        return None
+    try:
+        return base64.b64decode(doc["base64"]), doc.get("mime") or "image/jpeg"
+    except Exception:
+        return None

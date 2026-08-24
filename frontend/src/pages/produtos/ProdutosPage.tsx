@@ -6,11 +6,14 @@ import type { Category, Product } from '../../types'
 import { Button, Card, EmptyState, ErrorState, Input, LoadingScreen, Select } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl } from '../../lib/format'
+import { urlImagemProduto } from '../../lib/imagem'
+import { useAuth } from '../../context/AuthContext'
 
 export default function ProdutosPage() {
   const qc = useQueryClient()
   const [busca, setBusca] = useState('')
   const [categoriaFiltro, setCategoriaFiltro] = useState('')
+  const { me } = useAuth()
 
   const produtos = useQuery({
     queryKey: ['produtos'],
@@ -81,7 +84,21 @@ export default function ProdutosPage() {
           <tbody className="divide-y divide-slate-100">
             {lista.map((p) => (
               <tr key={p.id} className="hover:bg-slate-50">
-                <td className="px-5 py-3 font-semibold text-slate-800">{p.nome}</td>
+                <td className="px-5 py-3">
+                  <div className="flex items-center gap-3 font-semibold text-slate-800">
+                    {p.temImagem ? (
+                      <img
+                        src={urlImagemProduto(me?.restaurantId ?? '', p.id)}
+                        alt=""
+                        className="h-9 w-9 shrink-0 rounded-lg object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-sm dark:bg-slate-800">🍽️</span>
+                    )}
+                    {p.nome}
+                  </div>
+                </td>
                 <td className="px-5 py-3 text-slate-500">
                   {(categorias.data ?? []).find((c) => c.id === p.categoriaId)?.nome ?? '—'}
                 </td>

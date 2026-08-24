@@ -46,6 +46,7 @@ export interface Product {
   variacoes: ProductVariation[]
   ingredientes: ProductIngredient[]
   imagemUrl?: string | null
+  temImagem?: boolean
   ativo: boolean
   estoqueMinimo: number
 }

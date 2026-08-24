@@ -10,7 +10,7 @@ from __future__ import annotations
 import time
 from collections import defaultdict, deque
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.models.models import OrderItemAdd
 from app.services import pedidos_service, produtos_service
@@ -62,6 +62,7 @@ def cardapio(restaurant_id: str, request: Request) -> dict:
             "categoriaId": p.get("categoriaId"),
             "preco": p.get("preco"),
             "imagemUrl": p.get("imagemUrl"),
+            "temImagem": bool(p.get("temImagem")),
             "variacoes": [
                 {"id": v["id"], "nome": v.get("nome"), "precoAdicional": v.get("precoAdicional", 0)}
                 for v in (p.get("variacoes") or [])
@@ -71,6 +72,27 @@ def cardapio(restaurant_id: str, request: Request) -> dict:
         for p in produtos_service.listar(restaurant_id, apenas_ativos=True)
     ]
     return {"categorias": sorted(categorias, key=lambda c: c["ordem"]), "produtos": produtos}
+
+
+@router.get("/{restaurant_id}/imagens/{produto_id}")
+def imagem_produto(restaurant_id: str, produto_id: str) -> Response:
+    """Bytes da foto do produto — usada em <img> pelo app e pelo cardápio QR.
+
+    Fora do rate limit de propósito: a página do cardápio dispara N fotos em
+    rajada. Sem o gate cardapioDigitalAtivo também (foto é conteúdo público de
+    venda; quem desativar o cardápio não tem o menu listando os produtos).
+    """
+    if not restaurant_doc_exists(restaurant_id):
+        raise HTTPException(404, "Restaurante não encontrado")
+    dados = produtos_service.bytes_imagem(restaurant_id, produto_id)
+    if not dados:
+        raise HTTPException(404, "Imagem não encontrada")
+    conteudo, mime = dados
+    return Response(
+        content=conteudo,
+        media_type=mime,
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
 
 
 @router.post("/{restaurant_id}/mesas/{mesa_id}/pedido", status_code=201)

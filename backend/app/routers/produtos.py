@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, Query
 
 from app.core.security import CurrentAuth, require_restaurant, require_roles
-from app.models.models import ProductCreate, ProductUpdate
+from app.models.models import ImagemCreate, ProductCreate, ProductUpdate
 from app.services import produtos_service
 
 router = APIRouter(prefix="/produtos", tags=["produtos"])
@@ -37,3 +37,15 @@ def atualizar(produto_id: str, payload: ProductUpdate, auth: CurrentAuth = Depen
 @router.delete("/{produto_id}", status_code=204)
 def remover(produto_id: str, auth: CurrentAuth = Depends(ESCRITA)) -> None:
     produtos_service.remover(auth.restaurant_id, produto_id)
+
+
+# ------------------------------------------------------------------ imagem
+@router.put("/{produto_id}/imagem")
+def definir_imagem(produto_id: str, payload: ImagemCreate, auth: CurrentAuth = Depends(ESCRITA)) -> dict:
+    """Grava a foto do produto (base64 comprimido no cliente, ~150 KB)."""
+    return produtos_service.definir_imagem(auth.restaurant_id, produto_id, payload)
+
+
+@router.delete("/{produto_id}/imagem", status_code=204)
+def remover_imagem(produto_id: str, auth: CurrentAuth = Depends(ESCRITA)) -> None:
+    produtos_service.remover_imagem(auth.restaurant_id, produto_id)

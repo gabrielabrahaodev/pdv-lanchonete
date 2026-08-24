@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { apiPublico } from '../../lib/apiPublico'
 import { brl } from '../../lib/format'
+import { urlImagemProduto } from '../../lib/imagem'
 
 type Produto = {
   id: string
@@ -10,6 +11,7 @@ type Produto = {
   categoriaId: string
   preco: number
   imagemUrl?: string | null
+  temImagem?: boolean
   variacoes: { id: string; nome: string; precoAdicional: number }[]
 }
 type Categoria = { id: string; nome: string; icone?: string | null }
@@ -121,8 +123,13 @@ export default function CardapioPage() {
                       onClick={() => addItem(p)}
                       className="flex w-full items-center gap-3 rounded-xl bg-white p-3 text-left shadow-sm transition active:scale-[0.99] hover:shadow"
                     >
-                      {p.imagemUrl ? (
-                        <img src={p.imagemUrl} alt={p.nome ?? ''} className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+                      {p.temImagem || p.imagemUrl ? (
+                        <img
+                          src={p.temImagem ? urlImagemProduto(restaurantId, p.id) : (p.imagemUrl ?? '')}
+                          alt={p.nome ?? ''}
+                          className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                          loading="lazy"
+                        />
                       ) : (
                         <span className="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-brand-50 text-2xl">🍽️</span>
                       )}
