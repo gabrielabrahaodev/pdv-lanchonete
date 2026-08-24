@@ -1,0 +1,3366 @@
+{
+  "geradoEm": "2026-08-24T01:35:48.789Z",
+  "projeto": "pdv-lanchonete-1fa79",
+  "tenants": {
+    "rest_45238bbe279b4d38": {
+      "criadoEm": {
+        "_seconds": 1787437823,
+        "_nanoseconds": 708489000
+      },
+      "nome": "De Novo",
+      "config": {
+        "createdAt": {
+          "_seconds": 1787437823,
+          "_nanoseconds": 709489000
+        },
+        "updatedAt": {
+          "_seconds": 1787437823,
+          "_nanoseconds": 709489000
+        },
+        "impressoraTipo": "bluetooth",
+        "timezone": "America/Sao_Paulo",
+        "moeda": "BRL",
+        "impressoraEndereco": "",
+        "nome": "De Novo"
+      },
+      "colecoes": {
+        "mesas": [
+          {
+            "id": "mesa_01",
+            "createdAt": {
+              "_seconds": 1787437823,
+              "_nanoseconds": 709489000
+            },
+            "updatedAt": {
+              "_seconds": 1787437823,
+              "_nanoseconds": 709489000
+            },
+            "status": "livre",
+            "numero": 1
+          }
+        ],
+        "usuarios": [
+          {
+            "id": "QTVVyWcA4Nf7EqZZhUXtEtmqULC3",
+            "restaurantId": "rest_45238bbe279b4d38",
+            "nome": "qa_onboard_1787437821724@teste.com",
+            "papel": "admin",
+            "ativo": true,
+            "email": "qa_onboard_1787437821724@teste.com",
+            "criadoEm": {
+              "_seconds": 1787437823,
+              "_nanoseconds": 708489000
+            },
+            "tema": "claro",
+            "atualizadoEm": {
+              "_seconds": 1787437823,
+              "_nanoseconds": 708489000
+            }
+          }
+        ]
+      }
+    },
+    "restaurante_001": {
+      "nome": "Minha Lanchonete",
+      "criadoEm": {
+        "_seconds": 1787430909,
+        "_nanoseconds": 211000000
+      },
+      "config": {
+        "moeda": "BRL",
+        "timezone": "America/Sao_Paulo",
+        "impressoraTipo": "bluetooth",
+        "impressoraEndereco": "",
+        "createdAt": {
+          "_seconds": 1787430909,
+          "_nanoseconds": 212000000
+        },
+        "nome": "Lanchonete QA",
+        "baixaEstoqueAutomatica": true,
+        "cardapioDigitalAtivo": true,
+        "updatedAt": {
+          "_seconds": 1787533829,
+          "_nanoseconds": 82885000
+        }
+      },
+      "colecoes": {
+        "categorias": [
+          {
+            "id": "cat_bebidas",
+            "nome": "Bebidas",
+            "ordem": 2,
+            "icone": "🥤",
+            "cor": "#42A5F5",
+            "ativo": true,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            }
+          },
+          {
+            "id": "cat_hamburgueres",
+            "nome": "Hambúrgueres",
+            "ordem": 1,
+            "icone": "🍔",
+            "cor": "#EF5350",
+            "ativo": true,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            }
+          },
+          {
+            "id": "cat_porcoes",
+            "nome": "Porções",
+            "ordem": 3,
+            "icone": "🍟",
+            "cor": "#FFCA28",
+            "ativo": true,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            }
+          },
+          {
+            "id": "cat_sobremesas",
+            "nome": "Sobremesas",
+            "ordem": 4,
+            "icone": "🍰",
+            "cor": "#AB47BC",
+            "ativo": true,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            }
+          }
+        ],
+        "delivery_orders": [
+          {
+            "id": "6phvbZ1pP99nxv8fnPP4",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_4a214f59446a47fe",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787432579,
+              "_nanoseconds": 521822000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "qR3bLHW8wGu5CoOIOWfw",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_1bee9fed9f8a4eaa"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787432579,
+              "_nanoseconds": 596244000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787432579,
+              "_nanoseconds": 690803000
+            }
+          },
+          {
+            "id": "7COp9iQuiisSdVdRXRzo",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_e605cebee9db416a",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787438097,
+              "_nanoseconds": 15965000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "flictsuNi4o5Z7U72YSE",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_4c84126d1e9e4bce"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787438097,
+              "_nanoseconds": 75801000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787438097,
+              "_nanoseconds": 177611000
+            }
+          },
+          {
+            "id": "CvUwAMQR2uPbSa38NX4T",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_81e6b4a3b816405e",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787442780,
+              "_nanoseconds": 280029000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "Bzf8cxgLzCslPTBGdX91",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_74e6526f5e3c4d96"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787442780,
+              "_nanoseconds": 345674000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787442780,
+              "_nanoseconds": 443582000
+            }
+          },
+          {
+            "id": "FgvuLNB2Wbvxz8hq6jNP",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_6b755a9535854b6e",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787439571,
+              "_nanoseconds": 890357000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "oMFaHxWKMybExMsPGnUH",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_5b7bd8a8c53d4414"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787439571,
+              "_nanoseconds": 956469000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787439572,
+              "_nanoseconds": 46120000
+            }
+          },
+          {
+            "id": "Hpu7CcidCLTmOq3bHQVg",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_20fc5df774f040d4",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787433096,
+              "_nanoseconds": 363809000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "XZWOoSdguy9qabWtclcq",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_80c74dda222844cd"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787433096,
+              "_nanoseconds": 421138000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787433096,
+              "_nanoseconds": 507818000
+            }
+          },
+          {
+            "id": "QQsZg2WK72ZvH3i0UViX",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_6cdb08888f0e42b8",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787431608,
+              "_nanoseconds": 505765000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "sJu5e8NN6hNTpdx8FtzM",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_07b6f5ac456b4ec0"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787431608,
+              "_nanoseconds": 573659000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787431608,
+              "_nanoseconds": 685657000
+            }
+          },
+          {
+            "id": "a9Wn6X37MHoc6p8aqURt",
+            "createdAt": {
+              "_seconds": 1787531582,
+              "_nanoseconds": 786563000
+            },
+            "platform": "proprio",
+            "itens": [
+              {
+                "observacoes": null,
+                "id": "dit_cb2617fdc3384ff4",
+                "precoUnitario": 12.5,
+                "qtd": 1,
+                "produtoId": "syF8YJu0ikGWHOgtAYDc",
+                "nome": "QA Produto"
+              }
+            ],
+            "restaurantId": "restaurante_001",
+            "clienteNome": "Cliente QA",
+            "clienteTelefone": "11999990000",
+            "total": 12.5,
+            "externalId": "ext_1fbf9b7d88bb465b",
+            "confirmadoEm": {
+              "_seconds": 1787531583,
+              "_nanoseconds": 359206000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787531584,
+              "_nanoseconds": 207431000
+            }
+          },
+          {
+            "id": "afSVINyOzStASIgqGQXN",
+            "externalId": "ext_1884b081daeb446f",
+            "platform": "proprio",
+            "restaurantId": "restaurante_001",
+            "total": 12.5,
+            "clienteTelefone": "11999990000",
+            "createdAt": {
+              "_seconds": 1787533825,
+              "_nanoseconds": 835715000
+            },
+            "clienteNome": "Cliente QA",
+            "itens": [
+              {
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "produtoId": "Gx8f38to76P308akhUhc",
+                "nome": "QA Produto",
+                "id": "dit_9be352910da94515",
+                "observacoes": null
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787533826,
+              "_nanoseconds": 389805000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787533827,
+              "_nanoseconds": 246631000
+            }
+          },
+          {
+            "id": "e8B9jKzXLT9G9IUH4hL2",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_fe233848e52c4ce7",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787433074,
+              "_nanoseconds": 895470000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "YYMYxlTpxdhjnFCJfFkD",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_39ce8186573a435c"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787433074,
+              "_nanoseconds": 952557000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787433075,
+              "_nanoseconds": 40371000
+            }
+          },
+          {
+            "id": "f5LN09lzvYkuLMTl7mnG",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_5a8b43a9fdd3402e",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787432953,
+              "_nanoseconds": 977820000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "0TjnKd2xZ8at7QsHmvoI",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_b9bd0ae4b45d416a"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787432954,
+              "_nanoseconds": 37963000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787432954,
+              "_nanoseconds": 126727000
+            }
+          },
+          {
+            "id": "iZsXJXxadC3YojXettY9",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_fd5389897e3b4220",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787432184,
+              "_nanoseconds": 534847000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "2cKKXA88oMxJpKQM09fQ",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_b88d03e7945a4f56"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787432184,
+              "_nanoseconds": 597035000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787432184,
+              "_nanoseconds": 701351000
+            }
+          },
+          {
+            "id": "l1qFuPwBHjsIcLY3cYto",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_da8b496f0e5d446f",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787432699,
+              "_nanoseconds": 357641000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "Y4719jPFqlNoIhdmMFbE",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_02f0492cc32d471e"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787432699,
+              "_nanoseconds": 421548000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787432699,
+              "_nanoseconds": 509633000
+            }
+          },
+          {
+            "id": "lUO9UzbdefbxHaVUKGBI",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_b8939221e10742ac",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787434728,
+              "_nanoseconds": 65289000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "MNTPW11yRmFHmSz1onD6",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_8184fb9d3bbb491c"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787434728,
+              "_nanoseconds": 127017000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787434728,
+              "_nanoseconds": 238029000
+            }
+          },
+          {
+            "id": "uwufNRO2x8cFdsEikcmf",
+            "restaurantId": "restaurante_001",
+            "externalId": "ext_a3e82e1f3b004f0a",
+            "platform": "proprio",
+            "clienteNome": "Cliente QA",
+            "total": 12.5,
+            "createdAt": {
+              "_seconds": 1787432856,
+              "_nanoseconds": 71190000
+            },
+            "clienteTelefone": "11999990000",
+            "itens": [
+              {
+                "observacoes": null,
+                "produtoId": "1MUpMmi8JqC5oESbUjG8",
+                "nome": "QA Produto",
+                "qtd": 1,
+                "precoUnitario": 12.5,
+                "id": "dit_987d4a7871044b86"
+              }
+            ],
+            "confirmadoEm": {
+              "_seconds": 1787432856,
+              "_nanoseconds": 134815000
+            },
+            "status": "cancelled",
+            "updatedAt": {
+              "_seconds": 1787432856,
+              "_nanoseconds": 218659000
+            }
+          }
+        ],
+        "estoque": [
+          {
+            "id": "Ptfu6vbBq6GFbjJ8WN4x",
+            "minimo": 1,
+            "restaurantId": "restaurante_001",
+            "nome": "QA Farinha",
+            "createdAt": {
+              "_seconds": 1787437567,
+              "_nanoseconds": 563756000
+            },
+            "unidade": "kg",
+            "custoMedio": 5,
+            "quantidadeAtual": 4,
+            "updatedAt": {
+              "_seconds": 1787437568,
+              "_nanoseconds": 364739000
+            }
+          },
+          {
+            "id": "ing_alface",
+            "nome": "Alface",
+            "unidade": "g",
+            "quantidadeAtual": 5000,
+            "minimo": 1000,
+            "custoMedio": 0.01,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_bacon",
+            "nome": "Bacon",
+            "unidade": "g",
+            "quantidadeAtual": 2000,
+            "minimo": 500,
+            "custoMedio": 0.04,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_batata",
+            "nome": "Batata Congelada",
+            "unidade": "kg",
+            "quantidadeAtual": 20,
+            "minimo": 5,
+            "custoMedio": 8,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_hamburguer",
+            "nome": "Hambúrguer 150g",
+            "unidade": "un",
+            "quantidadeAtual": 80,
+            "minimo": 15,
+            "custoMedio": 2.5,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_pao",
+            "nome": "Pão de Hambúrguer",
+            "unidade": "un",
+            "quantidadeAtual": 100,
+            "minimo": 20,
+            "custoMedio": 0.8,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_pao_hotdog",
+            "nome": "Pão de Hot Dog",
+            "unidade": "un",
+            "quantidadeAtual": 50,
+            "minimo": 10,
+            "custoMedio": 0.7,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_queijo",
+            "nome": "Queijo Prato",
+            "unidade": "un",
+            "quantidadeAtual": 100,
+            "minimo": 20,
+            "custoMedio": 0.6,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_refri_coca",
+            "nome": "Coca-Cola Lata 350ml",
+            "unidade": "un",
+            "quantidadeAtual": 48,
+            "minimo": 12,
+            "custoMedio": 3,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_refri_guarana",
+            "nome": "Guaraná Lata 350ml",
+            "unidade": "un",
+            "quantidadeAtual": 36,
+            "minimo": 12,
+            "custoMedio": 2.8,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_refri_sprite",
+            "nome": "Sprite Lata 350ml",
+            "unidade": "un",
+            "quantidadeAtual": 24,
+            "minimo": 6,
+            "custoMedio": 2.9,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_salsicha",
+            "nome": "Salsicha",
+            "unidade": "un",
+            "quantidadeAtual": 60,
+            "minimo": 10,
+            "custoMedio": 1.2,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "ing_tomate",
+            "nome": "Tomate",
+            "unidade": "un",
+            "quantidadeAtual": 50,
+            "minimo": 10,
+            "custoMedio": 0.5,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          }
+        ],
+        "mesas": [
+          {
+            "id": "mesa_01",
+            "restaurantId": "restaurante_001",
+            "numero": 1,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "atualizadoEm": "2026-08-23T23:20:48.675Z",
+            "criadoEm": "2026-08-23T23:20:48.675Z",
+            "status": "livre",
+            "updatedAt": {
+              "_seconds": 1787534666,
+              "_nanoseconds": 954708000
+            }
+          },
+          {
+            "id": "mesa_02",
+            "restaurantId": "restaurante_001",
+            "numero": 2,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "status": "livre",
+            "updatedAt": {
+              "_seconds": 1787533821,
+              "_nanoseconds": 974392000
+            }
+          },
+          {
+            "id": "mesa_03",
+            "restaurantId": "restaurante_001",
+            "numero": 3,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "garcomId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "pedidoAtivoId": "d2QdsI6mZuNGGdYGTU9M",
+            "status": "livre",
+            "updatedAt": {
+              "_seconds": 1787432165,
+              "_nanoseconds": 212013000
+            }
+          },
+          {
+            "id": "mesa_04",
+            "restaurantId": "restaurante_001",
+            "numero": 4,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_05",
+            "restaurantId": "restaurante_001",
+            "numero": 5,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_06",
+            "restaurantId": "restaurante_001",
+            "numero": 6,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_07",
+            "restaurantId": "restaurante_001",
+            "numero": 7,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_08",
+            "restaurantId": "restaurante_001",
+            "numero": 8,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_09",
+            "restaurantId": "restaurante_001",
+            "numero": 9,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_10",
+            "restaurantId": "restaurante_001",
+            "numero": 10,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_11",
+            "restaurantId": "restaurante_001",
+            "numero": 11,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_12",
+            "restaurantId": "restaurante_001",
+            "numero": 12,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_13",
+            "restaurantId": "restaurante_001",
+            "numero": 13,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_14",
+            "restaurantId": "restaurante_001",
+            "numero": 14,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_15",
+            "restaurantId": "restaurante_001",
+            "numero": 15,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_16",
+            "restaurantId": "restaurante_001",
+            "numero": 16,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_17",
+            "restaurantId": "restaurante_001",
+            "numero": 17,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_18",
+            "restaurantId": "restaurante_001",
+            "numero": 18,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_19",
+            "restaurantId": "restaurante_001",
+            "numero": 19,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "mesa_20",
+            "restaurantId": "restaurante_001",
+            "numero": 20,
+            "status": "livre",
+            "pedidoAtivoId": null,
+            "garcomId": null,
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          }
+        ],
+        "movimentacoes_estoque": [
+          {
+            "id": "1EHO3fkwKBflbuTcJzgX",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "IlqsXwFOJiDIcD0Nscyd",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787431608,
+              "_nanoseconds": 221538000
+            },
+            "updatedAt": {
+              "_seconds": 1787431608,
+              "_nanoseconds": 221538000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "7EKtt1KVT15lEhY7gjTc",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "Dd1rVSmw9JQR19v9t6mz",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787439571,
+              "_nanoseconds": 714259000
+            },
+            "updatedAt": {
+              "_seconds": 1787439571,
+              "_nanoseconds": 714259000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "HAh6ckIzcnKU0qmE1LDY",
+            "createdAt": {
+              "_seconds": 1787531580,
+              "_nanoseconds": 964475000
+            },
+            "tipo": "entrada",
+            "restaurantId": "restaurante_001",
+            "qtd": 10,
+            "observacao": "compra QA",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "updatedAt": {
+              "_seconds": 1787531580,
+              "_nanoseconds": 964475000
+            },
+            "itemId": "tjlfFzxfxosJMAGJHVb3",
+            "saldoApos": 15
+          },
+          {
+            "id": "MRjA4VqFHwVn1FdxJnLO",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "KoKfZOzwrqN6FVB5QILR",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787432953,
+              "_nanoseconds": 778775000
+            },
+            "updatedAt": {
+              "_seconds": 1787432953,
+              "_nanoseconds": 778775000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "NSgEIxBhfDOpOQIQf5Fw",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "f7aOq7lu1w02uL8bvsIZ",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787432579,
+              "_nanoseconds": 274813000
+            },
+            "updatedAt": {
+              "_seconds": 1787432579,
+              "_nanoseconds": 274813000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "T8PA0o3AqNDIiIwBPoIo",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "EXaP5cCVXE83PkPET74X",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787432855,
+              "_nanoseconds": 866919000
+            },
+            "updatedAt": {
+              "_seconds": 1787432855,
+              "_nanoseconds": 866919000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "U0rGf96B1To498CFvH9N",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "5l71QXTfheImJotwTbtM",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787434727,
+              "_nanoseconds": 864710000
+            },
+            "updatedAt": {
+              "_seconds": 1787434727,
+              "_nanoseconds": 864710000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "W6HEy6UhOTfZou02jnMH",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "H7zSj9dVRtqXI6K8aSx6",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787433074,
+              "_nanoseconds": 686540000
+            },
+            "updatedAt": {
+              "_seconds": 1787433074,
+              "_nanoseconds": 686540000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "X1AVTeBY3CGyPZk76r6i",
+            "tipo": "entrada",
+            "saldoApos": 15,
+            "observacao": "compra QA",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "updatedAt": {
+              "_seconds": 1787533824,
+              "_nanoseconds": 61044000
+            },
+            "itemId": "ljekp2VurqQ1tdOTDXEj",
+            "qtd": 10,
+            "createdAt": {
+              "_seconds": 1787533824,
+              "_nanoseconds": 61044000
+            }
+          },
+          {
+            "id": "Zs5bbWRzMVe7pHYUARPJ",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "kfr0bmtkOtFdqNDoZvPo",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787442780,
+              "_nanoseconds": 73052000
+            },
+            "updatedAt": {
+              "_seconds": 1787442780,
+              "_nanoseconds": 73052000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "avvPRgJBhBhrnFeFbtZz",
+            "qtd": 6,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "Ptfu6vbBq6GFbjJ8WN4x",
+            "saldoApos": 4,
+            "pedidoId": "9s6cUEfJf7IzPfllzZzD",
+            "tipo": "saida",
+            "createdAt": {
+              "_seconds": 1787437568,
+              "_nanoseconds": 363740000
+            },
+            "updatedAt": {
+              "_seconds": 1787437568,
+              "_nanoseconds": 363740000
+            },
+            "observacao": "Baixa automática — preparo do pedido 9s6cUEfJf7IzPfllzZzD"
+          },
+          {
+            "id": "eaIAf5yrQi4QLvgEYqBP",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "I9HKSDS4pVgFuIYVCAlj",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787433096,
+              "_nanoseconds": 160029000
+            },
+            "updatedAt": {
+              "_seconds": 1787433096,
+              "_nanoseconds": 160029000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "hrsWlw0okDiqkHPrAKwA",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "oG0YBd19ekYAFsbT5BbK",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787438096,
+              "_nanoseconds": 815734000
+            },
+            "updatedAt": {
+              "_seconds": 1787438096,
+              "_nanoseconds": 815734000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "jFV5wreqjZM2REUq6osi",
+            "qtd": 2,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "IfA5CfFNW3GeQ4QW2qxJ",
+            "saldoApos": 8,
+            "pedidoId": "NQOsKYiCB2jcEqZce89X",
+            "tipo": "saida",
+            "createdAt": {
+              "_seconds": 1787438710,
+              "_nanoseconds": 112989000
+            },
+            "updatedAt": {
+              "_seconds": 1787438710,
+              "_nanoseconds": 112989000
+            },
+            "observacao": "Baixa automática — preparo do pedido NQOsKYiCB2jcEqZce89X"
+          },
+          {
+            "id": "roF66DXyoQqYHpt1Ujlp",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "ydjyECqBmdYrzMBjWn9U",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787432699,
+              "_nanoseconds": 141133000
+            },
+            "updatedAt": {
+              "_seconds": 1787432699,
+              "_nanoseconds": 141133000
+            },
+            "observacao": "compra QA"
+          },
+          {
+            "id": "wwXFMcRXyehkeXg7L0q4",
+            "qtd": 10,
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "itemId": "Rsgxe4o9C8crtWSwGx4V",
+            "saldoApos": 15,
+            "tipo": "entrada",
+            "createdAt": {
+              "_seconds": 1787432184,
+              "_nanoseconds": 321994000
+            },
+            "updatedAt": {
+              "_seconds": 1787432184,
+              "_nanoseconds": 321994000
+            },
+            "observacao": "compra QA"
+          }
+        ],
+        "pedidos": [
+          {
+            "id": "3xTfEJxP7hvCzoV42uVV",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787438710,
+              "_nanoseconds": 472934000
+            },
+            "pagamentos": [],
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "qtd": 1,
+                "id": "item_e5b7e55cd58c4391",
+                "precoUnitario": 25,
+                "status": "preparo",
+                "baixadoEm": {
+                  "_seconds": 1787438710,
+                  "_nanoseconds": 581637000
+                },
+                "produtoId": "kr0ctoMPOvGeoKH0uXiq",
+                "variacaoId": null,
+                "observacoes": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787438710,
+              "_nanoseconds": 683524000
+            },
+            "status": "cancelado",
+            "updatedAt": {
+              "_seconds": 1787438710,
+              "_nanoseconds": 683524000
+            }
+          },
+          {
+            "id": "4bkZZU2hbAMNsg6uKc94",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787433073,
+              "_nanoseconds": 845936000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "id": "item_494ed048e70f46c8",
+                "status": "pronto",
+                "qtd": 2,
+                "produtoId": "YYMYxlTpxdhjnFCJfFkD",
+                "precoUnitario": 12.5,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787433074,
+              "_nanoseconds": 403957000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_12f0a01b571547d2",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787433074,
+                  "_nanoseconds": 403957000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787433074,
+              "_nanoseconds": 403957000
+            }
+          },
+          {
+            "id": "8GOdmLHIQLbafqKyGlYS",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 10,
+            "createdAt": {
+              "_seconds": 1787435120,
+              "_nanoseconds": 548675000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": null,
+                "id": "item_bfe03e1316d942fd",
+                "status": "pendente",
+                "qtd": 1,
+                "produtoId": "U5xSjBqk9YiN7yLYPf32",
+                "precoUnitario": 10,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787435120,
+              "_nanoseconds": 657665000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_10c14d5466744a8a",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787435120,
+                  "_nanoseconds": 657665000
+                },
+                "valor": 10,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787435120,
+              "_nanoseconds": 657665000
+            }
+          },
+          {
+            "id": "9s6cUEfJf7IzPfllzZzD",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 45,
+            "createdAt": {
+              "_seconds": 1787437568,
+              "_nanoseconds": 212221000
+            },
+            "pagamentos": [],
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "qtd": 3,
+                "id": "item_68de3c57905d46d8",
+                "precoUnitario": 15,
+                "status": "preparo",
+                "baixadoEm": {
+                  "_seconds": 1787437568,
+                  "_nanoseconds": 364739000
+                },
+                "produtoId": "kH8FdSOrHQgMr9MTKK25",
+                "variacaoId": null,
+                "observacoes": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787437589,
+              "_nanoseconds": 372166000
+            },
+            "status": "cancelado",
+            "updatedAt": {
+              "_seconds": 1787437589,
+              "_nanoseconds": 372166000
+            }
+          },
+          {
+            "id": "A6NmauaN91w7Jmgfm1CS",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787439570,
+              "_nanoseconds": 811271000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "qtd": 2,
+                "id": "item_626576d532cf49f3",
+                "precoUnitario": 12.5,
+                "status": "pronto",
+                "baixadoEm": {
+                  "_seconds": 1787439570,
+                  "_nanoseconds": 952420000
+                },
+                "produtoId": "oMFaHxWKMybExMsPGnUH",
+                "variacaoId": null,
+                "observacoes": "sem cebola"
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787439571,
+              "_nanoseconds": 397267000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_239fb531f5e84782",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787439571,
+                  "_nanoseconds": 397267000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787439571,
+              "_nanoseconds": 397267000
+            }
+          },
+          {
+            "id": "BkaYRsvyuBpceqmkmh8g",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787438095,
+              "_nanoseconds": 836054000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "qtd": 2,
+                "id": "item_250b942354334b6a",
+                "precoUnitario": 12.5,
+                "status": "pronto",
+                "baixadoEm": {
+                  "_seconds": 1787438095,
+                  "_nanoseconds": 968640000
+                },
+                "produtoId": "flictsuNi4o5Z7U72YSE",
+                "variacaoId": null,
+                "observacoes": "sem cebola"
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787438096,
+              "_nanoseconds": 486733000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_872e3b2e914149fe",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787438096,
+                  "_nanoseconds": 486733000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787438096,
+              "_nanoseconds": 486733000
+            }
+          },
+          {
+            "id": "GjpmEB9BO4X8ZVvLZL7M",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787432952,
+              "_nanoseconds": 797821000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "id": "item_c76c64ec15ab4562",
+                "status": "pronto",
+                "qtd": 2,
+                "produtoId": "0TjnKd2xZ8at7QsHmvoI",
+                "precoUnitario": 12.5,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787432953,
+              "_nanoseconds": 462087000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_d68d9748fbf54f0a",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787432953,
+                  "_nanoseconds": 462087000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787432953,
+              "_nanoseconds": 462087000
+            }
+          },
+          {
+            "id": "LDgpWRC2TYPN8TZwggWN",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787442778,
+              "_nanoseconds": 986654000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "qtd": 2,
+                "id": "item_097e2cc304b24a7b",
+                "precoUnitario": 12.5,
+                "status": "pronto",
+                "baixadoEm": {
+                  "_seconds": 1787442779,
+                  "_nanoseconds": 162995000
+                },
+                "produtoId": "Bzf8cxgLzCslPTBGdX91",
+                "variacaoId": null,
+                "observacoes": "sem cebola"
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787442779,
+              "_nanoseconds": 712580000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_0ddce977e6024c39",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787442779,
+                  "_nanoseconds": 712580000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787442779,
+              "_nanoseconds": 712580000
+            }
+          },
+          {
+            "id": "NQOsKYiCB2jcEqZce89X",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787438709,
+              "_nanoseconds": 955494000
+            },
+            "pagamentos": [],
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "qtd": 1,
+                "id": "item_701b0454d2d14857",
+                "precoUnitario": 25,
+                "status": "preparo",
+                "baixadoEm": {
+                  "_seconds": 1787438710,
+                  "_nanoseconds": 112989000
+                },
+                "produtoId": "kr0ctoMPOvGeoKH0uXiq",
+                "variacaoId": null,
+                "observacoes": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787438710,
+              "_nanoseconds": 222428000
+            },
+            "status": "cancelado",
+            "updatedAt": {
+              "_seconds": 1787438710,
+              "_nanoseconds": 222428000
+            }
+          },
+          {
+            "id": "Q76bB9C1wECOFKnENS6m",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787432578,
+              "_nanoseconds": 430862000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "id": "item_2378fa97280243a6",
+                "status": "pendente",
+                "qtd": 2,
+                "produtoId": "qR3bLHW8wGu5CoOIOWfw",
+                "precoUnitario": 12.5,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787432578,
+              "_nanoseconds": 982857000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_7b77eea7592f4cae",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787432578,
+                  "_nanoseconds": 982857000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787432578,
+              "_nanoseconds": 982857000
+            }
+          },
+          {
+            "id": "Yn8kUh3JKHSyTpeXe3yF",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787433095,
+              "_nanoseconds": 346147000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "id": "item_fe76271c700b443e",
+                "status": "pronto",
+                "qtd": 2,
+                "produtoId": "XZWOoSdguy9qabWtclcq",
+                "precoUnitario": 12.5,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787433095,
+              "_nanoseconds": 884475000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_8a663f36b27b4c6e",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787433095,
+                  "_nanoseconds": 884475000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787433095,
+              "_nanoseconds": 884475000
+            }
+          },
+          {
+            "id": "YvJTUyopWGf847VdiPpr",
+            "createdAt": {
+              "_seconds": 1787531573,
+              "_nanoseconds": 6911000
+            },
+            "tipo": "local",
+            "restaurantId": "restaurante_001",
+            "mesaId": "mesa_02",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "total": 25,
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "status": "pronto",
+                "qtd": 2,
+                "precoUnitario": 12.5,
+                "id": "item_3f00d73e9dfb4bc5",
+                "baixadoEm": {
+                  "_seconds": 1787531574,
+                  "_nanoseconds": 297084000
+                },
+                "produtoId": "syF8YJu0ikGWHOgtAYDc",
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787531578,
+              "_nanoseconds": 268363000
+            },
+            "pagamentos": [
+              {
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787531578,
+                  "_nanoseconds": 268358000
+                },
+                "referencia": null,
+                "id": "pag_84b8d8da4cf546c0",
+                "valor": 25,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787531578,
+              "_nanoseconds": 268419000
+            }
+          },
+          {
+            "id": "Zi4DWwxaHANiHLVn3tkQ",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787432183,
+              "_nanoseconds": 878587000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "id": "item_38c9fd66c4924c31",
+                "status": "pendente",
+                "qtd": 2,
+                "produtoId": "2cKKXA88oMxJpKQM09fQ",
+                "precoUnitario": 12.5,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787432184,
+              "_nanoseconds": 114580000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_c6842969ec0f421c",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787432184,
+                  "_nanoseconds": 114580000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787432184,
+              "_nanoseconds": 114580000
+            }
+          },
+          {
+            "id": "aAJcRFY2Bu1Srb3tPA4G",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787434726,
+              "_nanoseconds": 717759000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "id": "item_337db54ee8554888",
+                "status": "pronto",
+                "qtd": 2,
+                "produtoId": "MNTPW11yRmFHmSz1onD6",
+                "precoUnitario": 12.5,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787434727,
+              "_nanoseconds": 461029000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_388edf7b7a94441e",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787434727,
+                  "_nanoseconds": 461029000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787434727,
+              "_nanoseconds": 461029000
+            }
+          },
+          {
+            "id": "aIkvOp5hdP54jSeIdlgH",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787432855,
+              "_nanoseconds": 90088000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "id": "item_99ec03e107dc432d",
+                "status": "preparo",
+                "qtd": 2,
+                "produtoId": "1MUpMmi8JqC5oESbUjG8",
+                "precoUnitario": 12.5,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787432855,
+              "_nanoseconds": 589765000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_62b763ff808a42f2",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787432855,
+                  "_nanoseconds": 589765000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787432855,
+              "_nanoseconds": 589765000
+            }
+          },
+          {
+            "id": "bigWiovKrUsmhpr2WD4V",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787432698,
+              "_nanoseconds": 404688000
+            },
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "id": "item_fe01b31bf4a14015",
+                "status": "pendente",
+                "qtd": 2,
+                "produtoId": "Y4719jPFqlNoIhdmMFbE",
+                "precoUnitario": 12.5,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787432698,
+              "_nanoseconds": 846175000
+            },
+            "pagamentos": [
+              {
+                "id": "pag_81571a695a624693",
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787432698,
+                  "_nanoseconds": 846175000
+                },
+                "valor": 25,
+                "referencia": null,
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787432698,
+              "_nanoseconds": 846175000
+            }
+          },
+          {
+            "id": "d2QdsI6mZuNGGdYGTU9M",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25.9,
+            "createdAt": {
+              "_seconds": 1787431769,
+              "_nanoseconds": 492871000
+            },
+            "pagamentos": [],
+            "mesaId": "mesa_03",
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "id": "item_9781099b33184351",
+                "status": "pendente",
+                "qtd": 1,
+                "produtoId": "prod_xburger",
+                "precoUnitario": 25.9,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787432165,
+              "_nanoseconds": 175245000
+            },
+            "status": "cancelado",
+            "updatedAt": {
+              "_seconds": 1787432165,
+              "_nanoseconds": 175245000
+            }
+          },
+          {
+            "id": "kvNL5E6HXJ3ety8nQ6MA",
+            "tipo": "local",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "total": 25,
+            "mesaId": "mesa_02",
+            "createdAt": {
+              "_seconds": 1787533816,
+              "_nanoseconds": 349581000
+            },
+            "itens": [
+              {
+                "baixadoEm": {
+                  "_seconds": 1787533817,
+                  "_nanoseconds": 566855000
+                },
+                "observacoes": "sem cebola",
+                "id": "item_5f06505ab55c4884",
+                "variacaoId": null,
+                "precoUnitario": 12.5,
+                "qtd": 2,
+                "status": "pronto",
+                "produtoId": "Gx8f38to76P308akhUhc"
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787533821,
+              "_nanoseconds": 429541000
+            },
+            "pagamentos": [
+              {
+                "valor": 25,
+                "referencia": null,
+                "troco": null,
+                "criadoEm": {
+                  "_seconds": 1787533821,
+                  "_nanoseconds": 429536000
+                },
+                "id": "pag_2309b96c150347f8",
+                "tipo": "pix"
+              }
+            ],
+            "status": "pago",
+            "updatedAt": {
+              "_seconds": 1787533821,
+              "_nanoseconds": 429594000
+            }
+          },
+          {
+            "id": "lfB2USO5eFXQcUivPaTj",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 57.8,
+            "createdAt": {
+              "_seconds": 1787430138,
+              "_nanoseconds": 159082000
+            },
+            "pagamentos": [],
+            "mesaId": "mesa_01",
+            "itens": [
+              {
+                "observacoes": null,
+                "id": "item_0a5bc025ed0749a5",
+                "status": "pendente",
+                "qtd": 2,
+                "produtoId": "prod_xburger",
+                "precoUnitario": 25.9,
+                "variacaoId": null
+              },
+              {
+                "observacoes": null,
+                "id": "item_f22ae84c2d5b4934",
+                "status": "pendente",
+                "qtd": 1,
+                "produtoId": "prod_refri",
+                "precoUnitario": 6,
+                "variacaoId": "var_coca"
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787534666,
+              "_nanoseconds": 771118000
+            },
+            "status": "cancelado",
+            "updatedAt": {
+              "_seconds": 1787534666,
+              "_nanoseconds": 771121000
+            }
+          },
+          {
+            "id": "nRNbZQ3I95uyIuHY3Z70",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "balcao",
+            "total": 20,
+            "createdAt": {
+              "_seconds": 1787437614,
+              "_nanoseconds": 585710000
+            },
+            "pagamentos": [],
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "qtd": 1,
+                "id": "item_068b25a54bbd4028",
+                "precoUnitario": 20,
+                "status": "preparo",
+                "baixadoEm": {
+                  "_seconds": 1787437614,
+                  "_nanoseconds": 699018000
+                },
+                "produtoId": "VTQwTey5lBMXpBNZ8576",
+                "variacaoId": null,
+                "observacoes": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787437614,
+              "_nanoseconds": 810718000
+            },
+            "status": "cancelado",
+            "updatedAt": {
+              "_seconds": 1787437614,
+              "_nanoseconds": 810718000
+            }
+          },
+          {
+            "id": "tvsRfW0XZ2lsAvtQrp0T",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "tipo": "local",
+            "total": 25,
+            "createdAt": {
+              "_seconds": 1787431607,
+              "_nanoseconds": 619668000
+            },
+            "pagamentos": [],
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": "sem cebola",
+                "id": "item_8768593476d848d2",
+                "status": "pendente",
+                "qtd": 2,
+                "produtoId": "sJu5e8NN6hNTpdx8FtzM",
+                "precoUnitario": 12.5,
+                "variacaoId": null
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787432164,
+              "_nanoseconds": 964477000
+            },
+            "status": "cancelado",
+            "updatedAt": {
+              "_seconds": 1787432164,
+              "_nanoseconds": 964477000
+            }
+          },
+          {
+            "id": "vApcUcytNu6Kbp1gsUe9",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "cardapio_digital",
+            "tipo": "local",
+            "createdAt": {
+              "_seconds": 1787442769,
+              "_nanoseconds": 29965000
+            },
+            "pagamentos": [],
+            "mesaId": "mesa_02",
+            "itens": [
+              {
+                "observacoes": null,
+                "id": "item_6739f38e6d1d46d9",
+                "status": "pendente",
+                "qtd": 2,
+                "produtoId": "5Sn1Yn2wNXQ6dcMcjWoU",
+                "precoUnitario": 35,
+                "variacaoId": null
+              },
+              {
+                "observacoes": null,
+                "id": "item_5dcfea83694d40b7",
+                "status": "pendente",
+                "qtd": 2,
+                "produtoId": "5Sn1Yn2wNXQ6dcMcjWoU",
+                "precoUnitario": 35,
+                "variacaoId": null
+              }
+            ],
+            "total": 140,
+            "fechadoEm": {
+              "_seconds": 1787442769,
+              "_nanoseconds": 767672000
+            },
+            "status": "cancelado",
+            "updatedAt": {
+              "_seconds": 1787442769,
+              "_nanoseconds": 767672000
+            }
+          }
+        ],
+        "produtos": [
+          {
+            "id": "5Sn1Yn2wNXQ6dcMcjWoU",
+            "preco": 35,
+            "nome": "X TUDAO",
+            "restaurantId": "restaurante_001",
+            "categoriaId": "cat_hamburgueres",
+            "estoqueMinimo": 0,
+            "ativo": true,
+            "createdAt": {
+              "_seconds": 1787436012,
+              "_nanoseconds": 372868000
+            },
+            "variacoes": [],
+            "ingredientes": [],
+            "updatedAt": {
+              "_seconds": 1787436017,
+              "_nanoseconds": 599239000
+            }
+          },
+          {
+            "id": "prod_batata",
+            "nome": "Batata Frita",
+            "categoriaId": "cat_porcoes",
+            "preco": 15,
+            "variacoes": [
+              {
+                "id": "var_cheddar",
+                "nome": "Com Cheddar",
+                "precoAdicional": 5,
+                "ativo": true
+              },
+              {
+                "id": "var_bacon",
+                "nome": "Com Bacon",
+                "precoAdicional": 5,
+                "ativo": true
+              }
+            ],
+            "ingredientes": [
+              {
+                "itemId": "ing_batata",
+                "qtd": 200
+              }
+            ],
+            "imagemUrl": "",
+            "ativo": true,
+            "estoqueMinimo": 5,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "prod_refri",
+            "nome": "Refrigerante Lata",
+            "categoriaId": "cat_bebidas",
+            "preco": 6,
+            "variacoes": [
+              {
+                "id": "var_coca",
+                "nome": "Coca-Cola",
+                "precoAdicional": 0,
+                "ativo": true
+              },
+              {
+                "id": "var_guarana",
+                "nome": "Guaraná",
+                "precoAdicional": 0,
+                "ativo": true
+              },
+              {
+                "id": "var_sprite",
+                "nome": "Sprite",
+                "precoAdicional": 0,
+                "ativo": true
+              }
+            ],
+            "ingredientes": [],
+            "imagemUrl": "",
+            "ativo": true,
+            "estoqueMinimo": 20,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "prod_suco",
+            "nome": "Suco Natural 300ml",
+            "categoriaId": "cat_bebidas",
+            "preco": 8,
+            "variacoes": [
+              {
+                "id": "var_laranja",
+                "nome": "Laranja",
+                "precoAdicional": 0,
+                "ativo": true
+              },
+              {
+                "id": "var_maracuja",
+                "nome": "Maracujá",
+                "precoAdicional": 0,
+                "ativo": true
+              }
+            ],
+            "ingredientes": [],
+            "imagemUrl": "",
+            "ativo": true,
+            "estoqueMinimo": 10,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 213000000
+            }
+          },
+          {
+            "id": "prod_xbacon",
+            "nome": "X-Bacon",
+            "categoriaId": "cat_hamburgueres",
+            "preco": 30.9,
+            "variacoes": [
+              {
+                "id": "var_ovo",
+                "nome": "Com Ovo",
+                "precoAdicional": 3,
+                "ativo": true
+              }
+            ],
+            "ingredientes": [
+              {
+                "itemId": "ing_pao",
+                "qtd": 1
+              },
+              {
+                "itemId": "ing_hamburguer",
+                "qtd": 1
+              },
+              {
+                "itemId": "ing_bacon",
+                "qtd": 50
+              },
+              {
+                "itemId": "ing_queijo",
+                "qtd": 1
+              },
+              {
+                "itemId": "ing_alface",
+                "qtd": 30
+              },
+              {
+                "itemId": "ing_tomate",
+                "qtd": 2
+              }
+            ],
+            "imagemUrl": "",
+            "ativo": true,
+            "estoqueMinimo": 10,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            }
+          },
+          {
+            "id": "prod_xburger",
+            "nome": "X-Burger",
+            "categoriaId": "cat_hamburgueres",
+            "preco": 25.9,
+            "variacoes": [
+              {
+                "id": "var_bacon",
+                "nome": "Com Bacon",
+                "precoAdicional": 5,
+                "ativo": true
+              },
+              {
+                "id": "var_ovo",
+                "nome": "Com Ovo",
+                "precoAdicional": 3,
+                "ativo": true
+              }
+            ],
+            "ingredientes": [
+              {
+                "itemId": "ing_pao",
+                "qtd": 1
+              },
+              {
+                "itemId": "ing_hamburguer",
+                "qtd": 1
+              },
+              {
+                "itemId": "ing_queijo",
+                "qtd": 1
+              },
+              {
+                "itemId": "ing_alface",
+                "qtd": 30
+              },
+              {
+                "itemId": "ing_tomate",
+                "qtd": 2
+              }
+            ],
+            "imagemUrl": "",
+            "ativo": true,
+            "estoqueMinimo": 10,
+            "restaurantId": "restaurante_001",
+            "createdAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            },
+            "updatedAt": {
+              "_seconds": 1787430909,
+              "_nanoseconds": 212000000
+            }
+          }
+        ],
+        "sessoes_caixa": [
+          {
+            "id": "2Ii6zszcRhQC2pWfIbq0",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787438096,
+              "_nanoseconds": 222866000
+            },
+            "restaurantId": "restaurante_001",
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_c184d38d14a041b9",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T22:34:56.312124+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_2d93f73bc0374a54",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T22:34:56.393503+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "flictsuNi4o5Z7U72YSE": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787438096,
+              "_nanoseconds": 670117000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "valorContado": 242.5,
+              "diferenca": 77.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787438096,
+              "_nanoseconds": 670117000
+            }
+          },
+          {
+            "id": "46iMieAVXvo6orgPmjuH",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "vendasPorFormaPagamento": {},
+            "quantidadePorProduto": {},
+            "valorInicial": 100,
+            "totalRecebido": 0,
+            "createdAt": {
+              "_seconds": 1787430137,
+              "_nanoseconds": 868909000
+            },
+            "totalVendas": 0,
+            "restaurantId": "restaurante_001",
+            "suprimentos": 100,
+            "sangrias": 20,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_819f50a4a3604fe8",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T20:45:37.830745+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_953fa66a3f174f2e",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T20:45:37.949112+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              },
+              {
+                "id": "mv_397a42389ecb4046",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T20:46:47.881955+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_759263b051764470",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T20:46:47.956669+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "fechadoEm": {
+              "_seconds": 1787432165,
+              "_nanoseconds": 336246000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 180,
+              "valorContado": null,
+              "diferenca": null
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787432165,
+              "_nanoseconds": 336246000
+            }
+          },
+          {
+            "id": "5hF5L3kTgS1q9HYwVCzZ",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787433074,
+              "_nanoseconds": 184392000
+            },
+            "restaurantId": "restaurante_001",
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_192009a415de4e76",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:11:14.251380+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_602ca7762de848f1",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:11:14.319882+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "YYMYxlTpxdhjnFCJfFkD": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787433074,
+              "_nanoseconds": 568436000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "valorContado": 242.5,
+              "diferenca": 77.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787433074,
+              "_nanoseconds": 568436000
+            }
+          },
+          {
+            "id": "8QzAv4MTxx2Hv3xhY8Nu",
+            "restaurantId": "restaurante_001",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787531576,
+              "_nanoseconds": 212015000
+            },
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-24T00:32:56.808441+00:00",
+                "valor": 50,
+                "id": "mv_bcccd3327e3f4c9c",
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-24T00:32:57.400644+00:00",
+                "valor": 10,
+                "id": "mv_fe86bcac2ed04fa7",
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "syF8YJu0ikGWHOgtAYDc": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787531579,
+              "_nanoseconds": 713705000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "diferenca": 77.5,
+              "valorContado": 242.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787531579,
+              "_nanoseconds": 713742000
+            }
+          },
+          {
+            "id": "E3uVt92cP3DOCbBUoAxP",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787439571,
+              "_nanoseconds": 177269000
+            },
+            "restaurantId": "restaurante_001",
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_ce3a7c4a54c34da0",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T22:59:31.251279+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_4609d3011d674a09",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T22:59:31.322272+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "oMFaHxWKMybExMsPGnUH": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787439571,
+              "_nanoseconds": 574380000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "valorContado": 242.5,
+              "diferenca": 77.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787439571,
+              "_nanoseconds": 574380000
+            }
+          },
+          {
+            "id": "FB1XpYygNJQU9FKfH2h7",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787442779,
+              "_nanoseconds": 432821000
+            },
+            "restaurantId": "restaurante_001",
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_30ff4ed3dedd4f38",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T23:52:59.510996+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_11dd69fda22a4b8b",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T23:52:59.616294+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "Bzf8cxgLzCslPTBGdX91": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787442779,
+              "_nanoseconds": 910977000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "valorContado": 242.5,
+              "diferenca": 77.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787442779,
+              "_nanoseconds": 911977000
+            }
+          },
+          {
+            "id": "HjeYaZ1sV31k7jbvPKFo",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787432855,
+              "_nanoseconds": 343945000
+            },
+            "restaurantId": "restaurante_001",
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_5db60902c80a495e",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:07:35.422905+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_b54d0840cb764766",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:07:35.500821+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "1MUpMmi8JqC5oESbUjG8": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787432855,
+              "_nanoseconds": 744814000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "valorContado": 242.5,
+              "diferenca": 77.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787432855,
+              "_nanoseconds": 744814000
+            }
+          },
+          {
+            "id": "Jl7csgCor2IjlWblDheh",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "restaurantId": "restaurante_001",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787533819,
+              "_nanoseconds": 396070000
+            },
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "tipo": "suprimento",
+                "valor": 50,
+                "observacao": "troco QA",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-24T01:10:19.975585+00:00",
+                "id": "mv_5c7bfa903f3649f5"
+              },
+              {
+                "tipo": "sangria",
+                "valor": 10,
+                "observacao": "QA",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-24T01:10:20.562866+00:00",
+                "id": "mv_eeafa074031344f9"
+              }
+            ],
+            "quantidadePorProduto": {
+              "Gx8f38to76P308akhUhc": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787533822,
+              "_nanoseconds": 833861000
+            },
+            "resumoFechamento": {
+              "diferenca": 0,
+              "valorContado": 165,
+              "esperadoEmCaixa": 165
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787533822,
+              "_nanoseconds": 833897000
+            }
+          },
+          {
+            "id": "MwCzMUeEhvSXRCmvUTJh",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787433095,
+              "_nanoseconds": 678041000
+            },
+            "restaurantId": "restaurante_001",
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_474ecf4a5e304b02",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:11:35.735139+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_00bf77ae03704974",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:11:35.794829+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "XZWOoSdguy9qabWtclcq": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787433096,
+              "_nanoseconds": 46251000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "valorContado": 242.5,
+              "diferenca": 77.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787433096,
+              "_nanoseconds": 46251000
+            }
+          },
+          {
+            "id": "SaGATm0orjauZ7E6bDNn",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787432578,
+              "_nanoseconds": 691839000
+            },
+            "restaurantId": "restaurante_001",
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_9d278d2666ba485d",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:02:58.782977+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_d910cb8390dc4b58",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:02:58.891974+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "qR3bLHW8wGu5CoOIOWfw": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787432579,
+              "_nanoseconds": 158821000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "valorContado": 242.5,
+              "diferenca": 77.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787432579,
+              "_nanoseconds": 158821000
+            }
+          },
+          {
+            "id": "ZBh8lMf0tej5llIh2b88",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787432953,
+              "_nanoseconds": 226246000
+            },
+            "restaurantId": "restaurante_001",
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_8bfd1f2c92bf4b21",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:09:13.305795+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_2798bed9d8d54ad4",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:09:13.372801+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "0TjnKd2xZ8at7QsHmvoI": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787432953,
+              "_nanoseconds": 623790000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "valorContado": 242.5,
+              "diferenca": 77.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787432953,
+              "_nanoseconds": 623790000
+            }
+          },
+          {
+            "id": "ZvKkUybV0WjTkWpDHZFN",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787434727,
+              "_nanoseconds": 191180000
+            },
+            "restaurantId": "restaurante_001",
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_ad7b531d1d9e404c",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:38:47.270031+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_d24267a5ab974424",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:38:47.359184+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "MNTPW11yRmFHmSz1onD6": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787434727,
+              "_nanoseconds": 699026000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "valorContado": 242.5,
+              "diferenca": 77.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787434727,
+              "_nanoseconds": 699026000
+            }
+          },
+          {
+            "id": "eV3aT24IxxTxZ7vnxqy6",
+            "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "valorInicial": 100,
+            "createdAt": {
+              "_seconds": 1787432698,
+              "_nanoseconds": 623152000
+            },
+            "restaurantId": "restaurante_001",
+            "suprimentos": 50,
+            "sangrias": 10,
+            "movimentacoesCaixa": [
+              {
+                "id": "mv_e8c769d769004be1",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:04:58.689548+00:00",
+                "valor": 50,
+                "observacao": "troco QA",
+                "tipo": "suprimento"
+              },
+              {
+                "id": "mv_da9911460cad41d2",
+                "usuarioId": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+                "criadoEm": "2026-08-22T21:04:58.759660+00:00",
+                "valor": 10,
+                "observacao": "QA",
+                "tipo": "sangria"
+              }
+            ],
+            "quantidadePorProduto": {
+              "Y4719jPFqlNoIhdmMFbE": 2
+            },
+            "totalRecebido": 25,
+            "vendasPorFormaPagamento": {
+              "pix": 25
+            },
+            "totalVendas": 25,
+            "fechadoEm": {
+              "_seconds": 1787432699,
+              "_nanoseconds": 11554000
+            },
+            "resumoFechamento": {
+              "esperadoEmCaixa": 165,
+              "valorContado": 242.5,
+              "diferenca": 77.5
+            },
+            "status": "fechado",
+            "updatedAt": {
+              "_seconds": 1787432699,
+              "_nanoseconds": 11554000
+            }
+          }
+        ],
+        "usuarios": [
+          {
+            "id": "0O29i5gABJTtS5JrAFgB7yskIwC3",
+            "nome": "Admin",
+            "papel": "admin",
+            "ativo": true,
+            "restaurantId": "restaurante_001",
+            "criadoEm": {
+              "_seconds": 1787430911,
+              "_nanoseconds": 561000000
+            },
+            "atualizadoEm": {
+              "_seconds": 1787430911,
+              "_nanoseconds": 561000000
+            },
+            "tema": "escuro",
+            "updatedAt": {
+              "_seconds": 1787534375,
+              "_nanoseconds": 899392000
+            }
+          },
+          {
+            "id": "cI8TWFxGdBdOTLR1zrM1bs8QKYn2",
+            "ativo": true,
+            "restaurantId": "restaurante_001",
+            "atualizadoEm": {
+              "_seconds": 1787532984,
+              "_nanoseconds": 96059000
+            },
+            "nome": "Amanda",
+            "criadoEm": {
+              "_seconds": 1787532984,
+              "_nanoseconds": 96053000
+            },
+            "email": "amanda@gmail.com",
+            "papel": "gerente",
+            "tema": "escuro",
+            "updatedAt": {
+              "_seconds": 1787533033,
+              "_nanoseconds": 31423000
+            }
+          }
+        ]
+      }
+    }
+  },
+  "onboarding": []
+}
