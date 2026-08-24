@@ -108,6 +108,7 @@ Pronto — a instância permanece "quente" enquanto o monitor roda. Zero custo, 
 ## Armadilhas conhecidas
 
 - **Segredo**: `service-account.json` NUNCA vai pro GitHub — na Render ele entra como env var.
+- **pydantic-settings**: a env é vinculada pelo NOME DO CAMPO (case-insensitive, sem prefixo). O campo tem que se chamar `firebase_service_account_json` para ler `FIREBASE_SERVICE_ACCOUNT_JSON` — já corrigido (bug histórico: campo `service_account_json` nunca lia a var da Render e o backend caía no ADC sem projeto → 401 em tudo com token e 500 nos endpoints públicos).
 - **CORS**: valor exato `https://<projeto>.web.app`; erro típico = "CORS policy" no console.
 - **sw.js sem no-cache**: PWA para de receber atualizações (headers já configurados no `firebase.json`).
 - **Render sleep**: primeira chamada lenta ~30–60s; mitigação grátis = UptimeRobot pingando `/health` a cada 10 min, ou abrir o PDV antes de abrir a loja.
