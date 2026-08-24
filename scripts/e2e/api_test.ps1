@@ -220,6 +220,49 @@ Step 'PATCH bulk pronto + cancelar (mesa livre)' {
   return 'ok'
 }
 
+# Regressao do bug 10 (ReadAfterWriteError): 2 produtos compartilhando o MESMO
+# ingrediente, avancados juntos -> baixa AGREGADA numa unica movimentacao.
+$bulkIng = Step 'POST /estoque/itens (p/ regressao baixa agregada)' {
+  $i = Invoke-Api POST '/api/estoque/itens' @{ nome = 'QA Ingrediente Bulk'; unidade = 'un'; quantidadeAtual = 100; minimo = 10; custoMedio = 1 }
+  $script:bulkIngId = $i.id
+  return "id=$($i.id)"
+}
+$bulkAB = Step 'POST 2 produtos compartilhando o ingrediente' {
+  $a = Invoke-Api POST '/api/produtos' @{ nome = 'QA Bulk A'; categoriaId = $catId; preco = 10; ativo = $true; variacoes = @(); ingredientes = @( @{ itemId = $script:bulkIngId; qtd = 2 } ) }
+  $b = Invoke-Api POST '/api/produtos' @{ nome = 'QA Bulk B'; categoriaId = $catId; preco = 12; ativo = $true; variacoes = @(); ingredientes = @( @{ itemId = $script:bulkIngId; qtd = 3 } ) }
+  $script:bulkProdA = $a.id; $script:bulkProdB = $b.id
+  return "A=$($a.id) B=$($b.id)"
+}
+Step 'baixa agregada: 2 itens juntos -> saldo -7 e 1 movimentacao' {
+  $l = Invoke-Api GET '/api/mesas'
+  $livre = @($l | Where-Object { $_.status -eq 'livre' })[0]
+  if (-not $livre) { throw 'nenhuma mesa livre' }
+  $p = Invoke-Api POST "/api/pedidos`?mesa_id=$($livre.id)&tipo=local" @(
+    @{ produtoId = $script:bulkProdA; qtd = 2 },
+    @{ produtoId = $script:bulkProdB; qtd = 1 }
+  )
+  try {
+    $ids = @($p.itens | ForEach-Object { $_.id })
+    $r = Invoke-Api PATCH "/api/cozinha/pedidos/$($p.id)/itens/status" @{ itemIds = $ids; novoStatus = 'preparo' }
+    if (@($r.itens | Where-Object { $_.status -eq 'preparo' }).Count -ne 2) { throw 'itens nao avancaram' }
+    $e = Invoke-Api GET "/api/estoque/itens/$bulkIngId"
+    if ([double]$e.quantidadeAtual -ne 93) { throw "saldo=$($e.quantidadeAtual) esperado 93 (100 - 2x2 - 1x3)" }
+    $movs = Invoke-Api GET '/api/estoque/movimentacoes'
+    $doPedido = @($movs | Where-Object { $_.pedidoId -eq $p.id })
+    if ($doPedido.Count -ne 1) { throw "movimentacoes=$($doPedido.Count) esperado 1 (agregada)" }
+    if ([double]$doPedido[0].qtd -ne 7) { throw "qtd da movimentacao=$($doPedido[0].qtd) esperado 7" }
+  } finally {
+    Invoke-Api POST "/api/pedidos/$($p.id)/cancelar" | Out-Null   # libera a mesa (nao estorna estoque)
+  }
+  return "saldo=93 movs=1 qtd=7 ok"
+}
+Step 'cleanup dos produtos/ingrediente de bulk' {
+  Invoke-Api DELETE "/api/produtos/$script:bulkProdA" | Out-Null
+  Invoke-Api DELETE "/api/produtos/$script:bulkProdB" | Out-Null
+  Invoke-Api DELETE "/api/estoque/itens/$script:bulkIngId" | Out-Null
+  return 'removidos'
+}
+
 Write-Host "`n=== 7. Caixa ===" -ForegroundColor Cyan
 Step 'sessao-atual' {
   $s = Invoke-Api GET '/api/caixa/sessao-atual'

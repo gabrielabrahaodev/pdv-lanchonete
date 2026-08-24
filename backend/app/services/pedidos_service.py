@@ -223,14 +223,20 @@ def _aplicar_consumo(
 ) -> bool:
     """Escreve as saídas de estoque do consumo já agregado. Respeita o flag
     `baixaEstoqueAutomatica`; saldo pode ficar negativo (não trava preparo).
-    Retorna True se houve qualquer escrita."""
+    Retorna True se houve qualquer escrita.
+
+    ⚠️ Firestore proíbe LEITURA após ESCRITA dentro da transação
+    (ReadAfterWriteError): por isso TODOS os docs são lidos primeiro e as
+    escritas acontecem numa segunda fase (bug 10 do AGENTS.md).
+    """
+    # -------- fase 1: TODAS as leituras --------
     cfg_snap = next(iter(transaction.get(config_doc(restaurant_id))), None)
     if cfg_snap and cfg_snap.exists:
         if not (cfg_snap.to_dict() or {}).get("baixaEstoqueAutomatica", True):
             return False  # controle desativado pelo admin
 
-    escreveu = False
-    for iid, total in consumo.items():
+    pendentes: list[tuple[str, object, float, float]] = []  # (itemId, doc_ref, qtd_consumida, novo_saldo)
+    for iid, total in sorted(consumo.items()):
         total = round(total, 3)
         if total <= 0:
             continue
@@ -239,7 +245,12 @@ def _aplicar_consumo(
         if not snap or not snap.exists:
             continue  # ingrediente removido do estoque: ignora sem travar o preparo
         atual = float((snap.to_dict() or {}).get("quantidadeAtual", 0) or 0)
-        novo_saldo = round(atual - total, 3)
+        pendentes.append((iid, ref, total, round(atual - total, 3)))
+
+    # -------- fase 2: TODAS as escritas --------
+    escreveu = False
+    observacao = f"Baixa automática — preparo do pedido {pedido_id}"
+    for iid, ref, qtd, novo_saldo in pendentes:
         mov_ref = items_col(restaurant_id, "movimentacoes_estoque").document()
         transaction.set(
             mov_ref,
@@ -247,9 +258,9 @@ def _aplicar_consumo(
                 {
                     "tipo": "saida",
                     "itemId": iid,
-                    "qtd": total,
+                    "qtd": qtd,
                     "saldoApos": novo_saldo,
-                    "observacao": f"Baixa automática — preparo do pedido {pedido_id}",
+                    "observacao": observacao,
                     "pedidoId": pedido_id,
                     "usuarioId": usuario_id,
                     "restaurantId": restaurant_id,

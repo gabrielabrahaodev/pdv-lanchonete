@@ -3,8 +3,12 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+import logging
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 
@@ -52,6 +56,29 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+class _Erros500Json(BaseHTTPMiddleware):
+    """Exceção não tratada vira 500 JSON.
+
+    Registrado ANTES do CORSMiddleware (fica por dentro), a resposta passa
+    pela pilha CORS e volta COM Access-Control-Allow-Origin — sem isso o
+    browser mascara o 500 como "erro de CORS" e ninguém descobre a causa.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        try:
+            return await call_next(request)
+        except Exception as exc:  # pragma: no cover - caminho de falha
+            logging.getLogger("uvicorn.error").exception(
+                f"500 em {request.method} {request.url.path}: {type(exc).__name__}: {exc}"
+            )
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Erro interno: {type(exc).__name__}"},
+            )
+
+
+# ordem importa: _Erros500Json primeiro (interno), CORS por último (externo)
+app.add_middleware(_Erros500Json)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -59,18 +86,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.exception_handler(Exception)
-async def unhandled_exception(request, exc: Exception):
-    """500 com corpo JSON — passa pela pilha de middlewares e volta COM header
-    CORS (exceções não tratadas seriam mascaradas como erro de CORS no browser)."""
-    import logging
-
-    logging.getLogger("uvicorn.error").exception(f"500 em {request.method} {request.url.path}: {exc}")
-    from fastapi.responses import JSONResponse
-
-    return JSONResponse(status_code=500, content={"detail": f"Erro interno: {type(exc).__name__}"})
 
 for router in (
     auth.router,
