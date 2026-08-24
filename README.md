@@ -28,6 +28,18 @@ python/
 └── scripts/        # scripts TS Admin (init, seed, delete) — herdados do projeto Flutter
 ```
 
+## Produção
+
+| Componente | URL |
+|------------|-----|
+| Frontend (PWA) | https://pdv-lanchonete-1fa79.web.app |
+| API (Render free) | https://pdv-lanchonete-dwiw.onrender.com |
+| Repo | https://github.com/gabrielabrahaodev/pdv-lanchonete (privado) |
+
+- **API**: push em `master` dispara auto-deploy na Render. Credenciais via env `FIREBASE_SERVICE_ACCOUNT_JSON` + `CORS_ORIGINS`.
+- **Frontend**: rebuild obrigatório com a URL da API embutida (`VITE_API_URL`) → `firebase deploy --only hosting`. Passo a passo completo no `DEPLOY.md`.
+- A instância da Render dorme após ~15 min sem tráfego (cold start ~30–60s); UptimeRobot mantém `/health` pingado.
+
 ## Como rodar
 
 ### Backend

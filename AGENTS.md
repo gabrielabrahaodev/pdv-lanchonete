@@ -64,6 +64,17 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 - **Cardápio digital**: rotas PÚBLICAS em `/api/publico/{rid}/cardapio` e `/api/publico/{rid}/mesas/{mesa}/pedido` (sem auth; rate-limit 12/min por IP; gate `cardapioDigitalAtivo` nas configurações). Mesa livre cria pedido; ocupada adiciona itens ao pedido ativo. Frontend: rota pública `/m/:restaurantId/:mesaId` (CardapioPage) + botão QR por mesa em MesasPage (lib `qrcode`, download PNG).
 - **PWA**: `vite-plugin-pwa` no build (manifest + icons placeholder laranja em `frontend/public/icons/`, autoUpdate); workbox NetworkFirst nos GETs `/api/*` (timeout 4s, cache 24h). Dev server não registra SW — testar com `npm run build && npm run preview`. Escopo consciente: fila de escrita offline fica para depois.
 
+### Sessão 2026-08-23: deploy em produção (R$ 0/mês)
+
+- **Frontend**: https://pdv-lanchonete-1fa79.web.app (Firebase Hosting; `VITE_API_URL` embutido no build)
+- **API**: https://pdv-lanchonete-dwiw.onrender.com (Render free tier — dorme após ~15 min sem tráfego; UptimeRobot pinga `/health` a cada 10 min)
+- **Repo**: https://github.com/gabrielabrahaodev/pdv-lanchonete (privado; push em `master` dispara auto-deploy na Render)
+- Credenciais em produção via env `FIREBASE_SERVICE_ACCOUNT_JSON` (+ `CORS_ORIGINS=https://pdv-lanchonete-1fa79.web.app`). Ordem de resolução em `app/core/firebase.py`: env JSON → arquivo local (dev) → ADC.
+- Baseline validado NA PRODUÇÃO: pytest 23/23 · suíte E2E **34/34** contra a API da Render (o `api_test.ps1` temporário teve `$Base` apontada para produção).
+- `/health` aceita **GET e HEAD** (`@app.api_route`) — monitores externos (UptimeRobot) fazem HEAD e antes recebiam 405.
+- Release do frontend: `$env:VITE_API_URL='https://pdv-lanchonete-dwiw.onrender.com'; npm run build; Remove-Item Env:VITE_API_URL` → `firebase deploy --only hosting`.
+- **Decisão registrada**: usuário optou por NÃO fechar o auto-cadastro — Firebase Auth e-mail/senha segue aberto e `POST /restaurantes/primeiro` também (conta órfã pode virar admin de restaurante novo no mesmo projeto, consumindo quota Spark; dados do tenant continuam protegidos por claims + firestore.rules). Se um dia quiser restringir: flag `onboarding_aberto` em config + gate no service (plano já discutido).
+
 ## Bugs já corrigidos (não reintroduzir)
 
 1. `pedidos_service.criar()` chamava função inexistente `get_pedido` → 500 depois de gravar pedido e ocupar mesa. Correto: `obter()`.
@@ -72,6 +83,8 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 4. `stamp_update()` descarta campos `None` — updates que precisam limpar campo devem usar `DELETE_FIELD` explícito (ver `mesas_service.liberar()`, que antes deixava `pedidoAtivoId` órfão em mesa liberada).
 5. `_run_txn` deve retornar sempre o pedido completo (`obter(...)`) após commit — os txns internos não têm return.
 6. Sessão 2026-08-22 (correções B1–B5/M1–M4): `main.py` chegou a ter **duas instâncias** de `FastAPI` (routers na primeira, `lifespan` na segunda) → só `/health` respondia, todo `/api/*` dava 404. Correto: UMA instância com `lifespan=` + middleware + routers. Ao mexer no app, garantir que routers ficam na instância exportada.
+7. Sessão 2026-08-23 (produção): campo pydantic chamava-se `service_account_json` → lia a env `SERVICE_ACCOUNT_JSON`, NUNCA `FIREBASE_SERVICE_ACCOUNT_JSON`; na Render caía no ADC sem projeto → **401 em toda rota autenticada e 500 nos endpoints públicos**, com `/health` ok (init ADC é lazy). Correto: campo renomeado para `firebase_service_account_json`. Diagnóstico rápido: endpoint público que lê Firestore dando 500 ⇒ credencial quebrada; `/health` é estático e não prova nada.
+8. Sessão 2026-08-23 (produção): `/health` só aceitava GET → monitores externos fazem HEAD e recebiam 405 ("405 method not allowed" no UptimeRobot com serviço perfeitamente saudável). Correto: `@app.api_route("/health", methods=["GET", "HEAD"])`.
 
 ## Armadilhas conhecidas
 
@@ -82,3 +95,6 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 - Auth da API: header `Authorization: Bearer <id-token>`; claims exigidos: `restaurantId` (senão 403) e `papel` (guards por papel em `app/core/security.py`).
 - Preços são sempre resolvidos no servidor a partir de `produtos` (nunca confiar no preço vindo do cliente).
 - Custom claims do Firebase (`restaurantId`/`papel`) só valem no PRÓXIMO ID token: endpoints que mudam claims exigem `getIdToken(true)` + revalidação de `/auth/me` no frontend. Para guardas críticos não confie só no claim (token pode estar velho) — ex.: onboarding usa marcador transacional em `onboarding/{uid}`.
+- pydantic-settings: a env é vinculada pelo NOME DO CAMPO (case-insensitive, sem prefixo) — o campo precisa se chamar exatamente como a variável (ver bug 7).
+- Render free: cold start de ~30–60s (às vezes mais) — testes com `Invoke-RestMethod`/`curl` precisam de timeout ≥120s, senão parecem falha. Slugs `.onrender.com` são globais: `pdv-lanchonete.onrender.com` é de OUTRA conta; o nosso é o `-dwiw`.
+- PowerShell: `Invoke-WebRequest` em modo NonInteractive exige `-UseBasicParsing`; para HEAD rápido usar `curl.exe -I`.

@@ -3,6 +3,8 @@
 > Substitui o plano de correções anterior (todas as correções validadas — ver AGENTS.md).
 > Objetivo: colocar o sistema no ar com **R$ 0/mês e sem cartão de crédito**, retomando exatamente daqui.
 
+> ✅ **EXECUTADO EM 2026-08-23.** Sistema no ar: frontend em `https://pdv-lanchonete-1fa79.web.app`, API em `https://pdv-lanchonete-dwiw.onrender.com` (Render), repo `github.com/gabrielabrahaodev/pdv-lanchonete`. Estado atual detalhado no `AGENTS.md`; guia para redeploys no `DEPLOY.md`.
+
 ## ⚡ ESTADO ATUAL
 
 Sistema completo e validado localmente:

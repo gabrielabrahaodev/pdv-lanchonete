@@ -2,6 +2,11 @@
 
 > Stack: **Render.com free** (API FastAPI) + **Firebase Hosting Spark** (frontend PWA) + Firestore/Auth Spark.
 > Decisões fechadas no `PLANO-CORRECOES.md` (não re-discutir). Tradeoff aceito: Render free dorme após 15 min (~30–60s para acordar).
+>
+> ✅ **EXECUTADO em 2026-08-23.** URLs reais:
+> - Frontend: `https://pdv-lanchonete-1fa79.web.app`
+> - API: `https://pdv-lanchonete-dwiw.onrender.com` (o slug `-dwiw` existe porque nomes `.onrender.com` são globais — `pdv-lanchonete.onrender.com` é de OUTRA conta)
+> - Repo: `https://github.com/gabrielabrahaodev/pdv-lanchonete` (privado; push em `master` → auto-deploy na Render)
 
 ## Arquitetura
 
@@ -9,7 +14,7 @@
 Celular/Navegador
   │  https://pdv-lanchonete-1fa79.web.app        (Firebase Hosting)
   │  └─ frontend/dist estático (PWA + SW workbox)
-  │       └─ chama https://<url-render>/api/...  (VITE_API_URL embutido NO BUILD)
+  │       └─ chama https://pdv-lanchonete-dwiw.onrender.com/api/...  (VITE_API_URL embutido NO BUILD)
   ▼
 Render free tier: uvicorn app.main:app --host 0.0.0.0 --port $PORT
   └─ credenciais via env FIREBASE_SERVICE_ACCOUNT_JSON
@@ -42,7 +47,7 @@ gh repo create pdv-lanchonete --private --source . --push
 4. Environment → adicionar as 2 variáveis (ambas marcadas `sync: false` no yaml):
    - `CORS_ORIGINS` = `https://pdv-lanchonete-1fa79.web.app` (exato, com https, SEM barra final)
    - `FIREBASE_SERVICE_ACCOUNT_JSON` = conteúdo integral de `scripts/service-account.json`
-5. Deploy. Anotar a URL (ex.: `https://pdv-api-xxxx.onrender.com`).
+5. Deploy. Anotar a URL (a nossa: `https://pdv-lanchonete-dwiw.onrender.com`).
 
 O backend lê credenciais nesta ordem (`app/core/firebase.py`):
 1. env `FIREBASE_SERVICE_ACCOUNT_JSON` → 2. arquivo local (dev) → 3. ADC (futuras nuvens GCP).
@@ -50,10 +55,12 @@ O backend lê credenciais nesta ordem (`app/core/firebase.py`):
 ### 3. Smoke do backend
 
 ```powershell
-Invoke-RestMethod https://<url-render>/health    # espera {"status":"ok",...}
+Invoke-RestMethod https://pdv-lanchonete-dwiw.onrender.com/health    # espera {"status":"ok",...}
 ```
 
-Primeira chamada pode demorar ~60s (instância acordando do sleep).
+Primeira chamada pode demorar ~60s (instância acordando do sleep) — use timeout ≥120s.
+
+> `/health` aceita **GET e HEAD** (monitores como UptimeRobot fazem HEAD).
 
 ### 4. Frontend build com a URL da API
 
@@ -61,7 +68,7 @@ Primeira chamada pode demorar ~60s (instância acordando do sleep).
 
 ```powershell
 cd frontend
-$env:VITE_API_URL = 'https://<url-render>'      # ANTES do build
+$env:VITE_API_URL = 'https://pdv-lanchonete-dwiw.onrender.com'   # ANTES do build
 npm run build
 Remove-Item Env:VITE_API_URL                    # limpa p/ builds locais
 ```
