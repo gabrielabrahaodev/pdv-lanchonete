@@ -24,16 +24,20 @@ O servidor costuma rodar em background com saída redirecionada para `backend/uv
 
 Frontend: `cd frontend && npm run dev`. Credenciais de teste: `admin@restaurante.com` / `SenhaForte123!` (uid `0O29i5gABJTtS5JrAFgB7yskIwC3`, claims `restaurantId=restaurante_001`, `papel=admin`).
 
-## Testes E2E (sessão 2026-08-22)
+## Testes E2E
 
-Scripts criados em `%LOCALAPPDATA%\Temp\opencode\e2e-repro\` (temporário; recriar se apagado):
+Suíte **versionada no repo** em `scripts/e2e/` (instruções completas no `scripts/e2e/README.md`):
 
-- `e2e_test.js` — reproduz o fluxo do app Flutter Web direto no Firestore: login Firebase Auth → ler produtos/mesas → query pedidos `whereIn status` → batch.set(merge) de pedido + update de mesa → cleanup. Rodar com `node e2e_test.js`.
-- `get-token.js` — login e salva ID token em `token.txt` (para chamar a API FastAPI).
-- `api_test.ps1` — suíte completa de 34 testes da API (auth, CRUDs, pedido→cozinha→pagamento→caixa, estoque, delivery, relatórios, configurações) com cleanup automático. Rodar com `powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1`. Estado final: **34/34 PASS**.
-- `manual_b1_m4.ps1` — testes manuais do plano de correções: pagamento minimalista `{tipo, valor}` (sem id/criadoEm, espera 201) e delivery com `platform: "uber"` (espera 422). Estado final: **TODOS PASS**.
+- `api_test.ps1` — suíte de 35 testes da API (auth, CRUDs, pedido→cozinha→pagamento minimalista B1, caixa, estoque, delivery + 422 plataforma inválida M4, **relatório com asserção de venda**, configurações) com cleanup automático. Padrão: produção (`-Base http://127.0.0.1:8000` para local). Estado: **35/35 PASS** na produção.
+- `get-token.js` — login e salva ID token em `token.txt` (expira em 1h; requer `npm install` em `scripts/`).
+- `e2e_test.js` — fluxo do app client direto no Firestore (valida firestore.rules).
+- `scripts/e2e/token.txt` está no `.gitignore`.
 
-O token em `token.txt` expira em 1h — se a suíte começar a dar 401 "Token inválido ou expirado", rodar `node get-token.js` de novo antes.
+**CI**: GitHub Actions em `.github/workflows/ci.yml` — pytest 23 + tsc + build em todo push/PR.
+
+### Veredito histórico: "relatório zerado" (2026-08-23)
+
+Suspeita de bug no `/relatorios/resumo` era **falsa** — o relatório sempre contou certo; quem montava a janela errada era o teste (`yyyy-MM-ddT00:00:00Z` com data LOCAL: às 21h32 de Brasília já é 00h32Z do dia seguinte). Corrigido no teste com `(Get-Date).Date.ToUniversalTime()`. O frontend (`diasAtrasISO`, `mesAtual`) sempre usou `setHours(0,0,0,0)`+`toISOString()` = correto. Ao construir janelas de datas para o backend, SEMPRE converter local→UTC explicitamente.
 
 Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em mesa livre → mesa fica `ocupada` → item vai a `preparo`→`pronto` via `/api/cozinha/...` → pagamento pix quita pedido (`status=pago`) → mesa volta a `livre` → venda credita na sessão de caixa aberta → fechar caixa confere totais. Relatório `/api/relatorios/resumo` reflete as vendas.
 

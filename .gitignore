@@ -19,6 +19,7 @@ dist/
 service-account.json
 *-service-account*.json
 serviceAccountKey.json
+scripts/e2e/token.txt
 
 # IDE / OS
 .vscode/

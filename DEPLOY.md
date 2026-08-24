@@ -126,6 +126,9 @@ Pronto — a instância permanece "quente" enquanto o monitor roda. Zero custo, 
 
 ```powershell
 cd backend && .venv\Scripts\python -m pytest tests -q          # 23 passed
-powershell -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\Temp\opencode\e2e-repro\api_test.ps1"   # 34/34 (node get-token.js antes se expirou)
+cd scripts\e2e && node get-token.js                            # token vale 1h
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\e2e\api_test.ps1   # 35/35 (produção)
 cd frontend && npx tsc --noEmit                                 # exit 0
 ```
+
+CI (GitHub Actions) roda pytest + tsc + build em todo push/PR.
