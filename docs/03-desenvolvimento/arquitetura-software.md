@@ -36,8 +36,10 @@ app/
 ├── main.py            # UMA instância FastAPI: lifespan(Firebase) + CORS + routers(prefix=/api)
 ├── core/
 │   ├── config.py      # Settings pydantic-settings (.env): project_id, service_account_path,
-│   │                  # cors_origins, timezone
-│   ├── firebase.py    # init único do Admin SDK + get_db()/get_auth()
+│   │                  # firebase_service_account_json (env FIREBASE_SERVICE_ACCOUNT_JSON),
+│   │                  # sentry_dsn, cors_origins, timezone
+│   ├── firebase.py    # init único do Admin SDK + get_db()/get_auth(); credencial em 3 níveis:
+│   │                  # env JSON → arquivo local (dev) → ADC
 │   └── security.py    # get_current_auth (Bearer→claims), require_restaurant, require_roles(*papeis)
 ├── routers/           # 17 routers finos: validação Pydantic → chamada de service
 ├── services/
@@ -62,7 +64,7 @@ src/
 ├── App.tsx            # rotas + guards RequireAuth/RequireNoAuth/RequireAuthFallback
 ├── context/           # AuthContext (onAuthStateChanged + /auth/me), ThemeContext (tema por uid)
 ├── hooks/             # useRealtime (onSnapshot→invalidateQueries), useAlertasEstoque
-├── lib/               # api.ts (fetch+Bearer+ApiError), apiPublico.ts, csv.ts, format.ts,
+├── lib/               # api.ts (BASE=VITE_API_URL + fetch+Bearer+ApiError), apiPublico.ts, csv.ts, format.ts,
 │                      # impressora.ts (ESC/POS BT + fallback print), firebase.ts (SDK client)
 ├── components/        # layout/AppLayout (menu/badges/PageHeader), ui/index.tsx (design system)
 └── pages/             # 16 páginas organizadas por módulo
@@ -97,7 +99,8 @@ Convenções de integridade: `stamp_update` descarta `None` → limpeza de campo
 - Listagens in-memory (coleções pequenas), sem índices compostos;
 - Cache react-query com `staleTime` (produtos 60s) e `refetchInterval` (mesas 15s, KDS 8s, caixa 30s);
 - Service Worker NetworkFirst para GETs `/api/*` (timeout 4s, cache 24h, 200 entradas);
-- Payload público do cardápio enxuto (sem ingredientes/custos).
+- Payload público do cardápio enxuto (sem ingredientes/custos);
+- **Code-splitting por rota** (`React.lazy`) + chunks de vendor separados (react/firebase/query): o bundle inicial saiu de um único arquivo de ~790 kB para páginas de 2–27 kB carregadas sob demanda — relevante para o cardápio QR no 4G do cliente.
 
 ## 6. Escalabilidade e limites conhecidos
 
@@ -112,9 +115,12 @@ Convenções de integridade: `stamp_update` descarta `None` → limpeza de campo
 
 Ver `../02-modelagem/diagrama-componentes.md`, `diagrama-implantacao.md` e imagem `../arquitetura-atual.png`.
 
-## 8. Qualidade
+## 8. Qualidade e operação
 
-- pytest sobre `calculos.py` + validação de modelos (23 testes);
-- Suíte E2E de API contra projeto real (34 casos) com cleanup automático;
+- pytest sobre `calculos.py` + validação de modelos (23 testes) — `requirements-dev.txt`;
+- Suíte E2E de API **versionada em `scripts/e2e/`** (35 casos, alvo padrão = produção) com cleanup automático;
 - Tipagem estática TS no frontend (`tsc && vite build`);
+- **CI GitHub Actions** (`.github/workflows/ci.yml`): pytest + tsc + build a cada push/PR;
+- **Backup diário** do Firestore via Actions (`.github/workflows/backup.yml`) commitado em `backups/`;
+- Erros 5xx reportáveis ao Sentry (integração env-gated `SENTRY_DSN`, inativa sem DSN);
 - Erros HTTP padronizados em português com códigos coerentes (401/403/404/409/422).

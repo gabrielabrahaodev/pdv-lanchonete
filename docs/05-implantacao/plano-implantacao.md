@@ -4,8 +4,8 @@
 
 Implantação em **duas ondas**:
 
-1. **Piloto local controlado** (já operacional): backend + frontend na estação da loja, Firebase em nuvem, dados reais do estabelecimento.
-2. **Produção em nuvem** (planejada): SPA no Firebase Hosting + API em PaaS (ex.: Render), permitindo acesso remoto/multi-dispositivo.
+1. **Piloto local controlado** (operacional desde 2026-08-22): backend + frontend na estação da loja, Firebase em nuvem, dados reais do estabelecimento.
+2. **Produção em nuvem** (✅ **EXECUTADA em 2026-08-23**): SPA no Firebase Hosting + API na Render free tier. URLs reais e detalhes de release no `DEPLOY.md` da raiz.
 
 ## 2. Pré-requisitos de implantação
 
@@ -49,15 +49,16 @@ firebase deploy --only firestore:rules
 
 Validação de aceite: Roteiro R-01 completo + `/health` respondendo + login real.
 
-## 4. Passo a passo — Onda 2 (nuvem)
+## 4. Passo a passo — Onda 2 (nuvem) — ✅ EXECUTADA 2026-08-23
 
-| Etapa | Ação |
-|---|---|
-| 4.1 | Build do frontend (`npm run build`) e deploy no Firebase Hosting (`firebase deploy --only hosting` após configurar `hosting` no firebase.json) com rewrite `/api/**` → URL da API |
-| 4.2 | Deploy da API no PaaS: start `uvicorn app.main:app --host 0.0.0.0 --port $PORT`; env vars `PROJECT_ID`, `SERVICE_ACCOUNT_PATH`/segredo, `CORS_ORIGINS=https://<hosting>` |
-| 4.3 | Smoke: `/health`, login, criar pedido de teste, apagar pedido de teste |
-| 4.4 | Ativar export/backup programado do Firestore |
-| 4.5 | Atualizar QRs das mesas para a URL pública definitiva |
+| Etapa | Ação | Resultado |
+|---|---|---|
+| 4.1 | Frontend no Firebase Hosting **SEM rewrite** (exigiria Blaze): `VITE_API_URL` embutido no build → `firebase deploy --only hosting` | ✅ https://pdv-lanchonete-1fa79.web.app |
+| 4.2 | API na Render (free tier): `uvicorn app.main:app --host 0.0.0.0 --port $PORT`; envs `FIREBASE_SERVICE_ACCOUNT_JSON`, `CORS_ORIGINS=https://pdv-lanchonete-1fa79.web.app` | ✅ https://pdv-lanchonete-dwiw.onrender.com |
+| 4.3 | Smoke + suíte E2E completa contra produção | ✅ 35/35 PASS |
+| 4.4 | Backup programado do Firestore | ✅ GitHub Actions diário 03:30 (Brasília) commitando em `backups/` |
+| 4.5 | QRs das mesas apontando para a URL pública definitiva | ⏳ homologação física na loja (celular real) |
+| extra | UptimeRobot HEAD `/health` a cada 10 min (mitiga sleep do free tier) · Sentry opcional via env `SENTRY_DSN` | ✅ / ⏳ |
 
 Rollback: redeploy da versão anterior no Hosting/PaaS (builds versionados por tag git `v2.x.y`).
 

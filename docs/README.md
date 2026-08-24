@@ -20,6 +20,16 @@ Sistema de Ponto de Venda (PDV) para lanchonete: caixa, salão (mesas), cozinha 
 - **Scripts** (`scripts/`) — TS Admin SDK para init/seed/limpeza do banco de demonstração.
 - **Regras de segurança** — `firestore.rules` na raiz (isolamento por tenant para acesso direto do cliente).
 
+## Produção (no ar desde 2026-08-23)
+
+| Componente | Endereço |
+|---|---|
+| App (PWA) | https://pdv-lanchonete-1fa79.web.app |
+| API | https://pdv-lanchonete-dwiw.onrender.com |
+| Repositório | https://github.com/gabrielabrahaodev/pdv-lanchonete (privado) |
+
+Push em `master` → CI (pytest/tsc/build) + auto-deploy da API na Render. Frontend exige rebuild com `VITE_API_URL` + `firebase deploy --only hosting`. Backup diário automático do Firestore commitado em `backups/` (GitHub Actions). Detalhes: `DEPLOY.md` na raiz e `05-implantacao/manual-tecnico.md`.
+
 ## Como rodar (desenvolvimento)
 
 ```powershell

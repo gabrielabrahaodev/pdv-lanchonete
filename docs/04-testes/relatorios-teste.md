@@ -8,13 +8,16 @@ Consolidação das execuções de teste realizadas. Fontes: saída do pytest, su
 
 | Suíte | Data | Resultado | Status |
 |---|---|---|---|
-| pytest (unitária) | 2026-08-22 | **23/23 PASS** | ✅ Aprovada |
+| pytest (unitária) | 2026-08-22 · 2026-08-23/24 | **23/23 PASS** (local e CI) | ✅ Aprovada |
 | E2E API (`api_test.ps1`) | 2026-08-22 | **34/34 PASS** (com cleanup automático) | ✅ Aprovada |
+| **E2E API 35 casos — PRODUÇÃO (Render)** | 2026-08-24 | **35/35 PASS** (relatório com asserção de venda) | ✅ Aprovada |
 | Manuais B1–B5 / M1–M4 (`manual_b1_m4.ps1`) | 2026-08-22 | **TODOS PASS** | ✅ Aprovados |
-| Fluxo ponta a ponta Firestore real (`e2e_test.js`) | 2026-08-22 | login, leituras, pedido+mesa em batch, cleanup OK | ✅ Aprovado |
+| Fluxo ponta a ponta Firestore real (`e2e_test.js`) | 2026-08-22 · 2026-08-23 | login, leituras, pedido+mesa em batch, cleanup OK | ✅ Aprovado |
 | Cardápio digital + onboarding + tema (manual) | sessão parte 3 | comportamentos validados | ✅ Aprovados |
+| CI GitHub Actions (pytest + tsc + build) | desde 2026-08-24 | verde em todo push/PR | ✅ Ativa |
+| Backup Firestore via Actions | 2026-08-24 | export JSON completo commitado em `backups/` | ✅ Ativa |
 
-**Conclusão:** sistema apto para homologação funcional; pendências restritas a itens planejados (publicação de rules, deploy produção).
+**Conclusão:** sistema em produção validado de ponta a ponta. Suíte E2E agora **versionada em `scripts/e2e/`** (antes vivia em pasta temporária).
 
 ## 2. Detalhamento — Unitária (pytest)
 
@@ -28,9 +31,16 @@ Comando: `.venv\Scripts\python -m pytest tests -q`
 | `resumo_financeiro` (DRE) | DRE completo; categoria desconhecida→outra; custo médio ausente=0; vazio | 4/4 ✅ |
 | Modelos | DespesaCreate (categoria/valor/descrição); PaymentCreate minimalista; alias camelCase; RestaurantCreate (mesas 0–50, nome mín.); PreferenciasUpdate (tema válido/inválido) | 11/11 ✅ |
 
-## 3. Detalhamento — Suíte E2E de API (34 casos)
+## 3. Detalhamento — Suíte E2E de API (35 casos, `scripts/e2e/`)
 
-Pré-requisitos executados: token fresco via `get-token.js`; backend no :8000; seeds presentes.
+Pré-requisitos: token fresco via `node get-token.js` (expira 1h). Alvo padrão: **produção** (`-Base http://127.0.0.1:8000` para local).
+
+Incrementos da versão 35 casos (2026-08-24):
+- pagamento usa o contrato **minimalista B1** `{tipo, valor}` → 201 com id do servidor;
+- delivery plataforma inválida → **422** (M4) como caso permanente;
+- relatório resumo com **asserção real**: a venda criada no teste DEVE aparecer
+  (janela de datas construída com `(Get-Date).Date.ToUniversalTime()` — histórico:
+  data local rotulada como UTC zerava o resultado às noites do Brasil; o sistema sempre esteve correto).
 
 Grupos e verificação:
 
@@ -66,14 +76,19 @@ Estado final: **34/34 PASS**, ambiente limpo (cleanup automático dos recursos `
 | D-3 | Pagamento exigia payload completo (id/criadoEm do cliente) | S2 | contrato minimalista PaymentCreate (201) | CT-005 |
 | D-4 | Corridas em mesa/caixa/estoque | S2 | `@transactional` nos services | CT-001/002 |
 | D-5 | Baixa de estoque poderia duplicar em retry | S2 | idempotência `baixadoEm` | CT-007 |
+| D-6 | Campo pydantic `service_account_json` nunca lia a env `FIREBASE_SERVICE_ACCOUNT_JSON` → em produção caía no ADC sem projeto: **401 em toda rota autenticada + 500 nos públicos**, com `/health` ok | **S1** (produção) | campo renomeado para `firebase_service_account_json` (`config.py`) | suíte E2E 35/35 contra a Render |
+| D-7 | `/health` só aceitava GET → monitor UptimeRobot fazia HEAD e recebia 405 ("serviço fora" com tudo saudável) | S3 | `@app.api_route("/health", methods=["GET","HEAD"])` | `curl -I /health` → 200 |
 
 Nenhum defeito aberto conhecido no escopo entregue.
 
 ## 6. Cobertura x lacunas
 
 Cobertos: fluxo monetário crítico, concorrência, papéis, CRUDs, integrações Firebase.
-Lacunas aceitas (planejadas): automação de UI (E2E browser), carga/performance, teste formal das rules do Firestore em emulador, CI agendado.
+Lacunas aceitas (planejadas): automação de UI (E2E browser), carga/performance, teste formal das rules do Firestore em emulador.
 
-## 7. Próxima janela de teste sugerida
+## 7. Execução em produção (2026-08-23/24) — fechamento
 
-Após publicar rules + deploy produção: reexecutar R-01..R-04 no ambiente publicado + validar onSnapshot ativo (sem warnings no console) e rate limit público sob rede real.
+A janela sugerida foi executada: rules publicadas · deploy Render + Hosting concluídos ·
+suíte 35/35 contra a API de produção · onSnapshot ativo sem warnings · backup automático
+validado ponta a ponta. Pendência restante: homologação física na loja (impressora Bluetooth,
+QR de mesa escaneado de celular real, instalação do PWA).
