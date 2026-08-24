@@ -149,7 +149,7 @@ export default function ProdutoFormPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
+    <div className="mx-auto max-w-3xl p-6">
       <Link to="/produtos" className="text-xs font-semibold text-brand-600 hover:underline">← Voltar</Link>
       <h1 className="mt-1 mb-6 text-xl font-bold text-slate-800">{editando ? 'Editar' : 'Novo'} produto</h1>
 
@@ -218,9 +218,8 @@ export default function ProdutoFormPage() {
           </div>
           <div className="space-y-2">
             {variacoes.map((v, idx) => (
-              <div key={idx} className="flex items-center gap-2 rounded-lg border border-slate-200 p-2">
+              <div key={idx} className="grid grid-cols-[minmax(0,1fr)_7rem_1.5rem] items-center gap-2 rounded-lg border border-slate-200 p-2">
                 <Input
-                  className="flex-1"
                   placeholder="Nome (ex.: Com Bacon)"
                   value={v.nome}
                   onChange={(e) =>
@@ -228,7 +227,6 @@ export default function ProdutoFormPage() {
                   }
                 />
                 <Input
-                  className="w-28"
                   inputMode="decimal"
                   placeholder="+ R$"
                   value={v.precoAdicional}
@@ -262,9 +260,8 @@ export default function ProdutoFormPage() {
             {ingredientes.map((ing, idx) => {
               const itemSel = (estoque.data ?? []).find((e) => e.id === ing.itemId)
               return (
-                <div key={idx} className="flex items-center gap-2 rounded-lg border border-slate-200 p-2 dark:border-slate-700">
+                <div key={idx} className="grid grid-cols-[minmax(0,1fr)_auto_4.5rem_1.5rem] items-center gap-2 rounded-lg border border-slate-200 p-2 dark:border-slate-700">
                   <Select
-                    className="flex-1"
                     value={ing.itemId}
                     onChange={(e) =>
                       setIngredientes((is) => is.map((x, i) => (i === idx ? { ...x, itemId: e.target.value } : x)))
@@ -277,9 +274,8 @@ export default function ProdutoFormPage() {
                       </option>
                     ))}
                   </Select>
-                  <span className="shrink-0 text-xs text-slate-400">{itemSel?.unidade ?? ''}</span>
+                  <span className="text-xs text-slate-400">{itemSel?.unidade ?? ''}</span>
                   <Input
-                    className="w-24"
                     inputMode="decimal"
                     placeholder="Qtd"
                     value={ing.qtd}

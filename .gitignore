@@ -34,3 +34,6 @@ Thumbs.db
 # Logs
 *.log
 server.pid
+
+# Exportações de sessão do opencode
+session-*.md
