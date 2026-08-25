@@ -11,12 +11,14 @@ Wireframes textuais fiéis às telas implementadas (`frontend/src/pages`). Ident
 │ 🧾 Caixa │                                              │
 │ 🍽️ Mesas │              <conteúdo da página>            │
 │ 🍔 Produtos│                                            │
+│ 🏷️ Categorias│                                          │
 │ 📦 Estoque②│                                            │
 │ 👨‍🍳 Cozinha│                                             │
 │ 🛵 Delivery                                            │
 │ 📊 Relatórios                                          │
 │ 💰 Financeiro                                          │
 │ ⚙️ Configurações                                       │
+│ 🔑 Plataforma  ← só para dono da plataforma            │
 │          │                                              │
 │ 👤 Nome  │                                              │
 │ [admin]  │                                              │
@@ -41,19 +43,20 @@ Wireframes textuais fiéis às telas implementadas (`frontend/src/pages`). Ident
 └────────────────────────────────────┘
 ```
 
-## 2. Seleção/Criação de restaurante (onboarding)
+## 2. Seleção/Criação de restaurante (onboarding por convite)
 
 ```
-┌────────────────────────────────────┐
-│  Bem-vindo! Crie seu restaurante:  │
-│  ┌──────────────────────────────┐  │
-│  │ Nome do restaurante          │  │
-│  ├──────────────────────────────┤  │
-│  │ Quantidade de mesas [12]     │  │
-│  └──────────────────────────────┘  │
-│         [ Criar e começar ]        │
-│  ⓘ Você se tornará administrador.  │
-└────────────────────────────────────┘
+┌────────────────────────────────────────────────┐
+│  Bem-vindo! Configure seu restaurante:         │   ← acessada pelo link do convite:
+│  ┌──────────────────────────────────────────┐  │     /select-restaurant?t=CÓDIGO
+│  │ Nome do restaurante                      │  │     (sem convite válido → bloqueado)
+│  ├──────────────────────────────────────────┤  │
+│  │ Quantidade de mesas:                     │  │
+│  │ (Sem salão)(6)(12✓)(24)(Outro → [__])    │  │
+│  └──────────────────────────────────────────┘  │
+│         [ Criar e começar ]                    │
+│  ⓘ Você se tornará administrador.              │
+└────────────────────────────────────────────────┘
 ```
 
 ## 3. Caixa — mapa de mesas (home)
@@ -115,15 +118,17 @@ Wireframes textuais fiéis às telas implementadas (`frontend/src/pages`). Ident
 
 ```
 ┌─ 👨‍🍳 Cozinha — KDS ────────────────── [7 pedidos ativos] ┐
-│ ⏳ Pendente(2)      │ 🔥 Em preparo(3)   │ 🔔 Pronto(2)  │
-│ ┌───────────────┐   │ ┌───────────────┐  │ ┌────────────┐│
-│ │Mesa 4   19:02🖨│   │ │Mesa 2   18:55 │  │ │Mesa 7 19:10││
-│ │ 2x X-Burger   │   │ │ 1x Hot dog    │  │ │ 3x Refri   ││
-│ │   >> sem cebola│  │ │ 2x Milkshake  │  │ │[Entregar]  ││
-│ │[Iniciar preparo]│ │ │[Marcar pronto]│  │ └────────────┘│
-│ └───────────────┘   │ └───────────────┘  │               │
-└────────────────────────────────────────────────────────┘
-  tema escuro fixo; auto-refresh ~8s; 🖨 imprime comanda
+│ UM CARTÃO POR MESA (todas as seções no mesmo cartão):   │
+│ ┌────────────────────┐  ┌────────────────────┐           │
+│ │ Mesa 4      19:02🖨 │  │ Mesa 2      18:55  │           │
+│ │ 2x X-Burger        │  │ 1x Hot dog  ⏳pend │           │
+│ │   "sem cebola"     │  │ 1x X-Bacon  🔥prep │           │
+│ │ 1x Coca       ⏳pend│  │ 2x Milkshake🔥prep │           │
+│ │ [Iniciar preparo]  │  │ [Marcar pronto]    │           │
+│ └────────────────────┘  └────────────────────┘           │
+└─────────────────────────────────────────────────────────┘
+  tema escuro fixo; auto-refresh ~8s; 🖨 imprime comanda;
+  botão avança TODOS os itens selecionados em 1 chamada (bulk)
 ```
 
 ## 7. Produtos (lista + formulário)
@@ -131,19 +136,22 @@ Wireframes textuais fiéis às telas implementadas (`frontend/src/pages`). Ident
 ```
 Lista: busca + filtro categoria | [Novo produto]
 ┌──────────────────────────────────────────────────┐
-│ X-Burguer · Lanches · R$22,00 · 2 variações ✓ativo│
-│ Coca lata · Bebidas · R$6,00                     │
+│ [🖼] X-Burguer · Lanches · R$22,00 · 2 variações ✓│
+│ [🖼] Coca lata · Bebidas · R$6,00                │
+│  ▲ thumbnail quando temImagem; placeholder senão │
 └──────────────────────────────────────────────────┘
 
 Formulário:
 ┌─ Produto ────────────────────────────────────────┐
 │ Nome [____] Categoria [Lanches ▾] Preço [22,00]  │
-│ Imagem URL [____] Ativo [x] Estoque mín. [0]     │
+│ Foto: [Escolher arquivo…] (preview) [Remover]    │
+│ Ativo [x] Estoque mín. [0]                       │
 │ Variações:  (nome, preço adicional, ativo)  [+ ] │
 │ Receita (por 1 un.): item estoque ▾ qtd [0,15kg] │
 │                                    [+ ingrediente]│
 │                              [Salvar] [Cancelar] │
 └──────────────────────────────────────────────────┘
+  upload comprimido no cliente na MESMA mutation do salvar
 ```
 
 ## 8. Mesas (gestão)
@@ -253,8 +261,9 @@ Formulário:
 │ Mesa 02                     │
 │ [Lanches][Bebidas][…]       │
 │ ┌─────────────────────────┐ │
-│ │ X-Burger     R$22,00    │ │
-│ │ descrição curta  [+ Add]│ │
+│ │[🖼] X-Burger  a partir  │ │
+│ │              de R$22,00 │ │ ← "a partir de" quando há variações;
+│ │ descrição curta  [+ Add]│ │   foto pública do produto (temImagem)
 │ └─────────────────────────┘ │
 │ ┌ Carrinho (2 itens) R$28 ┐ │
 │ │ 1x X-Burger  − 1 +      │ │
@@ -263,7 +272,35 @@ Formulário:
 │ └─────────────────────────┘ │
 │  ✔ Pedido enviado! Nº abc123│
 └─────────────────────────────┘
-  sem login; rate limit 12/min/IP
+  sem login; rate limit 12/min/IP; clicar no produto abre
+  modal de customização (variação + retirar/adicionar + obs)
+```
+
+## 16. Plataforma (console do dono)
+
+```
+┌─ 🔑 Plataforma ────────────────────────────────────────┐
+│ [Gerar convite]                                        │
+│ Link copiável: …/select-restaurant?t=Ab3xY…  [copiar]  │
+│ ─ Convites ─                                           │
+│ Ab3xY… · ativa · expira 30/08      [revogar]           │
+│ K9mPq… · usada por rest_7f2c · 25/08                   │
+│ R2vLt… · expirada                                      │
+└────────────────────────────────────────────────────────┘
+   fora do layout da loja; guard sistema/global.donoUids;
+   convite = uso único, expira em 7 dias
+```
+
+## 17. Categorias
+
+```
+┌─ Categorias ─────────────────────────── [Nova categoria]┐
+│ 🍔 Lanches    ordem 1  [ativa]  [editar] [excluir]      │
+│ 🥤 Bebidas    ordem 2  [ativa]  [editar] [excluir]      │
+│ 🍟 Porções    ordem 3  [inativa][editar]                │
+└─────────────────────────────────────────────────────────┘
+   ícone emoji · ordem de exibição no cardápio/PDV ·
+   exclusão BLOQUEADA se houver produtos vinculados (409)
 ```
 
 ## Estados de interface padronizados

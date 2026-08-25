@@ -15,8 +15,9 @@ Convenções de prioridade: **Essencial** (o sistema não opera sem), **Importan
 | RF-001 | O sistema deve autenticar usuários via Firebase Auth (e-mail/senha) e emitir ID token usado como `Bearer` em todas as chamadas da API. | Essencial |
 | RF-002 | A API deve validar o ID token em toda requisição e extrair os custom claims `restaurantId` e `papel`; sem `restaurantId`, responder 403. | Essencial |
 | RF-003 | Deve expor `GET /api/auth/me` com contexto completo (uid, e-mail, papel, restaurante, perfil, configurações) para alimentar a aplicação. | Essencial |
-| RF-004 | Onboarding: usuário sem restaurante deve poder criar o primeiro estabelecimento via `POST /api/restaurantes/primeiro` `{nome, quantidadeMesas(0–50, default 12)}`, criando em lote doc raiz, configurações, docs-pai das coleções, mesas numeradas e o próprio doc de usuário como `admin`. | Essencial |
-| RF-005 | Guard duplo de onboarding: claim ausente no token **e** marcador transacional na coleção top-level `onboarding/{uid}`; segunda tentativa → 409. | Essencial |
+| RF-004 | Onboarding por convite: novo restaurante nasce EXCLUSIVAMENTE via `POST /api/restaurantes/primeiro` com **token de convite válido** do dono da plataforma (`{token, nome, quantidadeMesas(default 12)}`), criando numa única transação doc raiz, configurações, docs-pai das coleções, mesas numeradas e o próprio doc de usuário como `admin`. Sem/inválido/expirado/usado/revogado → 403 (exceto bootstrap do zero e donos da plataforma). | Essencial |
+| RF-005 | Guard duplo + auto-cura: marcador transacional na coleção top-level `onboarding/{uid}`; retry com marcador completo e claim ausente reemite claims e devolve o MESMO restaurante; terceira tentativa (claim válido) → 409. | Essencial |
+| RF-005a | Convites da plataforma: donos em `sistema/global.donoUids[]` geram (`POST /api/sistema/convites`), listam e revogam convites — coleção top-level `convites/{token}`, uso único, expira 7 dias; consumo transacional no onboarding; admin de tenant não gera convite (403). `/auth/me` responde `souDono`. Console `/plataforma` gera link copiável `…/select-restaurant?t=CÓDIGO`. | Essencial |
 | RF-006 | CRUD de usuários do restaurante (`/api/usuarios`) restrito a `admin`/`gerente`: criação cria conta no Firebase Auth + claims + documento; apenas `admin` cria/altera/remove contas `admin`. | Importante |
 | RF-007 | Preferências self-service: qualquer papel pode ler/alterar seu tema (`GET/PATCH /api/usuarios/me`, valores `claro|escuro`), persistido no doc do usuário. | Importante |
 | RF-008 | Papéis suportados: `admin`, `gerente`, `caixa`, `garcom`, `cozinha`, com guards por endpoint (`require_roles`). | Essencial |
@@ -26,7 +27,8 @@ Convenções de prioridade: **Essencial** (o sistema não opera sem), **Importan
 | ID | Requisito | Prioridade |
 |---|---|---|
 | RF-010 | CRUD de categorias com nome, ordem, ativo, ícone e cor. Escrita: admin/gerente/caixa. | Essencial |
-| RF-011 | CRUD de produtos com nome, categoria, preço, variações (nome + preço adicional), ingredientes (receita: `itemId` + `qtd` por unidade), imagem, ativo e estoque mínimo. | Essencial |
+| RF-011 | CRUD de produtos com nome, categoria, preço, variações (nome + preço adicional), ingredientes (receita: `itemId` + `qtd` por unidade), ativo e estoque mínimo. | Essencial |
+| RF-011a | Foto do produto: `PUT/DELETE /api/produtos/{id}/imagem` (base64 ≤200k chars, jpeg/png/webp) gravada em coleção própria `imagens/items/{produtoId}` com flag `temImagem` no produto; cliente comprime antes de enviar; bytes servidos publicamente em `GET /api/publico/{rid}/imagens/{produto_id}`; exclusão do produto apaga a imagem (cascade). | Importante |
 | RF-012 | Listagem de produtos filtrável por categoria e por "apenas ativos". | Essencial |
 
 ### 1.3 Mesas
@@ -64,7 +66,7 @@ Convenções de prioridade: **Essencial** (o sistema não opera sem), **Importan
 | ID | Requisito | Prioridade |
 |---|---|---|
 | RF-050 | Fila da cozinha (`GET /api/cozinha/fila`) retornando pedidos abertos com itens pendentes/em preparo/prontos. | Essencial |
-| RF-051 | Atualizar status do item por papel `admin|gerente|caixa|cozinha` (`PATCH /api/cozinha/pedidos/{pedido}/itens/{item}/status?novo_status=...`). | Essencial |
+| RF-051 | Atualizar status dos itens por papel `admin|gerente|caixa|cozinha`: endpoint BULK preferencial `PATCH /api/cozinha/pedidos/{pedido}/itens/status` `{itemIds[], novoStatus}` (transição completa numa única transação, baixa agregada de ingredientes compartilhados); a rota antiga por item delega ao bulk. | Essencial |
 
 ### 1.7 Estoque
 
@@ -109,7 +111,7 @@ Convenções de prioridade: **Essencial** (o sistema não opera sem), **Importan
 
 | ID | Requisito | Prioridade |
 |---|---|---|
-| RF-110 | SPA com áreas: Caixa, Mesas, Produtos, Estoque (badge de alertas), Cozinha KDS, Delivery, Relatórios, Fechamento de caixa, Financeiro, Configurações. | Essencial |
+| RF-110 | SPA com áreas: Caixa, Mesas, Produtos, Categorias (tela própria), Estoque (badge de alertas), Cozinha KDS (cartão por mesa), Delivery, Relatórios, Fechamento de caixa, Financeiro, Configurações, Seleção de restaurante/onboarding e console Plataforma (dono). | Essencial |
 | RF-111 | Tema claro/escuro POR USUÁRIO: classe `dark` no `<html>`, cache localStorage por uid + persistência via API. | Importante |
 | RF-112 | Tempo real: `onSnapshot` do Firestore nas coleções quentes invalida caches do react-query; sem regras publicadas/offline, cai para polling (8–30s). | Importante |
 | RF-113 | Impressão térmica ESC/POS via Web Bluetooth (service `18f0`, char `2af1`, chunks de 180 bytes) com fallback janela `print()`: comanda no KDS, recibo na quitação, teste em Configurações. | Importante |
@@ -131,6 +133,6 @@ Convenções de prioridade: **Essencial** (o sistema não opera sem), **Importan
 | RNF-009 | Localização | Moeda BRL, datas/horas pt-BR, fuso configurável (default `America/Sao_Paulo`), CSV compatível com Excel pt-BR. | Essencial |
 | RNF-010 | Testabilidade | Regras de cálculo puras isoladas em `calculos.py` cobertas por pytest (23 testes); suíte E2E de API reproduz fluxo completo. | Essencial |
 | RNF-011 | Custo | Infraestrutura inicial custo zero (Firebase Spark); leituras minimizadas por cache/staleTime. | Importante |
-| RNF-012 | Observabilidade | `/health` para verificação; logs de acesso uvicorn; erros HTTP com mensagens claras em português. | Importante |
+| RNF-012 | Observabilidade | `/health` para verificação (aceita GET **e HEAD**; é estático — smoke real deve ler Firestore); logs de acesso uvicorn; erros HTTP com mensagens claras em português; Sentry opcional (`SENTRY_DSN`); backup diário automático (`backup.yml`). | Importante |
 | RNF-013 | Manutenibilidade | Camadas router → service → base(Firestore); modelos Pydantic espelham os contratos camelCase; documentação viva nesta pasta. | Essencial |
 | RNF-014 | Compatibilidade de dados | Documentos antigos com `createdAt/updatedAt` são normalizados para `criadoEm/atualizadoEm` na leitura. | Essencial |

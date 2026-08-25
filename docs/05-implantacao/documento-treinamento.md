@@ -19,10 +19,11 @@ Plano e material de treinamento para a equipe do restaurante. Formato: sessões 
 **Conteúdo:**
 1. O que o sistema resolve (pedido → cozinha → pagamento → caixa → relatório).
 2. Login com e-mail/senha; o que fazer se esquecer a senha (admin reseta em Configurações → Usuários).
-3. Menu lateral; badge vermelho do estoque = itens abaixo do mínimo.
-4. Tema claro/escuro é individual — configurar o seu.
-5. Instalar como aplicativo (PWA) no tablet/celular.
-6. Regra de ouro: **cada um usa sua conta** (as ações ficam registradas com seu nome).
+3. Novo administrador de loja: recebe do dono da plataforma o **link de convite** (`?t=CÓDIGO`) para criar o restaurante no primeiro acesso.
+4. Menu lateral; badge vermelho do estoque = itens abaixo do mínimo.
+5. Tema claro/escuro é individual — configurar o seu.
+6. Instalar como aplicativo (PWA) no tablet/celular.
+7. Regra de ouro: **cada um usa sua conta** (as ações ficam registradas com seu nome).
 
 **Prática:** cada trainee loga, troca o tema e instala o PWA.
 
@@ -55,13 +56,14 @@ Plano e material de treinamento para a equipe do restaurante. Formato: sessões 
 ## 5. T-4 — Administrador/Gerente
 
 **Conteúdo:**
-1. Produtos: preço-fonte da verdade; variações; **receita por 1 unidade** (base da baixa automática); inativo não aparece para vender.
-2. Mesas: criar, reservar/inativar, gerar QR do cardápio.
-3. Estoque: entrada (compras), saída, ajuste; mínimo dispara alerta; saldo pode ficar negativo (sistema não trava produção).
-4. Financeiro: fornecedores; despesas por categoria e competência; marcar pago/reabrir; despesa NÃO mexe no caixa.
-5. Relatórios: período, vendas por hora/forma, top produtos, resultado gerencial; exportar CSV.
-6. Usuários: criar conta com papel correto; apenas admin cria gerentes/manipula admins; reset de senha.
-7. Configurações: baixa automática ON/OFF; cardápio digital ON/OFF; teste de impressora; fuso/moeda.
+1. Categorias: tela própria (ícone, ordem, ativa/inativa); exclusão bloqueada com produto vinculado.
+2. Produtos: preço-fonte da verdade; variações; foto (upload comprimido); **receita por 1 unidade** (base da baixa automática); inativo não aparece para vender.
+3. Mesas: criar, reservar/inativar, gerar QR do cardápio.
+4. Estoque: entrada (compras), saída, ajuste; mínimo dispara alerta; saldo pode ficar negativo (sistema não trava produção).
+5. Financeiro: fornecedores; despesas por categoria e competência; marcar pago/reabrir; despesa NÃO mexe no caixa.
+6. Relatórios: período, vendas por hora/forma, top produtos, resultado gerencial; exportar CSV.
+7. Usuários: criar conta com papel correto; apenas admin cria gerentes/manipula admins; reset de senha.
+8. Configurações: baixa automática ON/OFF; cardápio digital ON/OFF; teste de impressora; fuso/moeda.
 
 **Prática:** cadastrar produto com receita real do cardápio da casa; lançar 2 despesas; gerar relatório do dia.
 

@@ -20,10 +20,12 @@ flowchart LR
         UC13([UC-13 Pedir pelo cardápio digital])
         UC14([UC-14 Registrar delivery])
         UC15([UC-15 Configurar sistema/usuários])
+        UC16([UC-16 Gerenciar convites da plataforma])
 
         R1{{RN Baixa automática<br/>de estoque}}
         R2{{RN Crédito no caixa +<br/>liberação da mesa}}
         R3{{RN Preço resolvido<br/>no servidor}}
+        R4{{RN Convite válido<br/>obrigatório}}
     end
 
     Admin([👤 Administrador/Gerente])
@@ -32,6 +34,7 @@ flowchart LR
     Cozinha([👤 Cozinheiro])
     Cliente([👤 Cliente sem login])
     Ext([🛵 Plataforma Delivery])
+    Owner([🔑 Dono da Plataforma])
 
     %% Relações principais
     Admin --- UC01
@@ -62,6 +65,9 @@ flowchart LR
 
     Ext -. registra manualmente .-> UC14
 
+    Owner --- UC01
+    Owner --- UC16
+
     %% include/extend
     UC03 -. include .-> R3
     UC04 -. include .-> R3
@@ -69,10 +75,12 @@ flowchart LR
     UC05 -. extend .-> R1
     UC06 -. extend .-> UC07
     UC07 -. include .-> R2
+    UC02 -. include .-> R4
 ```
 
 ## Observações
 
-- **Generalização de atores:** `Administrador` herda as capacidades de todos os demais papéis (matriz RN-02).
+- **Generalização de atores:** `Administrador` herda as capacidades de todos os demais papéis (matriz RN-02). O **Dono da Plataforma** é um ator SEPARADO (sem tenant) — não herda papéis de loja.
 - **«include»** — preço sempre do servidor faz parte de qualquer lançamento de item (local, digital ou delivery).
 - **«extend»** — a quitação (UC-07) é um desdobramento automático do pagamento (UC-06) quando o saldo cobre o total; a baixa de estoque (R1) dispara apenas na transição `pendente → preparo` e se a receita existir.
+- **UC-02 inclui R4** — criar restaurante exige convite válido do dono da plataforma (uso único, expira 7 dias); auto-cura no retry devolve o mesmo restaurante.

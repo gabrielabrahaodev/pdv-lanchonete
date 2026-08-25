@@ -37,7 +37,7 @@ Frontend: `cd frontend && npm run dev`. Credenciais de teste: `admin@restaurante
 
 Suíte **versionada no repo** em `scripts/e2e/` (instruções completas no `scripts/e2e/README.md`):
 
-- `api_test.ps1` — suíte de 51 testes da API (auth, CRUDs, imagem do produto, cardápio digital com variação+observações, **cozinha bulk + baixa de estoque agregada (regressão do bug 10)**, pedido→cozinha→pagamento minimalista B1, caixa, estoque, delivery + 422 plataforma inválida M4, relatório com asserção de venda, configurações) com cleanup automático. Padrão: produção (`-Base http://127.0.0.1:8000` para local). Estado: **51/51 PASS na produção** (2026-08-24).
+- `api_test.ps1` — suíte de **52 passos base + 13 de onboarding condicionais** (auth, CRUDs, imagem do produto, cardápio digital com variação+observações, **cozinha bulk + baixa de estoque agregada (regressão do bug 10)**, pedido→cozinha→pagamento minimalista B1, caixa, estoque, delivery + 422 plataforma inválida M4, relatório com asserção de venda, configurações; seção 13 = onboarding/convites) com cleanup automático. Padrão: produção (`-Base http://127.0.0.1:8000` para local). Estado: **51/51 PASS na produção** (2026-08-24); local 2026-08-25 = 59 PASS / 6 FAIL onde os 6 foram só `token-owner.txt` expirado (base 52/52 PASS). A seção 13 requer `node get-token.js gabriel@pdv.com '<senha>' token-owner.txt` — sem o arquivo ela é pulada com aviso.
 - `get-token.js` — login e salva ID token em `token.txt` (expira em 1h; requer `npm install` em `scripts/`).
 - `e2e_test.js` — fluxo do app client direto no Firestore (valida firestore.rules).
 - `scripts/e2e/token.txt` está no `.gitignore`.
@@ -86,7 +86,7 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 - Baseline validado NA PRODUÇÃO: pytest 23/23 · suíte E2E **34/34** contra a API da Render (o `api_test.ps1` temporário teve `$Base` apontada para produção).
 - `/health` aceita **GET e HEAD** (`@app.api_route`) — monitores externos (UptimeRobot) fazem HEAD e antes recebiam 405.
 - Release do frontend: `$env:VITE_API_URL='https://pdv-lanchonete-dwiw.onrender.com'; npm run build; Remove-Item Env:VITE_API_URL` → `firebase deploy --only hosting`.
-- **Decisão registrada**: usuário optou por NÃO fechar o auto-cadastro — Firebase Auth e-mail/senha segue aberto e `POST /restaurantes/primeiro` também (conta órfã pode virar admin de restaurante novo no mesmo projeto, consumindo quota Spark; dados do tenant continuam protegidos por claims + firestore.rules). Se um dia quiser restringir: flag `onboarding_aberto` em config + gate no service (plano já discutido).
+- **Decisão registrada (2026-08-23), SUPERADA pelo P0.7**: chegou-se a optar por manter o auto-cadastro aberto — hoje isso NÃO vale mais: a flag `onboarding_aberto` foi APOSENTADA e novo restaurante nasce EXCLUSIVAMENTE por convite válido do dono da plataforma (`sistema/global.donoUids[]`, coleção `convites/{token}`, console `/plataforma`). Ver seção "Sessão 2026-08-24/25 (parte 2)" abaixo.
 
 ### Sessão 2026-08-23 (parte 2): foto do produto no Firestore
 
@@ -109,6 +109,19 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 - Correção raiz do 500 no "iniciar preparo" (`ReadAfterWriteError`, bug 10) e handler 500 com CORS (bug 9) — detalhes na seção de bugs.
 - Suíte `api_test.ps1` ampliada para **51 casos** com regressão da baixa agregada: 2 produtos compartilham 1 ingrediente → bulk preparo → saldo −7 e exatamente 1 movimentação. **51/51 PASS na produção**.
 - Layout do formulário de produto: linhas de variação/ingrediente em grid de colunas fixas (`minmax(0,1fr)` + larguras fixas p/ preço/unidade/qtd/remover) e container `max-w-3xl` — nomes longos não espremem mais os campos numéricos.
+
+## Sessão 2026-08-24/25 (parte 2): plataforma por convites (P0/P0.5–P0.7)
+
+- **P0 — proteção**: guard 409 de categoria com produto vinculado no BACKEND (`categorias_service.remover`); backup diário local via Task Scheduler + `scripts/backup-diario.ps1`; restore `npm run restaurar` (dry-run padrão).
+- **P0.5 — onboarding à prova de falha**: `criar_primeiro` faz TUDO numa ÚNICA transação (raiz, config, docs-pai, mesas, doc admin, marcador completo — leituras antes das escritas); retry com marcador completo + claim ausente = **auto-cura** (reemite claims, devolve o MESMO restaurante); presets de mesa (chips 6·12·24·Outro).
+- **P0.6/P0.7 — plano da PLATAFORMA**: donos em `sistema/global.donoUids[]` (sem tenant; CLI `npm run promover-dono`); flag `onboardingAberto` APOSENTADA; convites em coleção top-level `convites/{token}` (uso único, expira 7d, revogável) consumidos na MESMA transação do onboarding; routers `/api/sistema/*` com guard próprio; `/auth/me` responde `souDono`; console `/plataforma` fora do layout da loja gera link `…/select-restaurant?t=CÓDIGO`. Bootstrap do zero (sem restaurante E sem dono) cria livre e semeia o primeiro dono. Owner: `gabriel@pdv.com`.
+- Suíte ganhou a seção 13 (13 passos de onboarding/convites), condicional ao `token-owner.txt` do dono.
+- Deployado (commits `00ef1e6`→`ea70b8a`); fix `ea70b8a` preserva `?t=` na cadeia de redirects login→seleção.
+
+## Sessão 2026-08-25 (parte 3): fix caixa "Invalid Date" + docs
+
+- **Bug caixa**: tela exibia "Status=Aberto desde Invalid Date". Causa: `caixa_service.abrir()` nunca gravava `abertoEm` (doc só tinha createdAt→normalizado criadoEm). Fix duplo: backend grava `abertoEm: now_utc()`; frontend usa fallback `abertoEm ?? criadoEm` (CaixaOverviewPage + FechamentoCaixaPage ×3). Tipo `CashSession`: `abertoEm?`, `criadoEm` obrigatório. Commit `a047dec` validado localmente (abrir→sessao-atual→fechar) e em produção.
+- **Docs atualizados integralmente** (README, DEPLOY, planos, PLANO-CORRECOES com banner histórico, scripts/e2e/README e toda a árvore docs/01–05): contagem real da suíte (52+13), 18 routers, onboarding por convite, bulk KDS, imagem do produto, pins de dependência, produção ativa, backup.yml/ci.yml.
 
 ## Bugs já corrigidos (não reintroduzir)
 

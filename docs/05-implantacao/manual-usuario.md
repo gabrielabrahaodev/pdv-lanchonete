@@ -7,8 +7,10 @@ Guia do dia a dia para **administrador, gerente, caixa, garçom e cozinha**. Ace
 ## 1. Entrar no sistema
 
 1. Abra o endereço do sistema e informe **e-mail** e **senha**.
-2. Se for seu primeiro acesso sem restaurante cadastrado, aparecerá a tela de criação: informe o **nome da lanchonete** e a **quantidade de mesas** (0–50). Você se torna administrador automaticamente.
+2. Se for seu primeiro acesso sem restaurante, você precisa do **link de convite** enviado pelo dono da plataforma (`…/select-restaurant?t=CÓDIGO`). Pelo link, informe o **nome da lanchonete** e a **quantidade de mesas** (chips rápidos: 6 · 12 · 24 ou outro). Você se torna administrador automaticamente.
 3. Para sair, use **Sair** no rodapé do menu lateral.
+
+> Sem convite válido a criação é bloqueada — solicite o link ao dono da plataforma.
 
 > Seu tema (claro/escuro) é individual: escolha em **Configurações → Aparência**.
 
@@ -46,12 +48,14 @@ Tela escura com 3 colunas: **⏳ Pendente · 🔥 Em preparo · 🔔 Pronto**. A
 - **Entregar** → finaliza o item.
 - 🖨 imprime a comanda do cartão.
 
-## 4. Produtos
+## 4. Produtos e Categorias
 
 - Lista com busca/filtro por categoria; **Novo produto** abre o formulário.
-- Campos principais: nome, categoria, preço, imagem, ativo, estoque mínimo.
+- Campos principais: nome, categoria, preço, ativo, estoque mínimo.
+- 📷 **Foto**: selecione um arquivo no formulário (o app comprime automaticamente); a foto aparece nas listagens e no cardápio QR.
 - **Variações**: opções com preço adicional (ex.: "Extra bacon +R$5").
 - **Receita (ingredientes)**: por 1 unidade do produto, quantos itens de estoque gasta (ex.: pão 0,15 kg). É o que permite a baixa automática.
+- **Categorias**: tela própria no menu (ícone emoji, ordem de exibição, ativa/inativa). Não é possível excluir uma categoria que ainda tem produtos vinculados.
 
 ## 5. Mesas
 
@@ -114,3 +118,13 @@ Tela escura com 3 colunas: **⏳ Pendente · 🔥 Em preparo · 🔔 Pronto**. A
 | Não imprime via Bluetooth | Use Chrome/Edge; pareie a impressora; se falhar, o sistema abre opção de impressão pela janela |
 | Cardápio QR não abre | Verifique se o cardápio digital está ativo nas Configurações |
 | Fui deslogado / erro de permissão | Token expira ~1h — faça login novamente; após troca de papel, relogue |
+| Quero cadastrar uma nova lanchonete | Precisa de convite do dono da plataforma (link `?t=CÓDIGO`) |
+
+---
+
+## 13. Dono da plataforma (console separado)
+
+Operadores da plataforma NÃO pertencem a uma loja. Em `/plataforma` eles geram
+convites de provisionamento (link copiável com código), veem o status de cada
+convite (ativa/usada/expirada/revogada) e podem revogá-los. Convites são de uso
+único e expiram em 7 dias.

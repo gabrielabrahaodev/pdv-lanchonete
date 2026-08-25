@@ -14,12 +14,15 @@ Descreve todas as integrações do sistema: contratos, autenticação, fluxos e 
 | I-04 | API ↔ Firebase Auth Admin | saída | verify_id_token, claims, gestão de usuários | ✅ Implementada |
 | I-05 | SPA ↔ Firestore (tempo real) | entrada opcional | onSnapshot sob firestore.rules | ✅ Implementada (degrada p/ polling) |
 | I-06 | Navegador ↔ Impressora térmica | saída | Web Bluetooth GATT (ESC/POS) | ✅ Implementada |
+| I-09 | UptimeRobot → API | entrada | HEAD `/health` a cada 10 min (mitiga sleep da Render) | ✅ Ativa |
+| I-10 | GitHub Actions → Firestore (backup diário) | saída | `backup.yml` 03:30 BRT → commit em `backups/` | ✅ Ativa |
+| I-11 | GitHub Actions CI | interno | `ci.yml`: pytest + tsc + build a cada push/PR | ✅ Ativa |
 | I-07 | Plataformas de delivery (iFood/Goomer) | entrada manual | registro manual na tela Delivery | ⏳ Manual (webhook planejado) |
 | I-08 | Gateway de pagamento / PIX dinâmico | — | — | ❌ Fora de escopo |
 
 ## 2. I-01 — Contrato SPA ⇄ API
 
-- **Base URL**: `/api` no mesmo host do frontend. Em dev, proxy Vite (`/api` → `http://127.0.0.1:8000`, `changeOrigin`). Em produção: rewrite no host (Firebase Hosting) ou reverse proxy.
+- **Base URL**: `/api` no mesmo host do frontend. Em dev, proxy Vite (`/api` → `http://127.0.0.1:8000`, `changeOrigin`). Em produção **NÃO há rewrite** (exigiria plano Blaze): o frontend chama a URL direta da Render (`VITE_API_URL` embutido no build) com CORS liberado na API (`CORS_ORIGINS`).
 - **Autenticação**: `Authorization: Bearer <id-token>` em tudo exceto `/api/publico/*` e `/health`.
 - **Content-Type**: `application/json`; respostas 204 sem corpo.
 - **Erros**: corpo FastAPI `{detail}` normalizado pelo cliente para `ApiError(status, message)`.
@@ -48,8 +51,8 @@ sequenceDiagram
 
 ## 4. I-03/I-05 — Firestore
 
-- Caminho canônico: `restaurantes/{rid}/data/{colecao}/items/{doc}` (+ doc único `data/configuracoes`); coleção top-level `onboarding/{uid}`.
-- Escritas: **somente** pela API com certificado de service account (`scripts/service-account.json`, caminho configurável).
+- Caminho canônico: `restaurantes/{rid}/data/{colecao}/items/{doc}` (+ doc único `data/configuracoes`); top-level: `onboarding/{uid}`, `sistema/global` (donoUids) e `convites/{token}`.
+- Escritas: **somente** pela API com service account — ordem de resolução (`core/firebase.py`): env `FIREBASE_SERVICE_ACCOUNT_JSON` (nuvem) → arquivo local `scripts/service-account.json` (dev) → ADC.
 - Leituras em tempo real do cliente: `collection(db, restaurantes/{rid}/data/{kind}/items)` com regras:
   ```js
   allow read: request.auth != null && request.auth.token.restaurantId == restaurantId;
@@ -101,8 +104,9 @@ Para webhook futuro: endpoint público dedicado com HMAC/signature da plataforma
 
 ## 8. Checklist de ambiente para as integrações
 
-- [ ] `.env` do backend: `PROJECT_ID`, `SERVICE_ACCOUNT_PATH` (opcional), `CORS_ORIGINS`
+- [ ] `.env` do backend (dev): `PROJECT_ID`, `SERVICE_ACCOUNT_PATH` (opcional), `CORS_ORIGINS`; em nuvem: `FIREBASE_SERVICE_ACCOUNT_JSON` (JSON completo), `CORS_ORIGINS=https://<projeto>.web.app`, opcional `SENTRY_DSN` e `TIMEZONE`
 - [ ] Chave `scripts/service-account.json` presente e fora do git
 - [ ] Regras publicadas (`firebase deploy --only firestore:rules`)
-- [ ] Proxy `/api` ativo no host do frontend
+- [ ] Proxy `/api` ativo no host do frontend (dev) / `VITE_API_URL` no build de produção
 - [ ] HTTPS habilitado onde houver Web Bluetooth/PWA
+- [ ] Dependências Python com pin exato (stack gRPC/firestore — drift derruba produção, bug 12)

@@ -1,11 +1,13 @@
 # PLANO DE DEPLOY EM PRODUÇÃO — HANDOFF PARA PRÓXIMA SESSÃO
 
+> ⚠️ **DOCUMENTO HISTÓRICO (encerrado em 2026-08-23).** NÃO executar instruções daqui — o deploy já foi feito e validado. Fontes vivas: `AGENTS.md` (estado e bugs), `DEPLOY.md` (redeploys) e `docs/`. Trechos abaixo podem estar defasados de propósito (retrato do planejamento).
+
 > Substitui o plano de correções anterior (todas as correções validadas — ver AGENTS.md).
 > Objetivo: colocar o sistema no ar com **R$ 0/mês e sem cartão de crédito**, retomando exatamente daqui.
 
 > ✅ **EXECUTADO EM 2026-08-23.** Sistema no ar: frontend em `https://pdv-lanchonete-1fa79.web.app`, API em `https://pdv-lanchonete-dwiw.onrender.com` (Render), repo `github.com/gabrielabrahaodev/pdv-lanchonete`. Estado atual detalhado no `AGENTS.md`; guia para redeploys no `DEPLOY.md`.
 
-## ⚡ ESTADO ATUAL
+## ⚡ ESTADO ATUAL *(na época do plano)*
 
 Sistema completo e validado localmente:
 
@@ -14,7 +16,7 @@ Sistema completo e validado localmente:
 - Baseline de testes: **pytest 23/23** · **suíte E2E 34/34** · `tsc` limpo · build PWA ok
 - Backend rodando local (PID em `backend/server.pid`); frontend Vite na 5173
 
-**Nada está em produção.** Sem HTTPS não funcionam: PWA, Web Bluetooth (impressora) e o QR real do cardápio.
+~~**Nada está em produção.**~~ (superado: produção ativa desde 2026-08-23.)
 
 ## DECISÕES JÁ TOMADAS (não re-discutir)
 
@@ -34,7 +36,7 @@ Ordem de resolução em `get_firebase_app()`:
 2. Arquivo `scripts/service-account.json` existir (dev atual) → comportamento igual ao de hoje
 3. Senão → `firebase_admin.initialize_app()` puro (**ADC**, para futuras nuvens GCP)
 
-Em `config.py`: adicionar `service_account_json: str | None = None` (lê da env automaticamente).
+Em `config.py`: adicionar campo com o nome EXATO da env sem prefixo: `firebase_service_account_json: str | None = None` (pydantic-settings liga a env pelo nome do campo — um campo chamado `service_account_json` NUNCA leria `FIREBASE_SERVICE_ACCOUNT_JSON`; foi exatamente o bug 7).
 ⚠️ projectId: nos níveis 1 e 2 passar `{"projectId": settings.project_id}` como hoje; no ADC o projeto vem do ambiente.
 
 ### 2. `frontend/src/lib/api.ts` — base configurável
@@ -114,7 +116,7 @@ services:
 ## BASELINE PARA REGRESSÃO PÓS-DEPLOY
 
 - `cd backend && .venv\Scripts\python -m pytest tests -q` → 23 passed
-- `powershell -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\Temp\opencode\e2e-repro\api_test.ps1"` → 34/34 (token expira em 1h: `node get-token.js` antes)
+- `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\e2e\api_test.ps1` → suíte versionada em `scripts/e2e/` (token expira em 1h: `node get-token.js` antes)
 - `cd frontend && npx tsc --noEmit` → exit 0
 
 Detalhes de todas as funcionalidades entregues estão no `AGENTS.md` (sessões 2026-08-22, partes 1–3).

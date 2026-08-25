@@ -5,7 +5,7 @@
 | **Nome do projeto** | PDV Lanchonete v2 — Sistema de Ponto de Venda para Lanchonete |
 | **Código** | pdv-restaurante/python |
 | **Data de início** | Agosto/2026 (reimplementação da versão Flutter) |
-| **Status** | Em desenvolvimento funcional (módulos core entregues e testados) |
+| **Status** | Em produção (no ar desde 2026-08-23; evolução contínua) |
 | **Gerente do projeto / Patrocinador** | Proprietário da lanchonete |
 
 ---
@@ -33,9 +33,9 @@ Fornecer um sistema de ponto de venda completo, leve e acessível por navegador,
 ## 3. Escopo
 
 ### 3.1 Dentro do escopo
-- Módulos: Login/onboarding, Caixa (mesas/pedidos/pagamentos), Cozinha KDS, Produtos e Categorias, Estoque (itens, movimentações, receitas), Delivery, Relatórios, Financeiro (fornecedores, despesas), Configurações, Usuários/papéis, Cardápio digital público, Impressão térmica ESC/POS via Web Bluetooth, PWA offline-read.
+- Módulos: Login/onboarding (por convite), Caixa (mesas/pedidos/pagamentos), Cozinha KDS, Produtos e Categorias, Estoque (itens, movimentações, receitas), Delivery, Relatórios, Financeiro (fornecedores, despesas), Configurações, Usuários/papéis, Cardápio digital público, Impressão térmica ESC/POS via Web Bluetooth, PWA offline-read, Plataforma multi-loja (convites de provisionamento).
 - Backend REST FastAPI com Firestore como persistência multi-tenant.
-- Testes: pytest de lógica pura + suíte E2E de API (34 casos) + fluxo ponta a ponta validado contra o Firestore real.
+- Testes: pytest de lógica pura + suíte E2E de API (52 passos base + 13 onboarding condicionais) + fluxo ponta a ponta validado contra o Firestore real.
 
 ### 3.2 Fora do escopo (nesta fase)
 - Integração automática com APIs do iFood/Goomer (delivery hoje registra pedidos manualmente).
@@ -48,12 +48,14 @@ Fornecer um sistema de ponto de venda completo, leve e acessível por navegador,
 
 | # | Entrega | Critério de aceitação resumido |
 |---|---|---|
-| E1 | API FastAPI completa (17 routers) | Suíte E2E 34/34 PASS |
-| E2 | SPA React (9 áreas + cardápio público + PWA) | Fluxo mesa→pedido→pagamento→caixa sem erro; build PWA ok |
+| E1 | API FastAPI completa (18 routers) | Suíte E2E PASS (52 base + 13 condicionais) |
+| E2 | SPA React (19 páginas incl. cardápio público e Plataforma + PWA) | Fluxo mesa→pedido→pagamento→caixa sem erro; build PWA ok |
 | E3 | Baixa automática de estoque por receita | Movimentação `saida` gravada na mesma transação do item, idempotente |
 | E4 | Financeiro + DRE | `/relatorios/resumo` retorna bloco `financeiro` consistente |
 | E5 | Segurança multi-tenant | Claims `restaurantId`/`papel` + `firestore.rules` publicadas |
 | E6 | Documentação | Esta biblioteca de documentos |
+| E7 | Produção no ar (Render + Firebase Hosting) | CI (`ci.yml`) + backup diário (`backup.yml`) + monitoramento UptimeRobot |
+| E8 | Provisionamento por convite (plataforma) | Onboarding exige convite; console `/plataforma`; guard `donoUids` |
 
 ## 5. Stakeholders
 
@@ -104,9 +106,9 @@ Fornecer um sistema de ponto de venda completo, leve e acessível por navegador,
 | M2 — Plano de correções B1–B5/M1–M4 (transações, pagamento minimalista) | ✅ Concluído |
 | M3 — Tema por usuário + onboarding self-service + receita/baixa automática | ✅ Concluído |
 | M4 — Financeiro + DRE + quick wins + impressão + cardápio digital + PWA | ✅ Concluído |
-| M5 — Publicação das regras + deploy produção (Render + Firebase Hosting) | ⏳ Planejado |
-| M6 — Go-live no cliente piloto | ⏳ Planejado |
+| M5 — Publicação das regras + deploy produção (Render + Firebase Hosting) | ✅ Concluído (2026-08-23) |
+| M6 — Go-live no cliente piloto | ⏳ Em andamento (homologação física na loja) |
 
 ## 11. Autorização
 
-Projeto autorizado a iniciar/continuar conforme escopo acima, com marcos M5/M6 pendentes de aprovação de infraestrutura de produção.
+Projeto autorizado a iniciar/continuar conforme escopo acima. Produção ativa desde 2026-08-23; M6 (go-live físico no piloto) pendente de homologação na loja.

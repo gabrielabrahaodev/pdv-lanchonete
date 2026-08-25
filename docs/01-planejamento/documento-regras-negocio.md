@@ -26,9 +26,9 @@ Papéis: `admin`, `gerente`, `caixa`, `garcom`, `cozinha`. Matriz de permissões
 Restrições adicionais: somente `admin` cria gerentes, altera ou remove contas `admin`.
 > Código: guards em cada router; `usuarios_service.criar/atualizar/remover`.
 
-### RN-03 — Onboarding único
-Um usuário cria exatamente um restaurante: exige claim `restaurantId` ausente **e** ausência do marcador `onboarding/{uid}` (reservado transacionalmente). Segunda tentativa → 409.
-> Código: `restaurantes_service.criar_primeiro`.
+### RN-03 — Onboarding único por convite
+Novo restaurante nasce EXCLUSIVAMENTE com **convite válido** do dono da plataforma: coleção top-level `convites/{token}` (token = id do doc), uso único, expira em 7 dias, revogável; consumo (`usadoEm/usadoPorUid`) acontece na MESMA transação que cria o restaurante (reuso impossível nem em corrida). Exceções: bootstrap do zero (nenhum restaurante e nenhum dono) e donos da plataforma (`sistema/global.donoUids[]`), que criam sem convite. Guard de recuperação: marcador `onboarding/{uid}` completo + claim ausente → **auto-cura** reemite claims e devolve o MESMO restaurante; terceira tentativa (claim válido) → 409.
+> Código: `restaurantes_service.criar_primeiro`, `convites_service`, `routers/sistema.py`.
 
 ## Bloco 2 — Mesas e pedidos
 
@@ -45,7 +45,7 @@ Estados válidos: `pendente → preparo → pronto → entregue`, além de `canc
 > Código: `pedidos_service.atualizar_status_item/remover_item/cancelar`.
 
 ### RN-07 — Baixa automática de estoque por receita
-Ao iniciar preparo (`pendente→preparo`), os ingredientes da receita do produto × quantidade são debitados, gerando movimentação `saida` com `pedidoId`. Executa dentro da mesma transação da atualização do pedido. Controlada pela configuração `baixaEstoqueAutomatica` (lida dentro da transação). Saldo pode ficar negativo — a operação NUNCA trava o preparo. Produto sem receita/ingrediente válido → sem baixa.
+Ao iniciar preparo (`pendente→preparo`), os ingredientes da receita do produto × quantidade são debitados, gerando movimentação `saida` com `pedidoId`. Executa dentro da mesma transação da atualização do pedido, preferencialmente via endpoint BULK da cozinha (`{itemIds[], novoStatus}`): consumo agregado dos ingredientes compartilhados entre produtos (`_consumo_produto` × qtd → `_aplicar_consumo`, uma leitura/escrita por ingrediente). Em transação Firestore a leitura é 100% antes da escrita 100% (`ReadAfterWriteError` — bug 10). Controlada pela configuração `baixaEstoqueAutomatica` (lida dentro da transação). Saldo pode ficar negativo — a operação NUNCA trava o preparo. Produto sem receita/ingrediente válido → sem baixa.
 
 ### RN-08 — Idempotência da baixa
 A marcação `baixadoEm` no item garante que retries/reenvios não deduzam estoque duas vezes. Item cancelado após baixa NÃO estorna ingredientes (decisão de produto).
@@ -134,3 +134,13 @@ Fuso de exibição vem de `settings.timezone` (backend, default America/Sao_Paul
 ### RN-24 — Tema por usuário
 Tema (`claro|escuro`) é preferência individual persistida no doc do usuário; qualquer papel altera o próprio via `PATCH /usuarios/me`. Frontend aplica cache local instantâneo (localStorage por uid) e confirma no servidor.
 > Código: `usuarios_service.obter/atualizar_preferencias`, `ThemeContext.tsx`.
+
+## Bloco 10 — Plataforma e imagens
+
+### RN-25 — Separação PLATAFORMA × TENANT
+Donos da plataforma vivem em `sistema/global.donoUids[]` e NÃO têm tenant: os endpoints `/api/sistema/*` usam autenticação pura + guard próprio (admin de tenant que tenta gerar convite → 403). Convite: uso único, expira 7 dias, revogável pelo dono; consumo transacional no onboarding (ver RN-03). Gestão de donos via CLI `npm run promover-dono`.
+> Código: `routers/sistema.py`, `convites_service.py`.
+
+### RN-26 — Imagem do produto
+Uma imagem por produto, guardada fora do doc (coleção `imagens/items/{produtoId}`) para não pesar listagens; produto carrega só a flag `temImagem`. Payload ≤200k chars base64, mime jpeg/png/webp. Bytes servidos publicamente (`GET /api/publico/{rid}/imagens/{produto_id}`, cache 1h, fora do rate limit/gate do cardápio de propósito — `<img>` não envia Authorization). Excluir produto apaga a imagem.
+> Código: `produtos_service`, `routers/publico.py`.

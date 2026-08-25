@@ -9,6 +9,7 @@ Especificação textual dos casos de uso principais. Os diagramas estão em `../
 - **Administrador/Gerente** (`admin`, `gerente`)
 - **Cliente** (não autenticado — cardápio digital)
 - **Sistema Externo de Delivery** (iFood/Goomer/WhatsApp — registro manual hoje)
+- **Dono da Plataforma** (sem tenant — gera/revoga convites em `/plataforma`)
 
 ---
 
@@ -22,15 +23,15 @@ Especificação textual dos casos de uso principais. Os diagramas estão em `../
 | Fluxos alternativos | A1: credenciais inválidas → mensagem de erro, permanece na tela. A2: usuário sem restaurante → tela de criação do estabelecimento (UC-02). |
 | Pós-condições | ID token ativo; contexto do usuário carregado. |
 
-## UC-02 — Criar primeiro restaurante (onboarding)
+## UC-02 — Criar primeiro restaurante (onboarding por convite)
 
 | Campo | Descrição |
 |---|---|
-| Ator principal | Usuário sem claim `restaurantId` |
-| Pré-condições | Autenticado; sem marcador em `onboarding/{uid}` |
-| Fluxo básico | 1. Informar nome do restaurante e quantidade de mesas (0–50). 2. `POST /api/restaurantes/primeiro`. 3. Sistema reserva marcador transacional, cria doc raiz + configurações + coleções + mesas + doc admin do criador. 4. Define claims `{restaurantId, papel:"admin"}`. 5. Frontend força refresh do token e recarrega `/auth/me`. |
-| Fluxos alternativos | A1: já possui restaurante (claim ou marcador) → 409. A2: falha ao gravar claims → 500 informando que o restaurante foi criado mas o vínculo falhou. |
-| Pós-condições | Restaurante operacional; usuário é `admin`. |
+| Ator principal | Usuário sem claim `restaurantId`, com link de convite do dono da plataforma |
+| Pré-condições | Autenticado; convite válido (`?t=CÓDIGO`, uso único, expira 7 dias) |
+| Fluxo básico | 1. Abrir o link `/select-restaurant?t=CÓDIGO`. 2. Informar nome do restaurante e quantidade de mesas (chips 6·12·24 ou outro). 3. `POST /api/restaurantes/primeiro {token, nome, quantidadeMesas}`. 4. Sistema valida o convite e, numa ÚNICA transação, cria doc raiz + configurações + coleções + mesas + doc admin, marca o marcador completo e consome o convite (`usadoEm`). 5. Define claims `{restaurantId, papel:"admin"}`. 6. Frontend força refresh do token e recarrega `/auth/me`. |
+| Fluxos alternativos | A1: já possui restaurante (claim válido) → 409. A2: retry com marcador completo e claim ausente → auto-cura: reemite claims e devolve o MESMO restaurante. A3: convite ausente/expirado/usado/revogado → 403. A4: dono da plataforma cria sem convite; bootstrap do zero semeia o primeiro dono. |
+| Pós-condições | Restaurante operacional; usuário é `admin`; convite consumido. |
 
 ## UC-03 — Abrir pedido em mesa
 
@@ -58,7 +59,7 @@ Especificação textual dos casos de uso principais. Os diagramas estão em `../
 |---|---|
 | Ator principal | Cozinheiro (papéis permitidos: admin/gerente/caixa/cozinha) |
 | Pré-condições | Existem itens `pendente` em pedidos abertos |
-| Fluxo básico | 1. Abrir **Cozinha (KDS)** — fila atualiza a cada ~8s (e em tempo real quando disponível). 2. Cartões organizados em 3 colunas: Pendente / Em preparo / Pronto. 3. Botão avança status do item (`Iniciar preparo` → `Marcar pronto` → `Entregar`). 4. Opcional: 🖨 imprime a comanda do cartão (Bluetooth/fallback). |
+| Fluxo básico | 1. Abrir **Cozinha (KDS)** — fila atualiza a cada ~8s (e em tempo real quando disponível). 2. UM cartão POR MESA agrupando todos os itens do pedido (com variação/observação). 3. Botão avança os itens do cartão em bloco via endpoint BULK (`PATCH /api/cozinha/pedidos/{pedido}/itens/status {itemIds[], novoStatus}`): `Iniciar preparo` → `Marcar pronto` → `Entregar`. 4. Opcional: 🖨 imprime a comanda do cartão (Bluetooth/fallback). |
 | Regras associadas | RN-07 (baixa automática de ingredientes ao iniciar preparo), RN-08 (idempotência via `baixadoEm`). |
 | Fluxos alternativos | A1: status inválido → 422. A2: produto removido/sem receita → preparo segue normalmente, sem baixa. |
 | Pós-condições | Itens avançam de coluna; estoque debitado (quando aplicável). |
@@ -95,8 +96,8 @@ Especificação textual dos casos de uso principais. Os diagramas estão em `../
 | Campo | Descrição |
 |---|---|
 | Ator principal | Administrador/Gerente/Caixa |
-| Fluxo básico | CRUD completo via telas Produtos (formulário com receita de ingredientes e variações) e Mesas (nova mesa; QR Code por mesa). |
-| Regras associadas | RN-05 (número de mesa único), RN-10 (receita por 1 unidade). |
+| Fluxo básico | CRUD completo via telas Produtos (formulário com receita de ingredientes, variações e FOTO local comprimida no cliente), Categorias (tela própria com ícone/ordem/ativo; exclusão bloqueada com produto vinculado) e Mesas (nova mesa; QR Code por mesa). Listagens exibem thumbnail quando o produto tem imagem. |
+| Regras associadas | RN-05 (número de mesa único), RN-10 (receita por 1 unidade), RN-26 (imagem). |
 | Pós-condições | Cadastros refletidos imediatamente nos pedidos e cardápios. |
 
 ## UC-10 — Gerenciar estoque
@@ -145,3 +146,13 @@ Especificação textual dos casos de uso principais. Os diagramas estão em `../
 |---|---|
 | Ator principal | Administrador/Gerente |
 | Fluxo básico | Editar configurações (nome, moeda, timezone, impressora, baixa automática de estoque, cardápio digital); testar impressora; gerenciar usuários/papéis (admin/gerente); cada usuário define seu tema. |
+
+## UC-16 — Gerenciar convites da plataforma
+
+| Campo | Descrição |
+|---|---|
+| Ator principal | Dono da Plataforma (guard `sistema/global.donoUids`) |
+| Pré-condições | UID listado como dono; sem tenant |
+| Fluxo básico | 1. Logar e cair direto no console `/plataforma`. 2. **Gerar convite** → link copiável `…/select-restaurant?t=CÓDIGO` (enviado manualmente ao novo lojista). 3. Acompanhar lista com status computado (ativa/usada/expirada/revogada). 4. Revogar convite indesejado (`DELETE /api/sistema/convites/{token}`). |
+| Fluxos alternativos | A1: admin de tenant tenta gerar convite → 403 (separação de planos). A2: convite expira em 7 dias automaticamente. |
+| Pós-condições | Novo lojista consegue criar seu restaurante pelo link (UC-02). |

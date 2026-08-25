@@ -41,7 +41,11 @@ app/
 │   ├── firebase.py    # init único do Admin SDK + get_db()/get_auth(); credencial em 3 níveis:
 │   │                  # env JSON → arquivo local (dev) → ADC
 │   └── security.py    # get_current_auth (Bearer→claims), require_restaurant, require_roles(*papeis)
-├── routers/           # 17 routers finos: validação Pydantic → chamada de service
+├── routers/           # 18 routers finos: validação Pydantic → chamada de service
+│   │                  #   (tenant: auth, usuarios, categorias, produtos, configuracoes, mesas,
+│   │                  #    pedidos, pagamentos, cozinha, caixa, delivery, estoque, fornecedores,
+│   │                  #    despesas, relatorios, restaurantes, publico)
+│   │                  #   (plataforma: sistema — convites, guard donoUids, sem claim tenant)
 ├── services/
 │   ├── base.py        # caminhos multi-tenant, stamps createdAt/updatedAt, normalização datas,
 │   │                  # list_items em memória (sem índices compostos)
@@ -67,7 +71,7 @@ src/
 ├── lib/               # api.ts (BASE=VITE_API_URL + fetch+Bearer+ApiError), apiPublico.ts, csv.ts, format.ts,
 │                      # impressora.ts (ESC/POS BT + fallback print), firebase.ts (SDK client)
 ├── components/        # layout/AppLayout (menu/badges/PageHeader), ui/index.tsx (design system)
-└── pages/             # 16 páginas organizadas por módulo
+└── pages/             # 19 páginas organizadas por módulo (inclui Plataforma — console do dono)
 ```
 
 Estado: **TanStack Query** para dados do servidor (chaves por recurso, polling 8–30s); Context apenas para sessão e tema. Nenhuma store global adicional.
@@ -77,9 +81,9 @@ Estado: **TanStack Query** para dados do servidor (chaves por recurso, polling 8
 | Camada | Mecanismo |
 |---|---|
 | Identidade | Firebase Auth (e-mail/senha); ID token ~1h |
-| Autorização API | Claims `restaurantId`(obrigatório)+`papel` verificados a cada requisição; guards por papel |
-| Autorização banco | `firestore.rules`: acesso direto só se `token.restaurantId == restaurantId`; onboarding leitura própria |
-| Rotas públicas | Apenas cardápio digital: gate por configuração + rate limit 12/min/IP + validações estritas de payload |
+| Autorização API | Claims `restaurantId`(obrigatório)+`papel` verificados a cada requisição; guards por papel. Plano da PLATAFORMA separado: `/api/sistema/*` usa guard `sistema/global.donoUids[]` (sem tenant) |
+| Autorização banco | `firestore.rules`: acesso direto só se `token.restaurantId == restaurantId`; onboarding leitura própria; `convites/` e `sistema/` deny-by-default (só Admin SDK) |
+| Rotas públicas | Cardápio digital (gate por configuração + rate limit 12/min/IP + payload estrito) e bytes da imagem do produto (`GET /publico/{rid}/imagens/{produto_id}` — fora do rate limit/gate de propósito: `<img>` não envia Authorization; foto é conteúdo público do menu) |
 | Dados sensíveis | Preço sempre do servidor; service account fora do git; CORS whitelist |
 
 ## 4. Confiabilidade e concorrência
@@ -92,7 +96,7 @@ Pontos protegidos por transação Firestore (`@transactional`):
 5. crédito de venda na sessão;
 6. reserva do marcador de onboarding.
 
-Convenções de integridade: `stamp_update` descarta `None` → limpeza de campo usa `DELETE_FIELD` explícito; idempotência via campos-marca (`baixadoEm`).
+Convenções de integridade: `stamp_update` descarta `None` → limpeza de campo usa `DELETE_FIELD` explícito; idempotência via campos-marca (`baixadoEm`). Em TODA transação Firestore: **leitura 100% antes de escrita 100%** — a API proíbe ler um doc depois de escrever outro (`ReadAfterWriteError`, bug 10; a baixa agregada faz fase 1 = ler config+estoques, fase 2 = escrever tudo). Mutações que tocam o mesmo doc nunca disparam em paralelo do cliente — agrupar num endpoint bulk (cozinha). Exceções não tratadas passam FORA do CORS → middleware interno `_Erros500Json` devolve 500 JSON dentro da pilha (bug 9).
 
 ## 5. Performance
 
@@ -118,7 +122,7 @@ Ver `../02-modelagem/diagrama-componentes.md`, `diagrama-implantacao.md` e image
 ## 8. Qualidade e operação
 
 - pytest sobre `calculos.py` + validação de modelos (23 testes) — `requirements-dev.txt`;
-- Suíte E2E de API **versionada em `scripts/e2e/`** (35 casos, alvo padrão = produção) com cleanup automático;
+- Suíte E2E de API **versionada em `scripts/e2e/`** (52 passos base + 13 de onboarding condicionais ao token do dono da plataforma, alvo padrão = produção) com cleanup automático;
 - Tipagem estática TS no frontend (`tsc && vite build`);
 - **CI GitHub Actions** (`.github/workflows/ci.yml`): pytest + tsc + build a cada push/PR;
 - **Backup diário** do Firestore via Actions (`.github/workflows/backup.yml`) commitado em `backups/`;

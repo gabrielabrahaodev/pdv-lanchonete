@@ -49,10 +49,10 @@ cd backend
 py -3.12 -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
 copy .env.example .env    # ajuste se necessário
-.venv\Scripts\uvicorn app.main:app --reload --port 8000
+.venv\Scripts\python -m uvicorn app.main:app --port 8000
 ```
 
-> O backend usa o `service-account.json` (padrão: `../scripts/service-account.json`). Documentação interativa: http://localhost:8000/docs
+> **Sem `--reload`**: após alterar código Python, reinicie o processo. A credencial Firebase é resolvida nesta ordem (`app/core/firebase.py`): env `FIREBASE_SERVICE_ACCOUNT_JSON` → arquivo local `service-account.json` → ADC. Documentação interativa: http://localhost:8000/docs
 
 ### Frontend
 
@@ -76,8 +76,23 @@ npx ts-node delete-all-collections.ts   # limpar tudo
 
 ## Módulos
 
-Login · Seleção de Restaurante · Caixa (mesas/pedidos/pagamentos) · Produtos & Categorias · Mesas · Estoque/Inventário · KDS Cozinha · Delivery · Relatórios & Fechamento de Caixa · Configurações
+Login · Seleção de Restaurante / Onboarding por convite · Caixa (mesas/pedidos/pagamentos) · Produtos & Categorias (com foto) · Mesas (QR code por mesa) · Estoque/Inventário (receitas + baixa automática) · KDS Cozinha (cartão por mesa, bulk) · Delivery · Financeiro (fornecedores/despesas/DRE) · Relatórios & Fechamento de Caixa · Cardápio digital por QR Code · Impressão térmica ESC/POS · Configurações · Plataforma (convites — donos)
 
 ## Papéis (custom claims)
 
-`admin` · `gerente` · `caixa` · `garcom` · `cozinha` — enforcement no backend via guards FastAPI.
+`admin` · `gerente` · `caixa` · `garcom` · `cozinha` — enforcement no backend via guards FastAPI. Donos da plataforma (`sistema/global.donoUids`) são separados e não têm tenant.
+
+## Testes & CI
+
+```powershell
+# Unitários (lógica pura)
+cd backend && .venv\Scripts\python -m pytest tests -q
+
+# Suíte E2E da API (padrão: produção; -Base http://127.0.0.1:8000 para local)
+cd scripts\e2e && powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1
+```
+
+- CI: `.github/workflows/ci.yml` — pytest + tsc + build em todo push/PR.
+- Backup diário do Firestore: `.github/workflows/backup.yml` commita em `backups/`.
+- Regra de fluxo: **validar em localhost antes de qualquer deploy**.
+- O dev server do frontend NÃO registra service worker — testar PWA com `npm run build && npm run preview`.

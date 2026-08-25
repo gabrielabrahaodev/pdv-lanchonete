@@ -1,6 +1,6 @@
 # Planos — PDV Lanchonete v2
 
-Roadmap vivo do projeto. Atualizado em 2026-08-24.
+Roadmap vivo do projeto. Atualizado em 2026-08-25.
 
 > Regra de fluxo permanente: **validar sempre em localhost antes de qualquer deploy**
 > (backend `.venv` porta 8000 → frontend 5173 com proxy `/api` → suíte E2E
@@ -8,7 +8,7 @@ Roadmap vivo do projeto. Atualizado em 2026-08-24.
 
 ---
 
-## ✅ P0.7 — Provisionamento por convite + Console da Plataforma (implementado, aguardando validação/deploy)
+## ✅ P0.7 — Provisionamento por convite + Console da Plataforma (implementado e deployado)
 
 Decisão de arquitetura com o usuário (2026-08-24): **dois planos separados**.
 PLATAFORMA = operadores em `sistema/global.donoUids[]` (sem tenant, sem acesso a dados de
@@ -27,8 +27,7 @@ restaurante nasce EXCLUSIVAMENTE por convite válido (uso único, expira 7d, rev
 | CLI de donos | `npm run promover-dono -- listar \| adicionar --uid X [--exec] \| remover --uid Y [--exec]` |
 | E2E seção 13 | owner gera convite · admin de tenant tenta gerar → 403 · signUp descartável: sem convite 403 → com convite 201 → auto-cura → souDono=false → 3º POST 409 → reuso 403 → revogado 403 · pulada com aviso se token-owner.txt ausente |
 
-**Pendências:** validar E2E local (~62 casos) · teste manual do usuário (owner + tenant) · commit/push
-(⚠️ Render) + release Hosting · revalidar produção. Gestão visual de donos e lista de tenants → P3.
+**Pendências:** ~~validar E2E local · commit/push · release Hosting~~ ✅ concluídas (commits `00ef1e6`→`ea70b8a`, deployado). Restam: teste manual do usuário (owner + tenant) e revalidar seção 13 contra produção com `token-owner.txt` VÁLIDO (na rodada local de 2026-08-25 os 6 FAIL foram só o token do owner expirado — base 52 passos PASS). Gestão visual de donos e lista de tenants → P3.
 E-mail automático de convite → P3 (hoje o link é enviado manualmente pelo owner).
 
 ---
@@ -41,7 +40,7 @@ donoUids permanece como base do plano da plataforma.
 
 ---
 
-## ✅ P0.5 — Onboarding à prova de falha (implementado, aguardando validação/deploy)
+## ✅ P0.5 — Onboarding à prova de falha (implementado e deployado)
 
 Decisão da mesa PM/UX/Architect (2026-08-24): escopo = robustez do backend + presets de
 mesa; verificação de e-mail NÃO exigida por enquanto (reabrir quando houver cobrança).
@@ -55,14 +54,13 @@ mesa; verificação de e-mail NÃO exigida por enquanto (reabrir quando houver c
 | Presets de mesa (UX) | Form de onboarding troca input numérico cru por chips `Sem salão · 6 · 12 · 24 · Outro` (Outro revela o input) |
 | Suíte E2E | Nova seção 13: signUp via Identity Toolkit REST → 201 → re-POST token velho = auto-cura → refresh token traz claim → 3º POST = 409. Cleanup: `npm run limpar-onboarding-qa` (dry-run padrão, `--exec` apaga restaurantes "QA Onboard*", markers e contas descartáveis) |
 
-**Pendências:** validar E2E local (~55 casos) · teste manual do usuário · commit/push (⚠️ Render)
-· revalidar em produção.
+**Pendências:** ~~validar E2E local · commit/push · revalidar produção~~ ✅ concluídas junto com o P0.7.
 
 ---
 
-## ✅ P0 — Proteger o que existe (CONCLUÍDO, aguardando deploy)
+## ✅ P0 — Proteger o que existe (CONCLUÍDO e deployado)
 
-Implementado e validado localmente em 2026-08-24:
+Implementado, validado e publicado em 2026-08-24 (commit `00ef1e6`).
 
 | Item | Detalhe |
 |---|---|
@@ -77,10 +75,10 @@ Implementado e validado localmente em 2026-08-24:
 caixa pulados por já haver sessão aberta — por design) · tsc limpo.
 
 ### Pendências para publicar o P0
-- [ ] Teste manual no localhost pelo usuário
-- [ ] Commit único do P0
-- [ ] Push ⚠️ dispara Render (mexe backend) + release Hosting (`VITE_API_URL` no build)
-- [ ] Revalidar suíte E2E contra produção
+- [x] Teste manual no localhost pelo usuário
+- [x] Commit único do P0 (`00ef1e6`)
+- [x] Push ⚠️ dispara Render (mexe backend) + release Hosting (`VITE_API_URL` no build)
+- [x] Revalidar suíte E2E contra produção
 
 ---
 
@@ -89,12 +87,12 @@ caixa pulados por já haver sessão aberta — por design) · tsc limpo.
 Impacto imediato na operação diária do caixa.
 
 ### 1. Pagamento parcial / divisão de conta (~1–2 dias)
-- Hoje `POST /pagamentos/{pedido}` quita o pedido inteiro (`{tipo, valor}`).
-- Objetivo: pagar por item ou por valor parcial; pedido só fica `pago` quando
-  `soma(pagamentos) >= total`; mesa libera somente então.
+- **API JÁ SUPORTA pagamentos parciais**: `POST /pagamentos/{pedido}` aceita N chamadas `{tipo, valor}`,
+  valida `valor ≤ restante + tolerância` e só quita (`status=pago`, libera mesa) quando
+  `soma(pagamentos) >= total − tolerância`.
+- O que falta é a **UX**: pagar por item ou por valor parcial na tela.
 - Pontos de contato:
-  - Backend: `pagamentos.py` / `caixa_service` — validar saldo restante, expor
-    `totalPago/restante` no GET do pedido.
+  - Backend: expor `totalPago/restante` no GET do pedido (hoje dá para calcular do array `pagamentos`).
   - Frontend: `PagamentoPage` — fluxo "pagar parte", lista de pagamentos da conta,
     estado visual do restante.
 - Cuidado: transação Firestore (leitura 100% antes de escrita 100% — lição do bug 10)
@@ -143,7 +141,15 @@ Impacto imediato na operação diária do caixa.
 - Saldo de estoque pode ficar negativo (não trava preparo).
 - Item cancelado após baixa não estorna ingredientes.
 - Preços sempre resolvidos no servidor.
-- Auto-cadastro agora controlável via flag global (default: aberto).
+- ~~Auto-cadastro controlável via flag global~~ → substituído pelo modelo de convites (P0.7):
+  novo restaurante nasce EXCLUSIVAMENTE por convite válido; donos da plataforma em
+  `sistema/global.donoUids[]`.
+
+## Registro de correções recentes
+
+- **2026-08-25** — fix caixa "Invalid Date": `abrir()` agora grava `abertoEm` na sessão
+  (`caixa_service.py`); frontend usa fallback `abertoEm ?? criadoEm`. Commit `a047dec`,
+  validado localmente (abrir→sessao-atual→fechar) e em produção.
 
 ## Ferramentas de sessão (fora do projeto, criadas nesta máquina)
 

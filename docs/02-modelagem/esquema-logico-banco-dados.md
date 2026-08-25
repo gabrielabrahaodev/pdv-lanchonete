@@ -8,6 +8,7 @@ restaurantes/{restaurantId}                     ← doc raiz {nome, criadorUid, 
     ├── configuracoes                           ← DOCUMENTO ÚNICO
     ├── categorias/items/{id}
     ├── produtos/items/{id}
+    ├── imagens/items/{produtoId}               ← imagem base64 (mesmo id do produto)
     ├── mesas/items/{mesaId}
     ├── pedidos/items/{pedidoId}
     ├── estoque/items/{itemId}
@@ -19,10 +20,13 @@ restaurantes/{restaurantId}                     ← doc raiz {nome, criadorUid, 
     └── despesas/items/{id}
 
 onboarding/{uid}                                ← coleção top-level (guard transacional)
+sistema/global                                  ← doc top-level {donoUids[]} — donos da plataforma
+convites/{token}                                ← coleção top-level (token = id do doc)
 ```
 
 - Documentos-pai (`data/produtos` etc.) existem apenas para "ancorar" as subcoleções.
 - Escrita **sempre** via API (Admin SDK); leitura em tempo real opcional pelo cliente sob `firestore.rules`.
+- `sistema/` e `convites/` são deny-by-default para clientes (regras cobrem só `onboarding` e o tenant) — acesso exclusivo do Admin SDK.
 
 ## 2. Dicionário lógico por coleção
 
@@ -42,7 +46,10 @@ Campos em camelCase (como gravados). `criadoEm/atualizadoEm` são normalizados n
 id · restaurantId · nome · ordem:int · ativo:bool · icone? · cor?
 
 ### produtos/items/{id}
-id · restaurantId · nome · categoriaId · preco:float · variacoes:[{id, nome, precoAdicional, ativo}] · ingredientes:[{itemId, qtd}] · imagemUrl? · ativo · estoqueMinimo:int
+id · restaurantId · nome · categoriaId · preco:float · variacoes:[{id, nome, precoAdicional, ativo}] · ingredientes:[{itemId, qtd}] · temImagem:bool · imagemUrl? (externa, fallback) · ativo · estoqueMinimo:int
+
+### imagens/items/{produtoId}
+id(=produtoId) · restaurantId? · imagemBase64:string (≤200k chars) · mime: jpeg|png|webp · criadoEm. Servida publicamente por `GET /api/publico/{rid}/imagens/{produtoId}`; apagada junto com o produto.
 
 ### mesas/items/{mesaId}
 id · restaurantId · numero:int (único) · status: livre|ocupada|reservada|inativa · pedidoAtivoId? (removido com DELETE_FIELD ao liberar) · garcomId?
@@ -53,7 +60,7 @@ id · restaurantId · mesaId · tipo: local|delivery|balcao · status: aberto|pa
 **pagamentos[]:** { id(pag_*), tipo: dinheiro|pix|credito|debito, valor, troco?, referencia?, criadoEm }
 
 ### sessoes_caixa/items/{id}
-id · restaurantId · usuarioId · valorInicial · totalVendas · totalRecebido · sangrias · suprimentos · status: aberto|fechado · vendasPorFormaPagamento:{tipo:valor} · quantidadePorProduto:{produtoId:int} · movimentacoesCaixa:[{id, tipo, valor, observacao?, usuarioId, criadoEm}] · resumoFechamento?{esperadoEmCaixa, valorContado, diferenca}
+id · restaurantId · usuarioId · abertoEm · valorInicial · totalVendas · totalRecebido · sangrias · suprimentos · status: aberto|fechado · vendasPorFormaPagamento:{tipo:valor} · quantidadePorProduto:{produtoId:int} · movimentacoesCaixa:[{id, tipo, valor, observacao?, usuarioId, criadoEm}] · resumoFechamento?{esperadoEmCaixa, valorContado, diferenca} · fechadoEm?
 
 ### estoque/items/{itemId}
 id · restaurantId · nome · unidade (kg, un, L…) · quantidadeAtual:float (pode ser negativo) · minimo:float · custoMedio:float
@@ -73,6 +80,12 @@ id · restaurantId · nome · documento? · telefone? · email? · observacoes? 
 ### despesas/items/{id}
 id · restaurantId · categoria: insumo|folha|conta_fixa|outra · descricao · valor>0 · data (competência) · vencimento? · fornecedorId? · usuarioId? · formaPagamento? · observacoes? · pagoEm? (removido com DELETE_FIELD na reabertura)
 
+### sistema/global (doc top-level)
+donoUids: string[] — uids dos donos da plataforma (guard de `/api/sistema/*`; sem tenant).
+
+### convites/{token}
+id(=token url-safe) · criadoPor(uid) · criadoEm · expiraEm(+7 dias) · ativo:bool · usadoEm? · usadoPorUid?. Consumido transacionalmente pelo onboarding (`criar_primeiro`); revogável via `/api/sistema/convites/{token}`.
+
 ## 3. Consultas e índices
 
 O sistema evita índices compostos deliberadamente:
@@ -91,19 +104,20 @@ match /restaurantes/{rid}/{document=**} {
   allow read, write: request.auth != null
                   && request.auth.token.restaurantId == rid;
 }
-// todo o resto: deny all
+// sistema/, convites/ e todo o resto: deny all (acesso exclusivo Admin SDK)
 ```
 
 ## 5. Ciclo de vida dos registros
 
 | Evento | Efeito nos dados |
 |---|---|
-| Onboarding | Batch cria raiz + configurações + docs-pai + mesas + doc admin; claims no Auth |
+| Onboarding por convite | transação única: valida+consome convite, cria raiz + configurações + docs-pai + mesas + doc admin + marcador; claims no Auth (auto-cura no retry) |
 | Abrir pedido | set pedido(aberto) + update mesa(ocupada) na MESMA transação |
-| Preparo de item | movimentação saida(pedidoId) + saldo do item + item.baixadoEm na mesma transação |
+| Preparo de item | movimentação saida(pedidoId) + saldo do item + item.baixadoEm na mesma transação (bulk agrega ingredientes) |
 | Quitação | update pedido(pago, pagamentos[]) + transação na sessão + mesa liberada (DELETE_FIELDs) |
 | Cancelar pedido | status=cancelado + mesa liberada; sem estorno de estoque |
 | Remover usuário | Auth disabled=true + delete do doc (histórico de vendas preserva ids) |
+| Excluir produto | delete do produto + da imagem em `imagens/items/{produtoId}` (cascade) |
 
 ## 6. Migrações/versionamento de schema
 

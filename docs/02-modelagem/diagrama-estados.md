@@ -110,11 +110,31 @@ stateDiagram-v2
     carregando --> logadoSemTenant : fbUser e !me.restaurantId
     carregando --> logadoCompleto : fbUser e me.restaurantId
     deslogado --> carregando : login()
-    logadoSemTenant --> logadoCompleto : onboarding OK +<br/>refresh do token + /auth/me
+    logadoSemTenant --> logadoCompleto : onboarding por convite OK (?t=CÓDIGO) +<br/>refresh do token + /auth/me
     logadoCompleto --> deslogado : logout()
     logadoSemTenant --> deslogado : logout()
 
     logadoCompleto : rotas protegidas (/caixa ...)
-    logadoSemTenant : rota /select-restaurant
+    logadoSemTenant : rota /select-restaurant — EXIGE convite válido<br/>(sem ?t= ou convite inválido → 403)
     deslogado : rotas públicas (/login, /m/:rid/:mesa)
+```
+
+## 7. Convite de provisionamento (`convites/{token}`)
+
+```mermaid
+stateDiagram-v2
+    [*] --> ativa : dono da plataforma gera<br/>POST /api/sistema/convites
+    ativa --> usada : consumida no onboarding<br/>(usadoEm/usadoPorUid na mesma transação)
+    ativa --> revogada : DELETE /api/sistema/convites/{token}
+    ativa --> expirada : expiraEm passou (+7 dias)
+    usada --> [*]
+    revogada --> [*]
+    expirada --> [*]
+
+    note right of ativa
+        Uso único: a validação e o consumo acontecem
+        dentro da transação de criação do restaurante
+        (impossível usar duas vezes, nem em corrida).
+        Qualquer estado ≠ ativa → 403 no onboarding.
+    end note
 ```

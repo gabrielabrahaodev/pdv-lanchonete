@@ -18,7 +18,7 @@ cd scripts\e2e
 # 1. Token (expira em 1h — gere de novo se começar a dar 401 "Token inválido ou expirado")
 node get-token.js
 
-# 2. Suíte completa da API (34 testes) — padrão: produção (Render)
+# 2. Suíte completa da API (52 passos base + 13 de onboarding condicionais) — padrão: produção (Render)
 powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1
 
 # Contra o backend local:
@@ -79,5 +79,6 @@ npm run promover-dono -- remover --uid <uid> --exec
 
 ## Estado atual
 
-- Produção (Render): 51/51 PASS (2026-08-24, antes da seção onboarding)
-- Backend local: 34/34 PASS (histórico; suíte cresceu desde então)
+- Suíte atual: **52 passos** na base + **13 passos** de onboarding (seção 13, condicional ao `token-owner.txt`) = 65 no máximo
+- Backend local (2026-08-25): **59 PASS / 6 FAIL** — os 6 falhas foram todos na seção 13 por `token-owner.txt` EXPIRADO (>1h); a base 52/52 PASS. Com owner token válido a seção 13 roda completa
+- Produção (Render): 51/51 PASS (2026-08-24, antes da seção onboarding); fix do caixa `abertoEm` revalidado em produção em 2026-08-25

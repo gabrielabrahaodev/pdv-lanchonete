@@ -60,39 +60,41 @@ sequenceDiagram
     end
 ```
 
-## 3. Iniciar preparo no KDS — com baixa automática de estoque
+## 3. Iniciar preparo no KDS — bulk com baixa automática AGREGADA
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor C as Cozinheiro
     participant FE as Frontend (KDS)
-    participant API as PATCH /cozinha/.../status?novo_status=preparo
-    participant PS as pedidos_service
+    participant API as PATCH /cozinha/pedidos/{id}/itens/status (BULK)
+    participant PS as cozinha_service / pedidos_service
     participant FS as Firestore
 
-    C->>FE: "Iniciar preparo" no cartão
-    FE->>API: PATCH status item
-    API->>PS: atualizar_status_item(...)
+    C->>FE: "Iniciar preparo" no cartão (vários itens da mesa)
+    FE->>API: PATCH {itemIds[], novoStatus:"preparo"} — 1 chamada
+    API->>PS: atualizar_status_itens_bulk(...)
     PS->>FS: BEGIN TRANSACTION
-    PS->>FS: get(pedido/item)
+    PS->>FASE 1 — LEITURAS: get(pedido) + itens selecionados
     PS->>FS: get(configuracoes).baixaEstoqueAutomatica
-    alt flag ON e item pendente sem baixadoEm
-        PS->>PS: consumo = receita × qtd (agregar_consumo_receita)
-        loop cada ingrediente
-            PS->>FS: get(estoque/{itemId})
+    alt flag ON e itens pendentes sem baixadoEm
+        PS->>PS: consumo agregado = Σ receita × qtd por itemId (_consumo_produto)
+        Note over PS,FS: FASE 2 — ESCRITAS (leitura 100% antes de escrita 100%, bug 10)
+        loop cada ingrediente afetado (uma leitura/escrita por item)
             PS->>FS: set(movimentação saida {qtd, saldoApos, pedidoId})
-            PS->>FS: update(estoque saldo = atual − consumo)
+            PS->>FS: update(estoque saldo = atual − consumo agregado)
         end
         Note over PS,FS: saldo pode ficar negativo; ingrediente inexistente é ignorado
-        PS->>FS: update(item.baixadoEm = agora) ← idempotência
-    else flag OFF ou já baixado
+        PS->>FS: update(itens[].baixadoEm = agora) ← idempotência
+    else flag OFF ou já baixados
         Note over PS,FS: apenas troca o status
     end
     PS->>FS: update(itens[].status=preparo)
     FS-->>PS: commit
     PS-->>FE: 200 pedido atualizado
 ```
+
+> A rota antiga `PATCH .../itens/{itemId}/status` delega ao bulk. NUNCA disparar N PATCHes paralelos (contenção de transação — bug 9).
 
 ## 4. Pagamento que quita o pedido
 
@@ -155,31 +157,34 @@ sequenceDiagram
     API-->>FE: 201 {pedidoId, adicionadoA}
 ```
 
-## 6. Onboarding (criação do primeiro restaurante)
+## 6. Onboarding por convite (criação do primeiro restaurante)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor A as Novo usuário (admin)
-    participant FE as SelectRestaurantPage
-    participant API as POST /api/restaurantes/primeiro
+    participant OW as Dono da Plataforma (/plataforma)
+    participant FE as SelectRestaurantPage?t=CÓDIGO
+    participant API as POST /api/restaurantes/primeiro {token}
     participant RS as restaurantes_service
     participant FS as Firestore
     participant FA as Firebase Auth Admin
 
-    A->>FE: nome + quantidade de mesas
-    FE->>API: payload
+    OW->>FS: POST /api/sistema/convites → cria convites/{token}<br/>(expira 7d; guard sistema/global.donoUids)
+    A->>FE: abre link com convite + nome + quantidade de mesas
+    FE->>API: payload {token, nome, quantidadeMesas}
     API->>RS: criar_primeiro(auth, payload)
-    alt claim restaurantId presente
-        RS-->>API: 409
-    end
-    RS->>FS: TRANSACTION onboarding/{uid}
-    alt marcador existe
-        RS-->>API: 409 já criou
-    else
-        RS->>FS: set(marcador provisório)
-        RS->>FS: BATCH: doc raiz + configurações + docs-pai<br/>+ mesas numeradas + doc admin do criador
-        RS->>FS: set(onboarding/{uid} = {restaurantId}) (commit)
+    RS->>FS: TRANSACTION única (leituras 100% antes das escritas)
+    alt claim restaurantId presente (token novo)
+        RS->>RS: marcador completo? → AUTO-CURA:<br/>reemite claims e devolve MESMO restaurante
+        RS-->>FE: 200 {restaurantId} (mesmo)
+    else sem convite válido e não é dono/bootstrap
+        RS-->>API: 403 (ausente/expirado/usado/revogado)
+    else convite válido
+        RS->>FS: lê marcador + convite + estado
+        RS->>FS: set(doc raiz + configurações + docs-pai<br/>+ mesas numeradas + doc admin)
+        RS->>FS: set(onboarding/{uid} completo) + update(convite.usadoEm/usadoPorUid)
+        FS-->>RS: commit (reuso impossível nem em corrida)
         RS->>FA: set_custom_user_claims(uid, {restaurantId, papel=admin})
         RS-->>FE: 201 {restaurantId}
         FE->>FA: getIdToken(true) — refresh forçado

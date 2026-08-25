@@ -60,7 +60,7 @@ Invoke-RestMethod https://pdv-lanchonete-dwiw.onrender.com/health    # espera {"
 
 Primeira chamada pode demorar ~60s (instância acordando do sleep) — use timeout ≥120s.
 
-> `/health` aceita **GET e HEAD** (monitores como UptimeRobot fazem HEAD).
+> `/health` aceita **GET e HEAD** (monitores como UptimeRobot fazem HEAD). MAS `/health` é **estático** e não prova que o Firestore está acessível (bugs 7 e 12 tiveram `/health` ok com API quebrada). Após qualquer deploy, sonde também um endpoint que LEIA Firestore, ex.: `GET /api/publico/{rid}/cardapio`.
 
 ### 4. Frontend build com a URL da API
 
@@ -146,11 +146,22 @@ Frontend: deixar para depois (custo de bundle vs benefício — prioridade foi o
 
 ## Baseline de regressão pós-deploy
 
+> ⚠️ **Regra permanente (2026-08-24): validar em localhost ANTES de qualquer deploy/push.**
+> Backend local + suíte E2E com `-Base http://127.0.0.1:8000` → só depois commit/deploy.
+
 ```powershell
 cd backend && .venv\Scripts\python -m pytest tests -q          # 23 passed
 cd scripts\e2e && node get-token.js                            # token vale 1h
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\e2e\api_test.ps1   # 35/35 (produção)
+
+# Opcional (seção 13 onboarding): token do DONO da plataforma
+# node get-token.js gabriel@pdv.com '<senha>' token-owner.txt   # sem o arquivo, seção 13 é pulada com aviso
+
+powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1               # padrão: produção
+powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1 -Base http://127.0.0.1:8000  # local
 cd frontend && npx tsc --noEmit                                 # exit 0
 ```
+
+Contagem atual: **52 passos** na base + **13 passos** de onboarding (condicionais ao `token-owner.txt`) = 65 no máximo.
+Último baseline completo validado em produção: 2026-08-24 (51/51 antes da seção onboarding); fix do caixa `abertoEm` revalidado em produção em 2026-08-25.
 
 CI (GitHub Actions) roda pytest + tsc + build em todo push/PR.

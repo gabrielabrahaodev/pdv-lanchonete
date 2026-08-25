@@ -13,6 +13,7 @@ classDiagram
         +restaurantId: str?
         +restaurantNome: str?
         +perfil: AppUser?
+        +souDono: bool
     }
 
     class AppUser {
@@ -54,6 +55,27 @@ classDiagram
         +preco: float
         +ativo: bool
         +estoqueMinimo: int
+        +temImagem: bool
+        +imagemUrl: str?
+    }
+
+    class ImagemProduto {
+        +produtoId: str (id do doc)
+        +imagemBase64: str
+        +mime: str
+    }
+
+    class Convite {
+        +token: str (id do doc)
+        +criadoPor: str
+        +expiraEm: datetime
+        +ativo: bool
+        +usadoEm: datetime?
+        +usadoPorUid: str?
+    }
+
+    class SistemaGlobal {
+        +donoUids: list~str~
     }
 
     class ProductVariation {
@@ -108,6 +130,7 @@ classDiagram
     class CashRegisterSession {
         +id: str
         +usuarioId: str
+        +abertoEm: datetime
         +valorInicial: float
         +totalVendas: float
         +totalRecebido: float
@@ -192,8 +215,14 @@ classDiagram
 
     Despesa --> Fornecedor : fornecedor_id?
 
+    Product "1" --> "0..1" ImagemProduto : imagens/items/{produtoId}
+    Convite --> Restaurant : provisiona (consumo transacional)
+    AppUser --> Convite : criadoPor / usadoPorUid
+
     AppUser --> Restaurant : restaurantId (claim)
 ```
+
+> **Top-level (fora do tenant):** `onboarding/{uid}`, `sistema/global` (`SistemaGlobal`) e `convites/{token}` — acessíveis só via Admin SDK / guard de dono da plataforma.
 
 ## Enumerações (domínios de valor)
 

@@ -28,20 +28,21 @@ Severidades (herdadas do plano de testes): **S1** operação parada/perda financ
 | Rotina | Frequência | Procedimento |
 |---|---|---|
 | Verificação `/health` + login | diária (abertura) | checklist de abertura da loja |
-| Backup Firestore (export) | semanal (automatizar) | export para bucket; restaurar em projeto de teste a cada mês |
+| Backup Firestore | **diária (automática)** — GitHub Actions `backup.yml` 03:30 BRT commitando em `backups/` (+ agendamento local 12:00, retenção 14) | restaurar em projeto de teste a cada mês |
 | Revisão de fechamentos | semanal | diferenças de caixa explicadas; relatório × caixa |
-| Atualização de dependências | mensal | `pip list --outdated`, `npm outdated`; aplicar patches com regressão R-01 |
-| Rotação de segredos | trimestral ou sob suspeita | nova service account no GCP → atualizar `.env`/PaaS → revogar antiga |
+| Atualização de dependências | mensal / janela controlada | stack GCP/Firebase só com **pin exato** e E2E contra produção logo depois (bug 12); demais: `pip list --outdated`, `npm outdated` com regressão R-01 |
+| Rotação de segredos | trimestral ou sob suspeita | nova service account no GCP → atualizar `.env`/Render → revogar antiga |
 | Limpeza/arquivamento de pedidos > 90 dias | mensal (quando volume crescer) | script Admin dedicado (a criar) |
 | Revisão de quotas/custos Firebase | mensal | console GCP → alertas |
 
 ## 5. Procedimentos operacionais padrão (POP)
 
 ### POP-01 — Sistema fora do ar
-1. Checar backend: `GET /health` (porta 8000).
+1. Checar backend: `GET /health` (porta 8000; em produção aceita GET e **HEAD**). Lembre: a Render free pode estar apenas DORMINDO — primeira chamada demora 30–60s (timeout ≥120s); não abra incidente antes disso.
 2. Se morto: iniciar uvicorn (ver manual-tecnico §2); conferir logs `srv.err.log`.
-3. Se erro de Firebase/quota: aguardar/ajustar plano; registrar incidente.
-4. Contingência enquanto offline: anotar comandas em papel; ao voltar, lançar pedidos com hora real.
+3. `/health` ok mas app quebrado ⇒ sondar endpoint que LEIA Firestore (ex.: cardápio público) e ver manual-tecnico §8 (`InvalidArgument` = drift de dependências; 500 que vira CORS = exceção fora da pilha).
+4. Se erro de Firebase/quota: aguardar/ajustar plano; registrar incidente.
+5. Contingência enquanto offline: anotar comandas em papel; ao voltar, lançar pedidos com hora real.
 
 ### POP-02 — Impressora não imprime
 1. Testar em Configurações → Teste de impressora.
@@ -53,6 +54,11 @@ Severidades (herdadas do plano de testes): **S1** operação parada/perda financ
 
 ### POP-04 — Resetar senha de usuário
 Admin/Gerente → Configurações → Usuários → editar usuário → nova senha (ou remover/recriar conta).
+
+### POP-05 — Atualização do stack GCP/Firebase (dependências)
+1. Nunca subir faixa solta: manter pins exatos do `requirements.txt` (firebase-admin==7.5.0 etc.).
+2. Para atualizar: janela controlada → bump → pytest + tsc + E2E contra produção IMEDIATAMENTE após o deploy.
+3. Sintoma de regressão conhecido: `500 InvalidArgument Invalid database id` em tudo com `/health` ok → voltar para os pins anteriores.
 
 ## 6. Gestão de releases
 
@@ -69,13 +75,13 @@ Admin/Gerente → Configurações → Usuários → editar usuário → nova sen
 | Tempo de resposta das telas principais | < 1s percebido (cache/polling) |
 | Defeitos S1/S2 abertos | 0 / ≤ 2 |
 
-Ferramentas atuais: logs locais do uvicorn; planejado: uptime externo apontando para `/health` + alertas de quota Firebase.
+Ferramentas atuais: logs locais do uvicorn · **UptimeRobot ativo** (HEAD `/health` a cada 10 min — lembrete: `/health` é estático, não prova leitura de Firestore) · Sentry opcional via `SENTRY_DSN` · alertas de quota Firebase no console.
 
 ## 8. Evolução prevista (roadmap de manutenção)
 
-1. Publicação das rules + onSnapshot ativo (verificar ausência de warnings).
-2. Deploy produção (Render + Firebase Hosting) com TLS.
-3. CI (GitHub Actions): pytest + build a cada push.
+1. ~~Publicação das rules + onSnapshot ativo~~ ✅ (2026-08-23)
+2. ~~Deploy produção (Render + Firebase Hosting) com TLS~~ ✅ (2026-08-23)
+3. ~~CI (GitHub Actions): pytest + build a cada push~~ ✅ (`ci.yml`; + backup diário `backup.yml`)
 4. Webhook iFood/Goomer (delivery automático).
 5. Fila offline de escritas do PWA (background sync).
 6. Paginação/índices quando coleções passarem de ~5 mil docs.

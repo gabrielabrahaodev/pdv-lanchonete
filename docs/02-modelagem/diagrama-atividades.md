@@ -18,9 +18,9 @@ flowchart TD
     I -- Não --> J[Itens entram como PENDENTE]
     J --> K[/Cozinha vê cartão no KDS/]
 
-    K --> L{Iniciar preparo?}
-    L -- Sim --> M[Baixa automática de ingredientes<br/>se receita e flag ativos]
-    M --> N[Item EM PREPARO]
+    K --> L{Iniciar preparo?<br/>avança itens do cartão em bloco (bulk)}
+    L -- Sim --> M[Baixa automática AGREGADA de ingredientes<br/>se receita e flag ativos — 1 transação]
+    M --> N[Itens EM PREPARO]
     L -- Aguardando --> L
     N --> O[Item PRONTO]
     O --> P[Item ENTREGUE ao cliente]
@@ -106,4 +106,32 @@ flowchart TD
     E2 -- não encontrada --> F
     E --> G([Impresso via Bluetooth])
     F --> H([Impresso via janela])
+```
+
+## 6. Provisionar restaurante por convite
+
+```mermaid
+flowchart TD
+    A([Dono da plataforma]) --> B[Gera convite em /plataforma<br/>POST /api/sistema/convites]
+    B --> C[Envia link ?t=CÓDIGO ao lojista]
+    C --> D([Lojista abre link, informa nome + mesas])
+    D --> E{Convite válido?}
+    E -- Não --> X1[403 — ausente/expirado/usado/revogado]
+    E -- Sim ou dono/bootstrap --> F[Transação única: cria raiz + configs +<br/>mesas + admin + marcador; consome convite]
+    F --> G[Claims {restaurantId, papel=admin}]
+    G --> H{Claims gravados?}
+    H -- Não e retry --> I[Auto-cura: reemite claims,<br/>devolve MESMO restaurante]
+    H -- Sim --> J([Restaurante operacional])
+    I --> J
+```
+
+## 7. Enviar foto do produto
+
+```mermaid
+flowchart TD
+    A([Formulário de produto]) --> B[Selecionar arquivo local]
+    B --> C[Comprimir no cliente:<br/>canvas → JPEG lado máx 900px,<br/>qualidade decrescente até ~140KB]
+    C --> D[PUT /api/produtos/{id}/imagem<br/>base64 ≤200k chars]
+    D --> E[(imagens/items/{produtoId}<br/>+ flag temImagem)]
+    E --> F([Thumbnail no app e no cardápio QR])
 ```

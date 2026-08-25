@@ -7,6 +7,8 @@ Implantação em **duas ondas**:
 1. **Piloto local controlado** (operacional desde 2026-08-22): backend + frontend na estação da loja, Firebase em nuvem, dados reais do estabelecimento.
 2. **Produção em nuvem** (✅ **EXECUTADA em 2026-08-23**): SPA no Firebase Hosting + API na Render free tier. URLs reais e detalhes de release no `DEPLOY.md` da raiz.
 
+Regra permanente (2026-08-24): **toda mudança é validada em localhost antes de qualquer deploy/push** (backend :8000 + suíte E2E `-Base http://127.0.0.1:8000`).
+
 ## 2. Pré-requisitos de implantação
 
 ### 2.1 Infraestrutura
@@ -17,7 +19,7 @@ Implantação em **duas ondas**:
 - [ ] Rede estável; recomenda-se fallback 4G do roteador.
 
 ### 2.2 Dados iniciais
-- [ ] Executar `npm run init` (estrutura + admin) e `npm run seed` (usuários, insumos, caixa) OU realizar onboarding real pelo app (recomendado em produção: cria tenant próprio).
+- [ ] Executar `npm run init` (estrutura + admin) e `npm run seed` (usuários, insumos, caixa) OU provisionar um novo restaurante pelo app — hoje isso **exige convite do dono da plataforma** (link `?t=CÓDIGO`; sem convite a criação retorna 403).
 - [ ] Cadastrar categorias, produtos com receitas, mesas e usuários por papel.
 - [ ] Trocar senha padrão do admin (`SenhaForte123!`).
 
@@ -55,10 +57,11 @@ Validação de aceite: Roteiro R-01 completo + `/health` respondendo + login rea
 |---|---|---|
 | 4.1 | Frontend no Firebase Hosting **SEM rewrite** (exigiria Blaze): `VITE_API_URL` embutido no build → `firebase deploy --only hosting` | ✅ https://pdv-lanchonete-1fa79.web.app |
 | 4.2 | API na Render (free tier): `uvicorn app.main:app --host 0.0.0.0 --port $PORT`; envs `FIREBASE_SERVICE_ACCOUNT_JSON`, `CORS_ORIGINS=https://pdv-lanchonete-1fa79.web.app` | ✅ https://pdv-lanchonete-dwiw.onrender.com |
-| 4.3 | Smoke + suíte E2E completa contra produção | ✅ 35/35 PASS |
+| 4.3 | Smoke + suíte E2E completa contra produção | ✅ PASS (baseline histórico: 35/35 em 2026-08-23; suíte atual: 52 passos base + 13 onboarding condicionais — ver `scripts/e2e/README.md`) |
 | 4.4 | Backup programado do Firestore | ✅ GitHub Actions diário 03:30 (Brasília) commitando em `backups/` |
 | 4.5 | QRs das mesas apontando para a URL pública definitiva | ⏳ homologação física na loja (celular real) |
 | extra | UptimeRobot HEAD `/health` a cada 10 min (mitiga sleep do free tier) · Sentry opcional via env `SENTRY_DSN` | ✅ / ⏳ |
+| extra | **Authorized domains**: Console Firebase → Authentication → adicionar `pdv-lanchonete-1fa79.web.app` (sem isso o login falha com `auth/unauthorized-domain`) | ✅ |
 
 Rollback: redeploy da versão anterior no Hosting/PaaS (builds versionados por tag git `v2.x.y`).
 

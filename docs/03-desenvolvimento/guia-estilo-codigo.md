@@ -20,13 +20,14 @@ Padrões observados e obrigatórios no repositório. Novo código deve seguir es
 ### 1.3 Padrões obrigatórios
 | Situação | Padrão |
 |---|---|
-| Transação | decorator `@transactional` do SDK Python; leitura via `next(iter(t.get(ref)), None)` |
+| Transação | decorator `@transactional` do SDK Python; leitura via `next(iter(t.get(ref)), None)`; **fase 1 lê TODOS os docs, fase 2 executa TODAS as escritas** (Firestore proíbe ler depois de escrever — bug 10) |
 | Criar doc | `stamp_create({...})` + `restaurantId` explícito no payload |
 | Atualizar doc | `stamp_update({campos não-None})`; limpar campo → `DELETE_FIELD` |
 | IDs | `new_id("prefixo_")` |
 | Erros | `HTTPException(status, "mensagem clara em pt-BR")` — 409 conflitos de estado, 422 validação |
 | Retorno | sempre reler o documento pós-operação (`obter(...)`) para resposta consistente |
 | Lógica matemática | extrair para `calculos.py` (pura, testável) |
+| Operação concorrida | transação própria (`abrir caixa`, `credit_sessao`) ou endpoint BULK quando o cliente dispararia N mutações no mesmo doc (cozinha) |
 
 ### 1.4 Modelos Pydantic
 - Herdar `CamelModel`; campos opcionais `Optional[x] = None` para PATCH parcial.
@@ -48,7 +49,7 @@ Padrões observados e obrigatórios no repositório. Novo código deve seguir es
 ### 2.2 Dados e estado
 - Toda chamada à API passa por `api<T>()` (nunca fetch cru); erros tratados como `ApiError`.
 - Queries com `queryKey` estável (ex.: `['mesas']`, `['cozinha-fila']`) registradas no mapa de invalidação do `useRealtime`.
-- Mutations invalidam chaves relacionadas no `onSuccess` e navegam/exibem erro conforme contexto.
+- Mutations invalidam chaves relacionadas no `onSuccess`, têm **`onError` visível obrigatório** em fluxo crítico (falha silenciosa parece "botão morto" — bug 11) e, quando dependem de estado volável, **revalidam no servidor dentro do `mutationFn`** em vez de confiar em cache react-query.
 - Polling declarado por tela: KDS 8s · pedido/pagamento 10s · mesas 15s · caixa 30s; `staleTime` para cadastros (produtos 60s).
 
 ### 2.3 UI
@@ -66,8 +67,9 @@ O frontend NÃO duplica regras críticas: preços, totais, quitação e baixa de
 
 ## 4. Commits e revisão
 - Mensagens curtas no imperativo, em português ou inglês consistente (`fix: pagamento minimalista 201`, `feat: baixa automática por receita`).
-- Todo PR deve: passar `pytest -q`, `tsc && vite build` (frontend) e, se mexeu em fluxo core, rodar a suíte E2E de API.
+- Todo PR deve: passar `pytest -q`, `tsc && vite build` (frontend) e, se mexeu em fluxo core, rodar a suíte E2E de API. Regra permanente: **validar em localhost antes de qualquer deploy/push** (push em `master` dispara Render).
 - Proibido commitar: `.env`, `service-account.json`, logs (`*.out.log`, `*.err.log`, `server.pid`), `node_modules`, `dist`, `.venv`.
+- Dependências do stack GCP/Firebase: **pin exato** no `requirements.txt`; atualizar só em janela controlada com E2E contra produção logo depois (bug 12).
 
 ## 5. Documentação
 - Novos endpoints/módulos: atualizar `design-tecnico.md` (tabela de endpoints) e `documento-requisitos.md`.

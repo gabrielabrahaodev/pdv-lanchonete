@@ -20,6 +20,10 @@ Registro de **como** os requisitos foram levantados: técnicas aplicadas, entrev
 - **Pedidos capturados:** relatório diário/mensal (RF-090/091), DRE simples (RF-091), controle de despesas e fornecedores (RF-080/081), sessão de caixa auditável com diferença contada (RF-043), múltiplos papéis com senhas próprias (RF-006/008).
 - **Decisões de produto registradas:** despesa NÃO entra no caixa (RN-12); cancelamento pós-baixa NÃO estorna estoque (RN-08); saldo de estoque pode ficar negativo para não travar a produção.
 
+### Dono da plataforma *(entrevista posterior — P0/P0.7)*
+- **Dor:** abrir o cadastro de restaurantes permitia contas órfãs consumindo quota do projeto.
+- **Capturado:** provisionamento EXCLUSIVAMENTE por convite de uso único (RF-005a/RN-03), console próprio `/plataforma`, separação rígida PLATAFORMA × TENANT (`sistema/global.donoUids`).
+
 ### Operador de Caixa
 - **Dores:** demora para lançar pedidos, erro de conta manual, troco errado.
 - **Capturado:** mapa rápido de mesas (RF-110), pagamento parcial por formas mistas (RF-040/041), cálculo de troco na tela (RF-040), recibo impresso (RF-113), abertura com fundo de troco (RF-043).
@@ -50,7 +54,7 @@ Registro de **como** os requisitos foram levantados: técnicas aplicadas, entrev
 | Multi-dispositivo | Web app responsivo + PWA (RF-115) |
 | Internet instável no salão | Cache NetworkFirst das leituras (RF-115); escrita offline fica fora do escopo desta fase |
 | Claims do Firebase valem só no próximo token | Refresh forçado após onboarding/troca de papel (RF-005) |
-| Windows como estação principal | Backend roda local (uvicorn :8000) na fase de desenvolvimento; produção planejada (Render) |
+| Windows como estação principal | Backend roda local (uvicorn :8000) na fase de desenvolvimento; produção ATIVA na Render desde 2026-08-23 |
 
 ## 5. Priorização (MoSCoW)
 
@@ -62,7 +66,7 @@ Registro de **como** os requisitos foram levantados: técnicas aplicadas, entrev
 ## 6. Validação
 
 Cada grupo de requisitos foi verificado contra o sistema implementado:
-- Suíte E2E de API (34 casos, todos PASS) cobrindo auth, CRUDs, pedido→cozinha→pagamento→caixa, estoque, delivery, relatórios e configurações;
+- Suíte E2E de API (52 passos base + 13 de onboarding condicionais, todos PASS na produção) cobrindo auth, CRUDs, imagem do produto, pedido→cozinha→pagamento→caixa, estoque, delivery, relatórios, configurações e onboarding por convite;
 - Testes manuais B1/M4 (pagamento minimalista 201; plataforma inválida no delivery 422);
 - Testes manuais do cardápio digital e onboarding;
 - pytest (23 testes) sobre as fórmulas do domínio.

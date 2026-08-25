@@ -8,7 +8,7 @@ Referência para desenvolvedores/operadores que instalarão, diagnosticarão e e
 
 | Camada | Tecnologia |
 |---|---|
-| Backend | Python 3.12 · FastAPI ≥0.115 · uvicorn[standard] · firebase-admin 6.5+ · pydantic v2 + pydantic-settings · **tzdata (obrigatório)** |
+| Backend | Python 3.12 · FastAPI ≥0.115 · uvicorn[standard] · firebase-admin **pin exato** (`firebase-admin==7.5.0`, `google-cloud-firestore==2.28.1`, `google-api-core==2.34.0`, `google-auth==2.56.3`, `grpcio==1.83.0` — drift de dependências derrubou a produção, bug 12) · pydantic v2 + pydantic-settings · **tzdata (obrigatório)** |
 | Frontend | Vite 5 · React 18 · TypeScript 5.6 · Tailwind 4 (`@tailwindcss/vite`, `@custom-variant dark`) · TanStack Query 5 · react-router-dom 6 · firebase JS 11 · qrcode · vite-plugin-pwa + workbox |
 | Infra | Firebase Auth · Firestore (projeto `pdv-lanchonete-1fa79`) · firestore.rules v2 |
 | Ferramentas | pytest · scripts TS com firebase-admin |
@@ -86,11 +86,13 @@ Estrutura e dicionário completos em `../02-modelagem/esquema-logico-banco-dados
 # unitários (23; CI roda via backend/requirements-dev.txt)
 backend\.venv\Scripts\python -m pytest tests -q
 
-# suíte E2E de API (35 casos) — versionada em scripts/e2e/, alvo padrão = produção
+# suíte E2E de API (52 passos base + 13 de onboarding condicionais) — versionada em scripts/e2e/, alvo padrão = produção
 cd scripts\e2e
 node get-token.js        # expira em 1h — refazer se der 401
 powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1
 # local: ... -Base http://127.0.0.1:8000
+# seção 13 (onboarding/convites): requer token do dono da plataforma
+node get-token.js gabriel@pdv.com '<senha>' token-owner.txt   # sem o arquivo, seção pulada com aviso
 ```
 
 Fluxo validado ponta a ponta: categoria/produto QA → pedido em mesa livre → mesa ocupada → item preparo/pronto via `/api/cozinha/...` → pagamento pix quita → mesa livre → venda credita caixa → fechar confere totais → relatório reflete.
@@ -107,6 +109,11 @@ Fluxo validado ponta a ponta: categoria/produto QA → pedido em mesa livre → 
 | **Produção: 401 em toda rota autenticada + 500 nos endpoints públicos, `/health` ok** | credencial Admin quebrada/ausente (ex.: env `FIREBASE_SERVICE_ACCOUNT_JSON` não vinculada — ver D-6 em ../04-testes/relatorios-teste.md) | conferir Environment na Render; log de boot mostra "Firebase Admin: usando ..." |
 | Monitor externo reporta "405 method not allowed" com serviço saudável | monitor faz HEAD e o endpoint só aceitava GET | endpoints de health devem aceitar `methods=["GET","HEAD"]` |
 | Relatório/DRE parece zerado à noite | janela de datas do CHAMADOR com data local rotulada como UTC | converter local→UTC explicitamente (`ToUniversalTime()` / `toISOString()` após setHours) |
+| **Produção: `500 {"detail":"Erro interno: InvalidArgument"}` em toda chamada Firestore, `/health` ok, MESMO código funciona local** | drift de dependências gRPC/firestore (`Invalid database id %28default%29`) | conferir pins exatos no requirements.txt e redeploy (bug 12) |
+| **500 ao iniciar preparo só em produto com 2+ ingredientes** | `ReadAfterWriteError`: transação leu doc depois de escrever outro | fase de leitura completa antes das escritas; usar o bulk da cozinha (bug 10) |
+| **Erro 500 que chega ao browser como falha de CORS** | exceção não tratada passa fora do CORSMiddleware | middleware interno `_Erros500Json` devolve 500 JSON dentro da pilha (bug 9) |
+| "+ Adicionar itens" dá 409 silencioso / botão morto | tela usava cache react-query de estado volável; mutation sem onError | revalidar no servidor dentro do `mutationFn` + onError visível (bug 11) |
+| Caixa mostra "desde Invalid Date" | sessão antiga sem campo `abertoEm` | corrigido (2026-08-25): backend grava `abertoEm`; frontend usa fallback `criadoEm` |
 | onSnapshot warning no console | rules não publicadas | `firebase deploy --only firestore:rules` (app segue por polling) |
 | PowerShell: filtro sobre array devolve array | pipar Invoke-RestMethod direto em Where-Object | atribuir a variável antes: `$l = Invoke-...; @($l | Where ...)[0]` |
 | ConvertTo-Json desmonta array de 1 | comportamento PS 5.1 | `ConvertTo-Json -InputObject $array` |
@@ -119,6 +126,8 @@ Fluxo validado ponta a ponta: categoria/produto QA → pedido em mesa livre → 
 - Reset total do banco demo: `scripts/delete-all-collections.ts` (**destrutivo**).
 - Reinício limpo do backend local: parar PID de `backend/server.pid`, subir novamente.
 - Monitorar: `/health`, latência das listagens, quota Spark (leituras diárias), tamanho das coleções.
+- ⚠️ `/health` é estático e NÃO prova que o Firestore está acessível — smoke pós-deploy deve incluir um endpoint que LEIA Firestore (ex.: `GET /api/publico/{rid}/cardapio`).
+- Fluxo da cozinha: preferir sempre o endpoint bulk `PATCH /api/cozinha/pedidos/{id}/itens/status` (nunca N PATCHes paralelos por item).
 
 ## 10. Extensões planejadas (onde mexer)
 

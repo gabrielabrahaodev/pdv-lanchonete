@@ -29,8 +29,10 @@ Pedido é criado dentro de `@transactional`: lê mesa, bloqueia se `ocupada` (40
 ### 2.2 Mutação de itens
 `adicionar_item` e `remover_item` rodam via `_run_txn` (txn + re-leitura pós-commit). Regras: pedido aberto; remoção só de `pendente`; total recalculado com `calculos.total_pedido`.
 
-### 2.3 Baixa automática (`atualizar_status_item`)
+### 2.3 Baixa automática (`atualizar_status_item` / bulk)
 Condições: `novo_status == "preparo"` ∧ item estava `pendente` ∧ `not baixadoEm`. Lê `configuracoes.baixaEstoqueAutomatica` **dentro da txn**. Consumo = `agregar_consumo_receita(receita, qtd)` agrupado por itemId. Para cada ingrediente existente no estoque: cria movimentação `saida` (com `saldoApos`, `pedidoId`) e decrementa saldo (pode ficar negativo). Marca `baixadoEm`. Falhas permissivas: produto removido ou ingrediente inexistente → segue sem travar.
+
+A transição é feita preferencialmente pelo endpoint **bulk** `PATCH /api/cozinha/pedidos/{pedido}/itens/status` `{itemIds[], novoStatus}` — TODA a transição numa única transação, com consumo AGREGADO dos ingredientes compartilhados (`_consumo_produto` × qtd → `_aplicar_consumo`: uma leitura/escrita por ingrediente). A rota antiga por item apenas delega ao bulk. Regra de ouro do Firestore: **fase 1 lê todos os docs, fase 2 executa todas as escritas** (bug 10).
 
 ### 2.4 Cancelamento
 Só pedido aberto e sem pagamentos; grava `cancelado+fechadoEm`; chama `mesas_service.liberar`.
@@ -65,9 +67,13 @@ grava movimentação com saldoApos + atualiza saldo (mesma txn)
 ```
 Alertas: filtro `quantidadeAtual ≤ minimo`; frontend agrega contagem no menu.
 
-## 6. Onboarding (`restaurantes_service.py`)
+## 6. Onboarding (`restaurantes_service.py` + `convites_service.py`)
 
-Sequência exata (ver diagrama de sequência 6): guard de claim → transação reserva `onboarding/{uid}` → batch cria raiz/configurações/docs-pai/mesas (`mesa_01…N`)/doc admin → marcador finalizado com restaurantId → claims Admin SDK. Falha nos claims → 500 com mensagem clara ("restaurante criado, mas falha ao vincular"). Frontend deve forçar `getIdToken(true)` após 201.
+Novo restaurante nasce **EXCLUSIVAMENTE por convite válido** (a antiga flag `onboardingAberto` foi aposentada). Convites vivem em coleção top-level `convites/{token}` (o token É o id do doc, url-safe, uso único, expira 7 dias, revogável) — leitura direta na transação, sem query/índice.
+
+Sequência (ver diagrama de sequência 6): guard de claim → valida convite (403 sem/inválido/expirado/usado/revogado; donos da plataforma em `sistema/global.donoUids[]` criam sem convite — bootstrap do zero semeia o primeiro dono) → **transação única**: lê marcador/convite/estado, grava raiz/configurações/docs-pai/mesas/user admin/marcador completo e marca convite `usadoEm/usadoPorUid` no MESMO commit → claims Admin SDK. Retry com marcador completo + token sem claim = **auto-cura**: reemite claims e devolve o MESMO restaurante (nunca 409 eterno); 3ª tentativa com claim válido → 409. Frontend força `getIdToken(true)` após 201.
+
+Gestão de donos: CLI `npm run promover-dono -- listar|adicionar --uid X --exec|remover --uid Y --exec`. Endpoints `/api/sistema/convites` (POST/GET/DELETE) restritos ao guard donoUids; `/auth/me` responde `souDono`. Console frontend `/plataforma` gera o link copiável `…/select-restaurant?t=CÓDIGO`.
 
 ## 7. Cardápio digital (`routers/publico.py`)
 
@@ -102,19 +108,20 @@ Criar: papel restrito a {gerente, caixa, garcom, cozinha}; só admin cria gerent
 | Router | Endpoints principais | Papéis (escrita) |
 |---|---|---|
 | auth | GET /auth/me | qualquer autenticado |
-| restaurantes | POST /restaurantes/primeiro | sem claim tenant |
-| categorias | GET/POST/PATCH/DELETE | admin, gerente, caixa |
-| produtos | GET/POST/PATCH/DELETE (+filtros categoria/apenas_ativos) | admin, gerente, caixa |
+| restaurantes | POST /restaurantes/primeiro — EXIGE convite válido (payload `token`) fora do bootstrap | sem claim tenant |
+| categorias | GET/POST/PATCH/DELETE (409 se produto vinculado) | admin, gerente, caixa |
+| produtos | GET/POST/PATCH/DELETE (+filtros categoria/apenas_ativos); PUT/DELETE /{id}/imagem (coleção `imagens/items/{produtoId}`, base64 ≤200k chars jpeg/png/webp, cascade delete) | admin, gerente, caixa |
 | mesas | GET, POST, PATCH status, DELETE | CRUD: adm/ger/caixa; status: +garçom |
 | pedidos | GET (?status&mesa_id), POST ?mesa_id&tipo, POST itens, DELETE itens/{id}, PATCH itens/{id}/status, POST cancelar | escrita: adm/ger/caixa/garçom; status: +cozinha; cancelar: adm/ger/caixa |
-| pagamentos | POST /{pedido_id} (201) | adm/ger/caixa |
-| cozinha | GET /fila; PATCH /pedidos/{p}/itens/{i}/status?novo_status= | adm/ger/caixa/cozinha |
+| pagamentos | POST /{pedido_id} (201) — aceita N pagamentos parciais até somar o total | adm/ger/caixa |
+| cozinha | GET /fila; PATCH /pedidos/{p}/itens/status **bulk** `{itemIds[],novoStatus}` (preferencial); PATCH item único delega ao bulk | adm/ger/caixa/cozinha |
 | estoque | itens CRUD; POST movimentacoes; GET movimentacoes (?item_id&limit) | adm/ger |
 | fornecedores | CRUD | adm/ger/caixa |
 | despesas | CRUD + POST /{id}/pagar | adm/ger/caixa |
 | caixa | GET sessoes/sessao-atual; POST abrir/suprimento/sangria/fechar | adm/ger/caixa |
 | delivery | GET/POST pedidos; PATCH status | criar: adm/ger/caixa/garçom; status: +cozinha |
-| publico | GET /{rid}/cardapio; POST /{rid}/mesas/{mesa}/pedido | sem auth (rate-limited) |
+| publico | GET /{rid}/cardapio; GET /{rid}/imagens/{produto_id} (bytes); POST /{rid}/mesas/{mesa}/pedido | sem auth (cardápio rate-limited; imagens fora de propósito) |
+| sistema | POST/GET /sistema/convites; DELETE /sistema/convites/{token} | dono da plataforma (`sistema/global.donoUids`) |
 | relatorios | GET /resumo?inicio&fim | adm/ger/caixa |
 | configuracoes | GET ""; PUT "" | PUT: adm/ger |
 | usuarios | GET/PATCH /me; CRUD lista | CRUD: adm/ger (restrições RN-02) |
@@ -128,3 +135,8 @@ Criar: papel restrito a {gerente, caixa, garcom, cozinha}; só admin cria gerent
 5. `_run_txn` retorna `obter(...)` pós-commit.
 6. Claims valem só no próximo token → refresh forçado após onboarding/troca de papel.
 7. `tzdata` instalado obrigatório (zoneinfo no Windows).
+8. Transação Firestore proíbe ler doc DEPOIS de escrever outro (`ReadAfterWriteError`) → fase de leitura completa antes das escritas (bug 10; sintoma clássico: "iniciar preparo" falhava só em produto com 2+ ingredientes).
+9. Mutações paralelas que tocam o mesmo doc causam contenção/retry esgotado → agrupar num endpoint bulk; exceção não tratada passa FORA do CORS → middleware `_Erros500Json` devolve 500 JSON dentro da pilha (bug 9).
+10. Stack GCP/Firebase com pin EXATO no requirements.txt (firebase-admin==7.5.0 etc.) — faixa solta + rebuild baixou stack transitivo quebrado e derrubou a produção com `InvalidArgument Invalid database id` (bug 12). Atualizar só em janela controlada com E2E contra produção logo depois.
+11. pydantic-settings vincula a env pelo NOME DO CAMPO (sem prefixo): `firebase_service_account_json` lê `FIREBASE_SERVICE_ACCOUNT_JSON` (bug 7).
+12. Mutation de fluxo crítico no frontend: `onError` visível obrigatório; estado volável revalida no servidor dentro do `mutationFn`, não via cache react-query (bug 11).
