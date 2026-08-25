@@ -8,6 +8,7 @@ import { LoadingScreen } from './components/ui'
 // Code-splitting por rota: cada página vira um chunk carregado sob demanda.
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const SelectRestaurantPage = lazy(() => import('./pages/SelectRestaurantPage'))
+const PlataformaPage = lazy(() => import('./pages/plataforma/PlataformaPage'))
 const CaixaOverviewPage = lazy(() => import('./pages/caixa/CaixaOverviewPage'))
 const MesaDetailPage = lazy(() => import('./pages/caixa/MesaDetailPage'))
 const NovoPedidoPage = lazy(() => import('./pages/caixa/NovoPedidoPage'))
@@ -38,8 +39,21 @@ function RequireAuth({ children }: { children: ReactNode }) {
 function RequireNoAuth({ children }: { children: ReactNode }) {
   const { fbUser, me, loading } = useAuth()
   if (loading) return <LoadingScreen />
+  if (!fbUser) return <Navigate to="/login" replace />
+  // Operador da plataforma (sem tenant): console próprio, nunca o PDV
+  if (me?.souDono && !me?.restaurantId) return <Navigate to="/plataforma" replace />
   if (fbUser && me?.restaurantId) return <Navigate to="/caixa" replace />
   if (fbUser) return <Navigate to="/select-restaurant" replace />
+  return <>{children}</>
+}
+
+/** Guard do plano da PLATAFORMA: só donos (sistema/global.donoUids). */
+function RequireOwner({ children }: { children: ReactNode }) {
+  const { fbUser, me, loading } = useAuth()
+  if (loading) return <LoadingScreen />
+  if (!fbUser) return <Navigate to="/login" replace />
+  if (!me) return <LoadingScreen />
+  if (!me.souDono) return <Navigate to={me.restaurantId ? '/caixa' : '/select-restaurant'} replace />
   return <>{children}</>
 }
 
@@ -64,6 +78,14 @@ export default function App() {
             <RequireAuthFallback>
               <SelectRestaurantPage />
             </RequireAuthFallback>
+          }
+        />
+        <Route
+          path="/plataforma"
+          element={
+            <RequireOwner>
+              <PlataformaPage />
+            </RequireOwner>
           }
         />
         <Route

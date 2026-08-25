@@ -24,6 +24,15 @@ O servidor costuma rodar em background com saída redirecionada para `backend/uv
 
 Frontend: `cd frontend && npm run dev`. Credenciais de teste: `admin@restaurante.com` / `SenhaForte123!` (uid `0O29i5gABJTtS5JrAFgB7yskIwC3`, claims `restaurantId=restaurante_001`, `papel=admin`).
 
+## REGRA DE FLUXO: validar em localhost ANTES de qualquer deploy
+
+**NUNCA fazer deploy (Firebase Hosting ou push que dispara Render) sem antes validar a mudança localmente** — decisão permanente do usuário (2026-08-24):
+
+1. Subir backend local: `.venv\Scripts\python -m uvicorn app.main:app --port 8000` (em background com PID/log conforme acima).
+2. Frontend local: `cd frontend && npm run dev` — o dev server usa proxy `/api` → 8000, NÃO precisa de `VITE_API_URL`.
+3. Testar o fluxo afetado no localhost (`http://localhost:5173`) e, se tocou backend, rodar a suíte contra o local: `scripts/e2e/api_test.ps1 -Base http://127.0.0.1:8000`.
+4. Só depois de validado **e com OK do usuário**: commit/push + release de produção (`$env:VITE_API_URL='https://pdv-lanchonete-dwiw.onrender.com'; npm run build; Remove-Item Env:VITE_API_URL; firebase deploy --only hosting`). Push em master dispara auto-deploy da Render — avisar antes se o commit tocar `backend/`.
+
 ## Testes E2E
 
 Suíte **versionada no repo** em `scripts/e2e/` (instruções completas no `scripts/e2e/README.md`):
@@ -113,6 +122,7 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 8. Sessão 2026-08-23 (produção): `/health` só aceitava GET → monitores externos fazem HEAD e recebiam 405 ("405 method not allowed" no UptimeRobot com serviço perfeitamente saudável). Correto: `@app.api_route("/health", methods=["GET", "HEAD"])`.
 9. Sessão 2026-08-24 (produção): KDS avançava um cartão inteiro disparando N PATCHes PARALELOS (`forEach` no frontend) — cada um abre transação Firestore tocando o MESMO doc do pedido E os mesmos ingredientes da receita (ex.: X-Burger e X-Bacon dividem 5 insumos) → contenção, retries esgotados, **500** (que ainda por cima chegava ao browser como erro de CORS porque exceções não tratadas passam fora do CORSMiddleware). Correção dupla: `PATCH /api/cozinha/pedidos/{id}/itens/status` com `{itemIds[], novoStatus}` faz TODA a transição numa única transação com baixa de estoque AGREGADA (`_consumo_produto` × qtd do item → `_aplicar_consumo`, uma leitura/escrita por ingrediente); `atualizar_status_item` (rota antiga) delega para o bulk. E middleware interno `_Erros500Json` em `main.py` devolve 500 JSON que passa pela pilha CORS (`@app.exception_handler(Exception)` NÃO resolve: ServerErrorMiddleware fica FORA do CORS). Lição: NUNCA disparar mutações paralelas que tocam o mesmo doc Firestore; agrupar num endpoint bulk.
 10. Sessão 2026-08-24 (a causa REAL do 500 acima): `google.cloud.firestore_v1.ReadAfterWriteError` — **transações Firestore proíbem ler um doc DEPOIS de escrever outro**. O loop de baixa lia ingrediente → escrevia mov+estoque → ao ler o 2º ingrediente explodia. Por isso produtos com **2+ ingredientes** falharam SEMPRE no "iniciar preparo" (desde a feature de receita!) e bebidas (1 insumo) nunca — os testes não pegavam porque os produtos QA não tinham receita. Correção em `_aplicar_consumo`: fase 1 lê TODOS os docs (config + estoques), fase 2 executa TODAS as escritas. Regressão na suíte: 2 produtos compartilham 1 ingrediente → bulk preparo → saldo −7 e exatamente 1 movimentação. Lição: em transação Firestore, leitura 100% antes de escrita 100%; teste E2E de baixa PRECISA usar produto com ingredientes.
+11. Sessão 2026-08-24 (produção, achado pelo usuário): "+ Adicionar itens" dava **409 silencioso** (`POST /pedidos/{id}/itens`, "Pedido não está aberto") — o usuário pagou o pedido e a tela ainda exibia estado do cache react-query (`['pedidos','mesa',mesaId]` compartilhado entre MesaDetailPage e NovoPedidoPage): botão visível, submit rejeitado, e a mutation estava SEM `onError` → mensagem nunca chegava à tela. Correção em `NovoPedidoPage.tsx`: no modo `?add=1` a mutation busca a lista de pedidos da mesa DIRETO do servidor dentro do `mutationFn` (não confia em cache) e erro cai em banner vermelho + invalidação de `pedidos`/`mesas`. Lição dupla: (a) mutação que depende de estado volável deve revalidar no servidor antes de agir, não usar `useQuery` cache; (b) toda mutation de fluxo crítico precisa `onError` visível — falha silenciosa parece "botão morto".
 
 ## Armadilhas conhecidas
 

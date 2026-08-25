@@ -3,9 +3,10 @@ import { useAuth } from '../context/AuthContext'
 import { Button, Card, Field, Input } from '../components/ui'
 
 export default function LoginPage() {
-  const { login } = useAuth()
+  const { login, registrar } = useAuth()
   const [email, setEmail] = useState('admin@restaurante.com')
   const [senha, setSenha] = useState('')
+  const [criando, setCriando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -14,19 +15,38 @@ export default function LoginPage() {
     setErro(null)
     setLoading(true)
     try {
-      await login(email.trim(), senha)
+      if (criando) await registrar(email.trim(), senha)
+      else await login(email.trim(), senha)
     } catch (err: any) {
       const code = String(err?.code ?? '')
-      if (code.includes('invalid-credential') || code.includes('user-not-found') || code.includes('wrong-password')) {
+      if (code.includes('email-already-in-use')) {
+        setErro('Este e-mail já possui conta. Faça login.')
+      } else if (code.includes('weak-password')) {
+        setErro('A senha precisa ter pelo menos 6 caracteres.')
+      } else if (code.includes('invalid-email')) {
+        setErro('E-mail inválido.')
+      } else if (
+        code.includes('invalid-credential') ||
+        code.includes('user-not-found') ||
+        code.includes('wrong-password')
+      ) {
         setErro('E-mail ou senha incorretos.')
       } else if (code.includes('too-many-requests')) {
         setErro('Muitas tentativas. Tente novamente em instantes.')
+      } else if (criando) {
+        setErro('Falha ao criar conta. Verifique os dados e tente de novo.')
       } else {
         setErro('Falha no login. Verifique sua conexão.')
       }
     } finally {
       setLoading(false)
     }
+  }
+
+  function alternarModo() {
+    setErro(null)
+    if (!criando && email === 'admin@restaurante.com') setEmail('')
+    setCriando((c) => !c)
   }
 
   return (
@@ -37,7 +57,9 @@ export default function LoginPage() {
             🍔
           </div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">PDV Lanchonete</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Entre com sua conta para continuar</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            {criando ? 'Crie sua conta para começar' : 'Entre com sua conta para continuar'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -50,17 +72,26 @@ export default function LoginPage() {
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
-              autoComplete="current-password"
-              placeholder="••••••••"
+              minLength={criando ? 6 : undefined}
+              autoComplete={criando ? 'new-password' : 'current-password'}
+              placeholder={criando ? 'mínimo 6 caracteres' : '••••••••'}
             />
           </Field>
 
           {erro && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{erro}</p>}
 
           <Button type="submit" loading={loading} className="w-full py-2.5">
-            Entrar
+            {criando ? 'Criar conta' : 'Entrar'}
           </Button>
         </form>
+
+        <button
+          type="button"
+          onClick={alternarModo}
+          className="mt-4 w-full text-xs font-semibold text-slate-400 transition hover:text-brand-600 dark:hover:text-brand-300"
+        >
+          {criando ? 'Já tem conta? Entrar' : 'Novo por aqui? Criar conta'}
+        </button>
       </Card>
     </div>
   )

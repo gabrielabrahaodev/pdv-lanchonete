@@ -1,8 +1,15 @@
 """Autenticação: perfil do usuário logado + restaurante."""
 from __future__ import annotations
 
+from app.core.firebase import get_db
 from app.core.security import CurrentAuth
 from app.services.base import config_doc, get_item, restaurant_doc
+
+
+def _sou_dono(uid: str) -> bool:
+    snap = get_db().collection("sistema").document("global").get()
+    donos = [str(u) for u in ((snap.to_dict() or {}).get("donoUids") or [])]
+    return uid in donos
 
 
 def me(auth: CurrentAuth) -> dict:
@@ -27,4 +34,5 @@ def me(auth: CurrentAuth) -> dict:
         "restaurantNome": restaurant_nome,
         "configuracoes": configuracoes,
         "perfil": perfil,
+        "souDono": _sou_dono(auth.uid),
     }

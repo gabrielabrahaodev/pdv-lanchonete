@@ -24,8 +24,8 @@ function Step([string]$Nome, [scriptblock]$Bloco) {
   }
 }
 
-function Invoke-Api([string]$Method, [string]$Path, $Body = $null) {
-  $params = @{ Method = $Method; Uri = "$Base$Path"; Headers = $H; TimeoutSec = 90 }
+function Invoke-Api([string]$Method, [string]$Path, $Body = $null, [hashtable]$Headers = $H) {
+  $params = @{ Method = $Method; Uri = "$Base$Path"; Headers = $Headers; TimeoutSec = 90 }
   if ($null -ne $Body) {
     $json = if ($Body -is [string]) { $Body } else { ConvertTo-Json -InputObject $Body -Depth 8 -Compress }
     $params.Body = [System.Text.Encoding]::UTF8.GetBytes($json)
@@ -79,6 +79,10 @@ $prod = Step 'GET /produtos + criar na cat QA' {
   $p = Invoke-Api POST '/api/produtos' @{ nome = 'QA Produto'; categoriaId = $catId; preco = 9.9 }
   $script:prodId = $p.id
   return "id=$($p.id) nome=$($p.nome)"
+}
+Step 'DELETE /categorias/{id} com produto vinculado -> 409' {
+  try { Invoke-Api DELETE "/api/categorias/$catId" | Out-Null; throw 'deveria falhar' }
+  catch { if ([int]$_.Exception.Response.StatusCode -eq 409) { return 'HTTP 409 correto' }; throw }
 }
 Step 'PATCH /produtos/{id} preco=12.5' {
   $p = Invoke-Api PATCH "/api/produtos/$prodId" @{ preco = 12.5 }
@@ -364,7 +368,148 @@ Step 'PUT /configuracoes' {
 }
 Step 'GET /configuracoes' { $c = Invoke-Api GET '/api/configuracoes'; return "moeda=$($c.moeda)" }
 
-Write-Host "`n=== 13. Cleanup ===" -ForegroundColor Cyan
+Write-Host "`n=== 13. Onboarding por convite (contas descartaveis) ===" -ForegroundColor Cyan
+# Plano da PLATAFORMA: dono (token-owner.txt) gera convites; usuarios
+# descartaveis criados via Identity Toolkit REST exercitam /restaurantes/primeiro:
+# sem convite 403, com convite 201, auto-cura, reuso 403, revogado 403 e a
+# separacao de planos (admin de TENANT nao gera convite).
+# Deixa atras restaurantes QA minimos — limpar: npm run limpar-onboarding-qa
+if (-not (Test-Path "$PSScriptRoot\token-owner.txt")) {
+  Write-Host 'AVISO | token-owner.txt ausente (node get-token.js gabriel@pdv.com <senha> token-owner.txt): secao 13 pulada' -ForegroundColor Yellow
+} else {
+  $Ho = @{ Authorization = "Bearer $((Get-Content "$PSScriptRoot\token-owner.txt" -Raw).Trim())"; 'Content-Type' = 'application/json' }
+  $fbKey = 'AIzaSyDqzQ8D8e8wDM8wgw57l_1SZDzZjNdy3Y4'
+
+  Step 'owner da plataforma gera convite' {
+    $r = Invoke-Api POST '/api/sistema/convites' @{} -Headers $Ho
+    if (-not $r.id) { throw 'sem id do convite' }
+    $script:conviteId = $r.id
+    return "convite=$($r.id.Substring(0,8))..."
+  }
+  Step 'admin de TENANT tenta gerar convite -> 403 (separacao de planos)' {
+    try {
+      Invoke-Api POST '/api/sistema/convites' @{} -Headers $H | Out-Null
+      throw 'deveria falhar'
+    } catch {
+      $code = 0
+      if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+      elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+      if ($code -eq 403) { return 'HTTP 403 correto' }
+      throw
+    }
+  }
+
+  $qaEmail = "qa-onb-$(Get-Date -Format 'yyyyMMddHHmmss')@teste.local"
+  Step 'signUp conta descartavel #1 (Identity Toolkit)' {
+    $script:su = Invoke-RestMethod -Method Post `
+      -Uri "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$fbKey" `
+      -Body (@{ email = $qaEmail; password = 'SenhaForte123!'; returnSecureToken = $true } | ConvertTo-Json) `
+      -ContentType 'application/json' -TimeoutSec 120
+    if (-not $su.idToken) { throw 'sem idToken no signUp' }
+    return "uid=$($su.localId)"
+  }
+  $Hqa = @{ Authorization = "Bearer $($su.idToken)"; 'Content-Type' = 'application/json' }
+
+  Step 'POST primeiro SEM convite -> 403' {
+    try {
+      Invoke-Api POST '/api/restaurantes/primeiro' @{ nome = "QA Onboard $(Get-Date -Format 'yyyyMMddHHmm')"; quantidadeMesas = 1 } -Headers $Hqa | Out-Null
+      throw 'deveria falhar'
+    } catch {
+      $code = 0
+      if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+      elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+      if ($code -eq 403) { return 'HTTP 403 correto' }
+      throw
+    }
+  }
+  Step 'POST primeiro COM convite -> 201' {
+    $r = Invoke-Api POST '/api/restaurantes/primeiro' @{ nome = "QA Onboard $(Get-Date -Format 'yyyyMMddHHmm')"; quantidadeMesas = 1; token = $conviteId } -Headers $Hqa
+    if (-not $r.restaurantId) { throw 'sem restaurantId na resposta' }
+    $script:onbRestId = $r.restaurantId
+    return "rest=$($r.restaurantId)"
+  }
+  Step 're-POST token velho -> auto-cura devolve MESMO restaurante' {
+    # Token antigo nao tem claims: guarda de claim passa, marcador completo é lido
+    # e o caminho auto-cura reemite os claims sem criar nada nem re-consumir convite.
+    $r = Invoke-Api POST '/api/restaurantes/primeiro' @{ nome = 'QA Onboard retry'; quantidadeMesas = 1; token = $conviteId } -Headers $Hqa
+    if ($r.restaurantId -ne $onbRestId) { throw "criou outro restaurante: $($r.restaurantId)" }
+    return "rest=$($r.restaurantId)"
+  }
+  Step 'refresh token -> /auth/me traz claim restaurantId' {
+    $rf = Invoke-RestMethod -Method Post `
+      -Uri "https://securetoken.googleapis.com/v1/token?key=$fbKey" `
+      -Body "grant_type=refresh_token&refresh_token=$($su.refreshToken)" `
+      -ContentType 'application/x-www-form-urlencoded' -TimeoutSec 120
+    if (-not $rf.id_token) { throw 'sem id_token no refresh' }
+    $script:Hrf = @{ Authorization = "Bearer $($rf.id_token)"; 'Content-Type' = 'application/json' }
+    $m = Invoke-Api GET '/api/auth/me' -Headers $Hrf
+    if ($m.restaurantId -ne $onbRestId) { throw "claim aponta para $($m.restaurantId)" }
+    if ($m.souDono -ne $false) { throw "souDono=$($m.souDono); admin de tenant NAO é dono da plataforma" }
+    return "papel=$($m.papel) rest=$($m.restaurantId)"
+  }
+  Step '3o POST ja com claim no token -> 409' {
+    try {
+      Invoke-Api POST '/api/restaurantes/primeiro' @{ nome = 'QA'; quantidadeMesas = 1 } -Headers $Hrf | Out-Null
+      throw 'deveria falhar'
+    } catch {
+      $code = 0
+      if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+      elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+      if ($code -eq 409) { return 'HTTP 409 correto' }
+      throw
+    }
+  }
+
+  $qaEmail2 = "qa-onb-$(Get-Date -Format 'yyyyMMddHHmmssf')@teste.local"
+  Step 'signUp conta descartavel #2' {
+    $script:su2 = Invoke-RestMethod -Method Post `
+      -Uri "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$fbKey" `
+      -Body (@{ email = $qaEmail2; password = 'SenhaForte123!'; returnSecureToken = $true } | ConvertTo-Json) `
+      -ContentType 'application/json' -TimeoutSec 120
+    if (-not $su2.idToken) { throw 'sem idToken no signUp #2' }
+    return "uid=$($su2.localId)"
+  }
+  $Hqa2 = @{ Authorization = "Bearer $($su2.idToken)"; 'Content-Type' = 'application/json' }
+  Step 'REUSO do mesmo convite por outra conta -> 403' {
+    try {
+      Invoke-Api POST '/api/restaurantes/primeiro' @{ nome = 'QA reuso'; quantidadeMesas = 1; token = $conviteId } -Headers $Hqa2 | Out-Null
+      throw 'deveria falhar'
+    } catch {
+      $code = 0
+      if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+      elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+      if ($code -eq 403) { return 'HTTP 403 correto' }
+      throw
+    }
+  }
+  Step 'owner gera + revoga segundo convite' {
+    $c2 = Invoke-Api POST '/api/sistema/convites' @{} -Headers $Ho
+    Invoke-Api DELETE "/api/sistema/convites/$($c2.id)" -Headers $Ho | Out-Null
+    $script:conviteRevogado = $c2.id
+    return "revogado=$($c2.id.Substring(0,8))..."
+  }
+  Step 'criar com convite REVOGADO -> 403' {
+    try {
+      Invoke-Api POST '/api/restaurantes/primeiro' @{ nome = 'QA revogado'; quantidadeMesas = 1; token = $conviteRevogado } -Headers $Hqa2 | Out-Null
+      throw 'deveria falhar'
+    } catch {
+      $code = 0
+      if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+      elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+      if ($code -eq 403) { return 'HTTP 403 correto' }
+      throw
+    }
+  }
+  Step 'GET lista de convites como owner inclui o usado' {
+    $l = Invoke-Api GET '/api/sistema/convites' -Headers $Ho
+    $alvo = @($l | Where-Object { $_.id -eq $conviteId })[0]
+    if (-not $alvo) { throw 'convite sumiu da lista' }
+    if ($alvo.status -ne 'usada') { throw "status=$($alvo.status)" }
+    return "status=$($alvo.status)"
+  }
+}
+
+Write-Host "`n=== 14. Cleanup ===" -ForegroundColor Cyan
 Step 'DELETE produtos QA (todos)' {
   $l = Invoke-Api GET '/api/produtos'
   $n = 0

@@ -37,3 +37,5 @@ server.pid
 
 # Exportações de sessão do opencode
 session-*.md
+scripts/e2e/token-owner.txt
+frontend/dev.pid

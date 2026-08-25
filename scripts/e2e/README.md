@@ -30,10 +30,48 @@ node e2e_test.js
 
 ## O que a suíte cobre
 
-auth (401/me) · CRUD categorias/produtos · mesas · pedido→cozinha→pronto ·
-caixa (abrir/suprimento/sangria/fechar) · pagamento pix minimalista quita pedido e libera mesa ·
+auth (401/me) · CRUD categorias/produtos (com guard 409 de categoria em uso) · imagem do produto
+(PUT + rota pública de bytes) · mesas · cardápio público com variação+observações (pedido SEM token) ·
+pedido→cozinha bulk com baixa agregada de estoque (regressão do bug 10) · pagamento pix minimalista quita pedido e libera mesa ·
+caixa (abrir/suprimento/sangria/fechar, condicionais se já houver sessão aberta) ·
 estoque (item/movimentação/lista/delete) · delivery (criar/confirmar/listar/cancelar + 422 plataforma inválida) ·
-relatório resumo **incluindo a venda recém-criada** · configurações · cleanup.
+relatório resumo **incluindo a venda recém-criada** · configurações ·
+**onboarding com conta descartável** (signUp via Identity Toolkit REST → 201 → retry auto-cura →
+refresh de claims → 409 final) · governança da flag global (`donoUids`: não-dono toma 403 —
+condicional, pulado com aviso se `npm run promover-dono` ainda não rodou) · cleanup.
+
+### Sobre a seção onboarding (seção 13)
+
+Requer o token do DONO DA PLATAFORMA (conta `gabriel@pdv.com`, sem restaurante):
+
+```powershell
+cd scripts\e2e
+node get-token.js gabriel@pdv.com 'SENHA-DO-OWNER' token-owner.txt
+```
+
+Sem esse arquivo a seção 13 é pulada com aviso (o resto da suíte roda normal).
+
+O que ela cobre: owner gera convite · **admin de tenant tenta gerar convite → 403** (separação
+de planos) · signUp descartável via Identity Toolkit REST → criação SEM convite 403 → COM convite
+201 → retry auto-cura devolve o MESMO restaurante → refresh de claims (`souDono=false`) → 3º POST
+409 → reuso do convite 403 → convite revogado 403.
+
+Cria restaurantes QA mínimos (1 mesa) que NÃO são apagados pelo cleanup automático. Limpeza:
+
+```powershell
+cd scripts
+npm run limpar-onboarding-qa          # dry-run (padrão)
+npm run limpar-onboarding-qa -- --exec   # apaga restaurantes "QA Onboard*"/qa_onboard_*, markers e contas descartáveis
+```
+
+Gestão dos donos da plataforma (`sistema/global.donoUids`):
+
+```powershell
+cd scripts
+npm run promover-dono -- listar
+npm run promover-dono -- adicionar --uid <uid> --exec
+npm run promover-dono -- remover --uid <uid> --exec
+```
 
 > ⚠️ A janela de datas do relatório usa a meia-noite **local convertida para UTC** (`ToUniversalTime()`).
 > Histórico: montar `yyyy-MM-ddT00:00:00Z` com a data local fazia a venda das 21h de Brasília
@@ -41,5 +79,5 @@ relatório resumo **incluindo a venda recém-criada** · configurações · clea
 
 ## Estado atual
 
-- Produção (Render): **34/34 PASS** (2026-08-23)
-- Backend local: 34/34 PASS
+- Produção (Render): 51/51 PASS (2026-08-24, antes da seção onboarding)
+- Backend local: 34/34 PASS (histórico; suíte cresceu desde então)

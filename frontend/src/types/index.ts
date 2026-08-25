@@ -7,6 +7,21 @@ export interface AuthMe {
   restaurantId: string | null
   restaurantNome: string | null
   perfil: AppUser | null
+  /** dono da PLATAFORMA (sistema/global.donoUids) — acesso ao console /plataforma */
+  souDono?: boolean
+}
+
+export type ConviteStatus = 'ativa' | 'usada' | 'expirada' | 'revogada'
+
+export interface Convite {
+  id: string
+  status: ConviteStatus
+  criadoEm: string
+  expiraEm: string
+  usadoEm?: string | null
+  usadoPorUid?: string | null
+  criadoPor?: string
+  ativo?: boolean
 }
 
 export interface AppUser {

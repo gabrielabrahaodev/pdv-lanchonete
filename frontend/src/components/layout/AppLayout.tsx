@@ -117,6 +117,28 @@ export default function AppLayout() {
               <span className={`truncate ${collapsed ? 'hidden md:inline' : ''}`}>{item.label}</span>
             </NavLink>
           ))}
+
+          {/* Plano da PLATAFORMA: visível só para donos (sistema/global.donoUids) */}
+          {me?.souDono && (
+            <>
+              <div className="my-2 border-t border-slate-100 dark:border-slate-800" />
+              <NavLink
+                to="/plataforma"
+                onClick={() => setDrawerAberto(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-brand-50 text-brand-700 ring-1 ring-brand-200 dark:bg-brand-500/10 dark:text-brand-300 dark:ring-brand-500/30'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
+                  }`
+                }
+                title="Plataforma"
+              >
+                <span className="text-lg">🛰️</span>
+                <span className={`truncate ${collapsed ? 'hidden md:inline' : ''}`}>Plataforma</span>
+              </NavLink>
+            </>
+          )}
         </nav>
 
         {me && (

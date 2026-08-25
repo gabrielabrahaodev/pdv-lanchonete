@@ -31,4 +31,17 @@ def atualizar(restaurant_id: str, categoria_id: str, payload: CategoryUpdate) ->
 
 
 def remover(restaurant_id: str, categoria_id: str) -> None:
+    if not item_doc(restaurant_id, "categorias", categoria_id).get().exists:
+        raise HTTPException(404, "Categoria não encontrada")
+    vinculados = list(
+        items_col(restaurant_id, "produtos")
+        .where("categoriaId", "==", categoria_id)
+        .stream()
+    )
+    if vinculados:
+        raise HTTPException(
+            409,
+            f"Categoria tem {len(vinculados)} produto(s) vinculado(s); "
+            "remova ou reclassifique os produtos antes de excluir",
+        )
     item_doc(restaurant_id, "categorias", categoria_id).delete()

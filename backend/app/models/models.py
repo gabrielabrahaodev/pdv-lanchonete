@@ -30,6 +30,7 @@ class RestaurantCreate(CamelModel):
 
     nome: str = Field(min_length=2)
     quantidade_mesas: int = Field(default=12, ge=0, le=50)
+    token: Optional[str] = None  # convite de provisionamento (obrigatório fora do bootstrap)
 
 
 # -------------------------------------------------------------- Produtos
@@ -450,3 +451,4 @@ class AuthMe(CamelModel):
     restaurant_id: Optional[str] = None
     restaurant_nome: Optional[str] = None
     perfil: Optional[AppUser] = None
+    sou_dono: Optional[bool] = None  # dono da PLATAFORMA (sistema/global.donoUids)

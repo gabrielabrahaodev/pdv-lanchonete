@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { api } from '../../lib/api'
-import type { Category, Product, ProductVariation } from '../../types'
+import { api, ApiError } from '../../lib/api'
+import type { Category, Order, Product, ProductVariation } from '../../types'
 import { Badge, Button, Card, ErrorState, Input, LoadingScreen, Select } from '../../components/ui'
 import ProdutoCustomModal from '../../components/ProdutoCustomModal'
 import { brl } from '../../lib/format'
@@ -28,6 +28,7 @@ export default function NovoPedidoPage() {
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>('')
   const [busca, setBusca] = useState('')
   const [customizando, setCustomizando] = useState<{ p: Product; variacaoId?: string } | null>(null)
+  const [erro, setErro] = useState<string | null>(null)
 
   const categorias = useQuery({
     queryKey: ['categorias'],
@@ -54,8 +55,12 @@ export default function NovoPedidoPage() {
 
   const criarPedido = useMutation({
     mutationFn: async () => {
-      const existente = (pedidoExistente.data ?? []).find((p) => p.status === 'aberto')
-      if (existente) {
+      if (adicionando) {
+        const lista = await api<Order[]>(`/pedidos?mesa_id=${encodeURIComponent(mesaId)}`)
+        const existente = lista.find((p) => p.status === 'aberto')
+        if (!existente) {
+          throw new ApiError(409, 'O pedido desta mesa foi fechado. Volte à mesa e abra um novo pedido.')
+        }
         for (const item of cart) {
           await api(`/pedidos/${existente.id}/itens`, {
             method: 'POST',
@@ -83,6 +88,11 @@ export default function NovoPedidoPage() {
       qc.invalidateQueries({ queryKey: ['pedidos'] })
       qc.invalidateQueries({ queryKey: ['mesas'] })
       navigate(`/caixa/mesa/${mesaId}`)
+    },
+    onError: (e) => {
+      setErro(e instanceof Error ? e.message : 'Erro ao salvar pedido')
+      qc.invalidateQueries({ queryKey: ['pedidos'] })
+      qc.invalidateQueries({ queryKey: ['mesas'] })
     },
   })
 
@@ -155,6 +165,12 @@ export default function NovoPedidoPage() {
           Mesa {mesa.data?.numero} — {adicionando ? 'adicionar itens' : 'novo pedido'}
         </h1>
 
+        {erro && (
+          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {erro}
+          </div>
+        )}
+
         <div className="mt-4 flex flex-wrap gap-2">
           <Input placeholder="Buscar produto…" value={busca} onChange={(e) => setBusca(e.target.value)} className="w-56" />
           <Select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)} className="w-52">
@@ -182,29 +198,23 @@ export default function NovoPedidoPage() {
                 </p>
               </button>
               <div className="mt-auto pt-3">
-                {p.variacoes?.length ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    <Button variant="secondary" className="!px-2 !py-1 !text-xs" onClick={() => setCustomizando({ p })}>
-                      Personalizar
-                    </Button>
-                    {p.variacoes
-                      .filter((v) => v.ativo)
-                      .map((v) => (
-                        <button
-                          key={v.id}
-                          onClick={() => setCustomizando({ p, variacaoId: v.id })}
-                          className="rounded-lg bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-100"
-                        >
-                          {v.nome}
-                          {v.precoAdicional > 0 ? ` (+${brl(v.precoAdicional)})` : ''}
-                        </button>
-                      ))}
-                  </div>
-                ) : (
-                  <Button variant="secondary" className="w-full !py-1 !text-xs" onClick={() => setCustomizando({ p })}>
-                    Adicionar
+                <div className="flex flex-wrap gap-1.5">
+                  <Button variant="secondary" className="!px-2 !py-1 !text-xs" onClick={() => setCustomizando({ p })}>
+                    Personalizar
                   </Button>
-                )}
+                  {p.variacoes
+                    ?.filter((v) => v.ativo)
+                    .map((v) => (
+                      <button
+                        key={v.id}
+                        onClick={() => setCustomizando({ p, variacaoId: v.id })}
+                        className="rounded-lg bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-100"
+                      >
+                        {v.nome}
+                        {v.precoAdicional > 0 ? ` (+${brl(v.precoAdicional)})` : ''}
+                      </button>
+                    ))}
+                </div>
               </div>
             </Card>
           ))}

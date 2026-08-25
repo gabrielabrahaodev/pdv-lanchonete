@@ -37,6 +37,7 @@ from app.routers import (
     publico,
     relatorios,
     restaurantes,
+    sistema,
     usuarios,
 )
 
@@ -105,6 +106,7 @@ for router in (
     relatorios.router,
     configuracoes.router,
     usuarios.router,
+    sistema.router,
 ):
     app.include_router(router, prefix="/api")
 

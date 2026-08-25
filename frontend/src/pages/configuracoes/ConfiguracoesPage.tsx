@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { imprimir } from '../../lib/impressora'
 import { useTheme, type Tema } from '../../context/ThemeContext'
+import { useAuth } from '../../context/AuthContext'
 import type { AppUser, Configuracoes as ConfigType } from '../../types'
 import { Badge, Button, Card, ErrorState, Field, Input, LoadingScreen, Modal, Select } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
@@ -21,7 +22,6 @@ export default function ConfiguracoesPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <AparenciaCard />
         <ConfigForm initial={config.data!} />
-
         <Card className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <h3 className="font-bold text-slate-700">Usuários</h3>
