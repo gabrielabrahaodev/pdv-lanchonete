@@ -3,6 +3,7 @@ import { lazy, Suspense, type ReactNode } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import AppLayout from './components/layout/AppLayout'
+import { AtualizacaoPwa } from './components/AtualizacaoPwa'
 import { LoadingScreen } from './components/ui'
 
 // Code-splitting por rota: cada página vira um chunk carregado sob demanda.
@@ -39,8 +40,9 @@ function RequireAuth({ children }: { children: ReactNode }) {
 function RequireNoAuth({ children }: { children: ReactNode }) {
   const { fbUser, me, loading } = useAuth()
   if (loading) return <LoadingScreen />
-  if (!fbUser) return <Navigate to="/login" replace />
-  // Operador da plataforma (sem tenant): console próprio, nunca o PDV
+  // ATENÇÃO: NUNCA redirecionar para /login DENTRO do wrapper de /login —
+  // Navigate para a própria rota entra em loop silencioso (tela branca sem
+  // erro no console). Deslogado aqui = cair no children (a própria LoginPage).
   if (me?.souDono && !me?.restaurantId) return <Navigate to="/plataforma" replace />
   if (fbUser && me?.restaurantId) return <Navigate to="/caixa" replace />
   if (fbUser) return <Navigate to="/select-restaurant" replace />
@@ -62,6 +64,7 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <Suspense fallback={<LoadingScreen />}>
+          <AtualizacaoPwa />
         <Routes>
         <Route path="/m/:restaurantId/:mesaId" element={<CardapioPage />} />
         <Route

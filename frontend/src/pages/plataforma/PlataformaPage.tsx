@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Navigate } from 'react-router-dom'
 import { api } from '../../lib/api'
-import { auth } from '../../lib/firebase'
 import { useAuth } from '../../context/AuthContext'
 import { Badge, Button, Card, LoadingScreen } from '../../components/ui'
 import type { Convite, ConviteStatus } from '../../types'
@@ -21,7 +20,7 @@ function dataCurta(iso?: string | null): string {
 }
 
 export default function PlataformaPage() {
-  const { fbUser, me, loading } = useAuth()
+  const { fbUser, me, loading, logout } = useAuth()
   if (loading || (fbUser && !me)) return <LoadingScreen />
   if (!fbUser) return <Navigate to="/login" replace />
   if (!me?.souDono) return <Navigate to={me?.restaurantId ? '/caixa' : '/select-restaurant'} replace />
@@ -38,7 +37,7 @@ export default function PlataformaPage() {
             </div>
           </div>
           <button
-            onClick={() => auth.signOut()}
+            onClick={() => logout()}
             className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-rose-300"
           >
             Sair

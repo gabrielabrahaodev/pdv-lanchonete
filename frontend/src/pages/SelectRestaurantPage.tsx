@@ -18,7 +18,7 @@ export default function SelectRestaurantPage() {
   })
 
   if (authLoading || (fbUser && isLoading)) return <LoadingScreen />
-  if (!fbUser) return null
+  if (!fbUser) return <Navigate to="/login" replace />
   // Operador da PLATAFORMA não cria estabelecimento próprio
   if (me?.souDono && !me.restaurantId) return <Navigate to="/plataforma" replace />
 
