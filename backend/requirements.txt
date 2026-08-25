@@ -1,6 +1,17 @@
+# ATENÇÃO: versões do stack Firebase/GCP PINADAS com pin exato de propósito.
+# Bug 12 (2026-08-24): rebuild da Render resolveu versões mais novas de
+# google-cloud-firestore/api-core e o Firestore passou a rejeitar TODA chamada
+# com "400 Invalid database id %28default%29" (parênteses do banco default
+# indo URL-encodado no caminho). Código/dados/env idênticos funcionavam no
+# localhost porque ali estavam as versões abaixo. Ao ATUALIZAR este stack,
+# faça em janela controlada e rode a suíte E2E contra a produção logo após.
 fastapi>=0.115,<1
 uvicorn[standard]>=0.32,<1
-firebase-admin>=6.5,<8
+firebase-admin==7.5.0
+google-cloud-firestore==2.28.1
+google-api-core==2.34.0
+google-auth==2.56.3
+grpcio==1.83.0
 pydantic>=2.9,<3
 pydantic-settings>=2.5,<3
 tzdata>=2024.1
