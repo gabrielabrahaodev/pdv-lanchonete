@@ -39,13 +39,15 @@ function RequireAuth({ children }: { children: ReactNode }) {
 
 function RequireNoAuth({ children }: { children: ReactNode }) {
   const { fbUser, me, loading } = useAuth()
+  const location = useLocation()
   if (loading) return <LoadingScreen />
   // ATENÇÃO: NUNCA redirecionar para /login DENTRO do wrapper de /login —
   // Navigate para a própria rota entra em loop silencioso (tela branca sem
   // erro no console). Deslogado aqui = cair no children (a própria LoginPage).
   if (me?.souDono && !me?.restaurantId) return <Navigate to="/plataforma" replace />
   if (fbUser && me?.restaurantId) return <Navigate to="/caixa" replace />
-  if (fbUser) return <Navigate to="/select-restaurant" replace />
+  // Preserva query string (ex.: ?t=CÓDIGO do convite) na ida à tela de seleção
+  if (fbUser) return <Navigate to={`/select-restaurant${location.search}`} replace />
   return <>{children}</>
 }
 
@@ -124,10 +126,13 @@ export default function App() {
   )
 }
 
-/** Tela de seleção exige login mas NÃO exige claim restaurantId. */
+/** Tela de seleção exige login mas NÃO exige claim restaurantId.
+ *  O ?t= do convite precisa sobreviver ao redirect: sem isso o convidado
+ *  cria a conta e chega no formulário SEM o convite (bloqueado pelo backend). */
 function RequireAuthFallback({ children }: { children: ReactNode }) {
   const { fbUser, loading } = useAuth()
+  const location = useLocation()
   if (loading) return <LoadingScreen />
-  if (!fbUser) return <Navigate to="/login" replace />
+  if (!fbUser) return <Navigate to={`/login${location.search}`} replace />
   return <>{children}</>
 }

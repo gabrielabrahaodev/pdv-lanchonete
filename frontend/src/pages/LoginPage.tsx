@@ -1,12 +1,17 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Button, Card, Field, Input } from '../components/ui'
 
 export default function LoginPage() {
   const { login, registrar } = useAuth()
-  const [email, setEmail] = useState('admin@restaurante.com')
+  const [params] = useSearchParams()
+  // Chegada via link de convite (?t=CODE): começa já no modo criar conta,
+  // sem e-mail pré-preenchido, e mostra banner explicativo
+  const convidado = !!params.get('t')
+  const [email, setEmail] = useState(convidado ? '' : 'admin@restaurante.com')
   const [senha, setSenha] = useState('')
-  const [criando, setCriando] = useState(false)
+  const [criando, setCriando] = useState(convidado)
   const [erro, setErro] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -61,6 +66,12 @@ export default function LoginPage() {
             {criando ? 'Crie sua conta para começar' : 'Entre com sua conta para continuar'}
           </p>
         </div>
+
+        {convidado && (
+          <div className="mb-4 rounded-lg bg-brand-50 px-3 py-2.5 text-xs font-medium text-brand-700 ring-1 ring-brand-200 dark:bg-brand-500/10 dark:text-brand-300 dark:ring-brand-500/30">
+            🎉 Você recebeu um convite! Crie sua conta (ou entre) para configurar o seu estabelecimento.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Field label="E-mail">
