@@ -82,7 +82,15 @@ $prod = Step 'GET /produtos + criar na cat QA' {
 }
 Step 'DELETE /categorias/{id} com produto vinculado -> 409' {
   try { Invoke-Api DELETE "/api/categorias/$catId" | Out-Null; throw 'deveria falhar' }
-  catch { if ([int]$_.Exception.Response.StatusCode -eq 409) { return 'HTTP 409 correto' }; throw }
+  catch {
+    # fallback por mensagem: atraves de proxy o stream pode chegar ilegivel e
+    # o codigo so aparece no formato "[409] ..." decorado pelo Invoke-Api
+    $code = 0
+    if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+    elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+    if ($code -eq 409) { return 'HTTP 409 correto' }
+    throw
+  }
 }
 Step 'PATCH /produtos/{id} preco=12.5' {
   $p = Invoke-Api PATCH "/api/produtos/$prodId" @{ preco = 12.5 }
