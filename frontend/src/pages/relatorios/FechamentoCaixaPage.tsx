@@ -45,7 +45,7 @@ export default function FechamentoCaixaPage() {
       {atual ? (
         <Card className="mb-6 p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-bold text-slate-700">Sessão aberta · {dataHora(atual.abertoEm)}</h3>
+            <h3 className="font-bold text-slate-700">Sessão aberta · {dataHora(atual.abertoEm ?? atual.criadoEm)}</h3>
             <Badge value="aberto" />
           </div>
           <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-5">
@@ -98,7 +98,7 @@ export default function FechamentoCaixaPage() {
           <tbody className="divide-y divide-slate-100">
             {historico.map((s) => (
               <tr key={s.id}>
-                <td className="px-5 py-3 text-slate-500">{dataHora(s.abertoEm)}</td>
+                <td className="px-5 py-3 text-slate-500">{dataHora(s.abertoEm ?? s.criadoEm)}</td>
                 <td className="px-5 py-3 text-slate-500">{dataHora(s.fechadoEm)}</td>
                 <td className="px-5 py-3 font-semibold">{brl(s.totalVendas)}</td>
                 <td className="px-5 py-3">{brl(s.resumoFechamento?.esperadoEmCaixa ?? 0)}</td>
@@ -175,7 +175,7 @@ function SessaoModais({
     <Modal title={modal ? titulos[modal] : ''} open={!!modal} onClose={onClose}>
       <div className="space-y-4">
         {modal && modal !== 'abrir' && sessaoAtual && modal !== 'fechar' && (
-          <p className="text-xs text-slate-400">Sessão aberta desde {dataHora(sessaoAtual.abertoEm)}</p>
+          <p className="text-xs text-slate-400">Sessão aberta desde {dataHora(sessaoAtual.abertoEm ?? sessaoAtual.criadoEm)}</p>
         )}
         {modal === 'fechar' && sessaoAtual && (
           <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">

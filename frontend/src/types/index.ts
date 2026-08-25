@@ -143,7 +143,8 @@ export interface DeliveryOrder {
 export interface CashSession {
   id: string
   usuarioId: string
-  abertoEm: string
+  abertoEm?: string | null
+  criadoEm: string
   fechadoEm?: string | null
   valorInicial: number
   totalVendas: number

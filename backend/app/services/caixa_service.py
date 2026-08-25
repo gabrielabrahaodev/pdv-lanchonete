@@ -39,6 +39,7 @@ def abrir(restaurant_id: str, usuario_id: str, valor_inicial: float) -> dict:
     data: dict[str, Any] = {
         "usuarioId": usuario_id,
         "valorInicial": round(valor_inicial, 2),
+        "abertoEm": now_utc(),
         "totalVendas": 0.0,
         "totalRecebido": 0.0,
         "sangrias": 0.0,

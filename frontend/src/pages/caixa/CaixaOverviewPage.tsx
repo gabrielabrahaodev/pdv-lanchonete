@@ -58,7 +58,7 @@ export default function CaixaOverviewPage() {
         <Card className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-2 p-4">
           <div className="flex items-center gap-2">
             <Badge value="aberto" label="Caixa aberto" />
-            <span className="text-xs text-slate-400">desde {new Date(s.abertoEm).toLocaleString('pt-BR')}</span>
+            <span className="text-xs text-slate-400">desde {new Date(s.abertoEm ?? s.criadoEm).toLocaleString('pt-BR')}</span>
           </div>
           <Stat label="Fundo de troco" value={brl(s.valorInicial)} />
           <Stat label="Vendas" value={brl(s.totalVendas)} />
