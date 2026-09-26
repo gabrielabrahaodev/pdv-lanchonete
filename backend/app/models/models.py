@@ -64,7 +64,7 @@ class Product(CamelModel):
 class ProductCreate(CamelModel):
     nome: str
     categoria_id: str
-    preco: float
+    preco: float = Field(gt=0)
     variacoes: list[ProductVariation] = []
     ingredientes: list[ProductIngredient] = []
     imagem_url: Optional[str] = None
@@ -75,7 +75,7 @@ class ProductCreate(CamelModel):
 class ProductUpdate(CamelModel):
     nome: Optional[str] = None
     categoria_id: Optional[str] = None
-    preco: Optional[float] = None
+    preco: Optional[float] = Field(default=None, gt=0)
     variacoes: Optional[list[ProductVariation]] = None
     ingredientes: Optional[list[ProductIngredient]] = None
     imagem_url: Optional[str] = None
@@ -186,7 +186,7 @@ class Payment(CamelModel):
 class PaymentCreate(CamelModel):
     """Payload de criação — id/criadoEm são gerados no servidor."""
     tipo: str  # dinheiro | pix | credito | debito
-    valor: float
+    valor: float = Field(gt=0)
     troco: Optional[float] = None
     referencia: Optional[str] = None
 

@@ -36,6 +36,9 @@ pedido→cozinha bulk com baixa agregada de estoque (regressão do bug 10) · pa
 caixa (abrir/suprimento/sangria/fechar, condicionais se já houver sessão aberta) ·
 estoque (item/movimentação/lista/delete) · delivery (criar/confirmar/listar/cancelar + 422 plataforma inválida) ·
 relatório resumo **incluindo a venda recém-criada** · configurações ·
+fornecedores (CRUD + 422 nome curto) · despesas (CRUD + pagar + reabrir via `ativoPago=false` +
+filtro por categoria + 422 categoria/valor) · usuários (criar/listar/trocar papel + 422 papel admin +
+preferências `/me` com restore do tema original + delete) ·
 **onboarding com conta descartável** (signUp via Identity Toolkit REST → 201 → retry auto-cura →
 refresh de claims → 409 final) · governança da flag global (`donoUids`: não-dono toma 403 —
 condicional, pulado com aviso se `npm run promover-dono` ainda não rodou) · cleanup.
@@ -79,6 +82,6 @@ npm run promover-dono -- remover --uid <uid> --exec
 
 ## Estado atual
 
-- Suíte atual: **52 passos** na base + **13 passos** de onboarding (seção 13, condicional ao `token-owner.txt`) = 65 no máximo
+- Suíte atual: **73 passos** na base + **13 passos** de onboarding (seção 13, condicional ao `token-owner.txt`) = 86 no máximo
 - Backend local (2026-08-25): **59 PASS / 6 FAIL** — os 6 falhas foram todos na seção 13 por `token-owner.txt` EXPIRADO (>1h); a base 52/52 PASS. Com owner token válido a seção 13 roda completa
 - Produção (Render): 51/51 PASS (2026-08-24, antes da seção onboarding); fix do caixa `abertoEm` revalidado em produção em 2026-08-25

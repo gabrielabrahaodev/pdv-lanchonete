@@ -19,6 +19,32 @@ function dataCurta(iso?: string | null): string {
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 }
 
+function linkConvite(id: string): string {
+  return `${window.location.origin}/select-restaurant?t=${id}`
+}
+
+/** Copia com fallback para clipboard indisponível (HTTP, iframe sem permissão). */
+async function copiarTexto(texto: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(texto)
+    return true
+  } catch {
+    try {
+      const ta = document.createElement('textarea')
+      ta.value = texto
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      const ok = document.execCommand('copy')
+      document.body.removeChild(ta)
+      return ok
+    } catch {
+      return false
+    }
+  }
+}
+
 export default function PlataformaPage() {
   const { fbUser, me, loading, logout } = useAuth()
   if (loading || (fbUser && !me)) return <LoadingScreen />
@@ -54,18 +80,20 @@ export default function PlataformaPage() {
 function GerarConviteCard() {
   const qc = useQueryClient()
   const [copiado, setCopiado] = useState(false)
+  const [erroCopia, setErroCopia] = useState(false)
   const gerar = useMutation({
     mutationFn: () => api<{ id: string }>('/sistema/convites', { method: 'POST' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['convites'] }),
   })
   const novoId = gerar.data?.id
-  const link = novoId ? `${window.location.origin}/select-restaurant?t=${novoId}` : null
+  const link = novoId ? linkConvite(novoId) : null
 
   async function copiar() {
     if (!link) return
-    await navigator.clipboard.writeText(link)
-    setCopiado(true)
-    setTimeout(() => setCopiado(false), 2000)
+    const ok = await copiarTexto(link)
+    setErroCopia(!ok)
+    setCopiado(ok)
+    if (ok) setTimeout(() => setCopiado(false), 2000)
   }
 
   return (
@@ -97,6 +125,11 @@ function GerarConviteCard() {
           <Button variant="secondary" className="mt-3" onClick={copiar}>
             {copiado ? '✓ Copiado!' : '📋 Copiar link'}
           </Button>
+          {erroCopia && (
+            <p className="mt-2 text-xs text-rose-600 dark:text-rose-300">
+              Não foi possível copiar automaticamente — selecione o link acima e use Ctrl+C.
+            </p>
+          )}
         </div>
       )}
     </Card>
@@ -105,6 +138,8 @@ function GerarConviteCard() {
 
 function ListaConvitesCard() {
   const qc = useQueryClient()
+  const [copiadoId, setCopiadoId] = useState<string | null>(null)
+  const [erroCopia, setErroCopia] = useState(false)
   const lista = useQuery({
     queryKey: ['convites'],
     queryFn: () => api<Convite[]>('/sistema/convites'),
@@ -113,6 +148,13 @@ function ListaConvitesCard() {
     mutationFn: (id: string) => api(`/sistema/convites/${id}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['convites'] }),
   })
+
+  async function copiarLink(id: string) {
+    const ok = await copiarTexto(linkConvite(id))
+    setErroCopia(!ok)
+    setCopiadoId(ok ? id : null)
+    if (ok) setTimeout(() => setCopiadoId((atual) => (atual === id ? null : atual)), 2000)
+  }
 
   if (lista.isLoading) return <Card className="p-6"><LoadingScreen /></Card>
   if (lista.isError) return <Card className="p-6 text-sm text-rose-600">Erro ao carregar convites.</Card>
@@ -151,13 +193,21 @@ function ListaConvitesCard() {
               <td className="hidden px-4 py-3 text-xs text-slate-500 sm:table-cell">{dataCurta(c.expiraEm)}</td>
               <td className="px-4 py-3 text-right">
                 {c.status === 'ativa' && (
-                  <button
-                    onClick={() => revogar.mutate(c.id)}
-                    disabled={revogar.isPending}
-                    className="text-xs font-semibold text-rose-500 hover:text-rose-700 disabled:opacity-50"
-                  >
-                    Revogar
-                  </button>
+                  <span className="inline-flex items-center gap-3">
+                    <button
+                      onClick={() => copiarLink(c.id)}
+                      className="text-xs font-semibold text-brand-600 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-100"
+                    >
+                      {copiadoId === c.id ? '✓ Copiado!' : '📋 Copiar link'}
+                    </button>
+                    <button
+                      onClick={() => revogar.mutate(c.id)}
+                      disabled={revogar.isPending}
+                      className="text-xs font-semibold text-rose-500 hover:text-rose-700 disabled:opacity-50"
+                    >
+                      Revogar
+                    </button>
+                  </span>
                 )}
                 {c.status === 'usada' && <Badge value="ok" />}
               </td>
@@ -165,6 +215,12 @@ function ListaConvitesCard() {
           ))}
         </tbody>
       </table>
+      {erroCopia && (
+        <p className="px-4 py-3 text-xs text-rose-600 dark:text-rose-300">
+          Não foi possível copiar automaticamente — o link é{' '}
+          <code className="font-mono">/select-restaurant?t=CÓDIGO</code> na origem atual; copie o código da linha e monte o link manualmente.
+        </p>
+      )}
     </Card>
   )
 }

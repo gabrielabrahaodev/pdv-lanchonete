@@ -376,6 +376,155 @@ Step 'PUT /configuracoes' {
 }
 Step 'GET /configuracoes' { $c = Invoke-Api GET '/api/configuracoes'; return "moeda=$($c.moeda)" }
 
+Write-Host "`n=== 12b. Fornecedores ===" -ForegroundColor Cyan
+Step 'POST /fornecedores QA' {
+  $f = Invoke-Api POST '/api/fornecedores' @{ nome = 'QA Fornecedor'; telefone = '11999990000'; email = 'qa-fornecedor@teste.local' }
+  $script:fornId = $f.id
+  if (-not $f.id) { throw 'sem id' }
+  return "id=$($f.id)"
+}
+Step 'GET /fornecedores/{id}' {
+  $f = Invoke-Api GET "/api/fornecedores/$fornId"
+  if ($f.nome -ne 'QA Fornecedor') { throw "nome=$($f.nome)" }
+  return $f.nome
+}
+Step 'PATCH /fornecedores/{id} telefone' {
+  $f = Invoke-Api PATCH "/api/fornecedores/$fornId" @{ telefone = '11888880000' }
+  if ($f.telefone -ne '11888880000') { throw "tel=$($f.telefone)" }
+  return "tel=$($f.telefone)"
+}
+Step 'GET /fornecedores lista contem QA' {
+  $l = Invoke-Api GET '/api/fornecedores'
+  $alvo = @($l | Where-Object { $_.id -eq $fornId })[0]
+  if (-not $alvo) { throw 'fornecedor QA ausente na lista' }
+  return "count=$($l.Count)"
+}
+Step 'POST /fornecedores nome curto -> 422' {
+  try { Invoke-Api POST '/api/fornecedores' @{ nome = 'X' } | Out-Null; throw 'deveria falhar' }
+  catch {
+    $code = 0
+    if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+    elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+    if ($code -eq 422) { return 'HTTP 422 correto' }
+    throw
+  }
+}
+
+Write-Host "`n=== 12c. Despesas ===" -ForegroundColor Cyan
+Step 'POST /despesas QA (com fornecedor)' {
+  $data = (Get-Date).ToUniversalTime().ToString('o')
+  $d = Invoke-Api POST '/api/despesas' @{ categoria = 'insumo'; descricao = 'QA Queijo'; valor = 50; data = $data; fornecedorId = $fornId }
+  $script:despId = $d.id
+  if (-not $d.id) { throw 'sem id' }
+  if ($d.status -ne 'pendente') { throw "status=$($d.status)" }
+  return "id=$($d.id)"
+}
+Step 'GET /despesas/{id}' {
+  $d = Invoke-Api GET "/api/despesas/$despId"
+  if ($d.descricao -ne 'QA Queijo') { throw "desc=$($d.descricao)" }
+  return $d.descricao
+}
+Step 'PATCH /despesas/{id} descricao' {
+  $d = Invoke-Api PATCH "/api/despesas/$despId" @{ descricao = 'QA Queijo Minas' }
+  if ($d.descricao -ne 'QA Queijo Minas') { throw "desc=$($d.descricao)" }
+  return $d.descricao
+}
+Step 'POST /despesas/{id}/pagar pix' {
+  $d = Invoke-Api POST "/api/despesas/$despId/pagar" @{ formaPagamento = 'pix' }
+  if ($d.status -ne 'pago') { throw "status=$($d.status)" }
+  return "status=$($d.status)"
+}
+Step 'PATCH /despesas/{id} reabrir (ativoPago=false)' {
+  $d = Invoke-Api PATCH "/api/despesas/$despId" @{ ativoPago = $false }
+  if ($d.status -ne 'pendente') { throw "status=$($d.status)" }
+  return "status=$($d.status)"
+}
+Step 'GET /despesas?categoria=insumo contem QA' {
+  $l = Invoke-Api GET '/api/despesas?categoria=insumo'
+  $alvo = @($l | Where-Object { $_.id -eq $despId })[0]
+  if (-not $alvo) { throw 'despesa QA ausente no filtro' }
+  return "count=$($l.Count)"
+}
+Step 'POST /despesas categoria invalida -> 422' {
+  $data = (Get-Date).ToUniversalTime().ToString('o')
+  try { Invoke-Api POST '/api/despesas' @{ categoria = 'imposto'; descricao = 'QA X'; valor = 10; data = $data } | Out-Null; throw 'deveria falhar' }
+  catch {
+    $code = 0
+    if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+    elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+    if ($code -eq 422) { return 'HTTP 422 correto' }
+    throw
+  }
+}
+Step 'POST /despesas valor zero -> 422' {
+  $data = (Get-Date).ToUniversalTime().ToString('o')
+  try { Invoke-Api POST '/api/despesas' @{ categoria = 'outra'; descricao = 'QA X'; valor = 0; data = $data } | Out-Null; throw 'deveria falhar' }
+  catch {
+    $code = 0
+    if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+    elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+    if ($code -eq 422) { return 'HTTP 422 correto' }
+    throw
+  }
+}
+Step 'DELETE /despesas/{id} + DELETE /fornecedores/{id}' {
+  Invoke-Api DELETE "/api/despesas/$despId" | Out-Null
+  try { Invoke-Api GET "/api/despesas/$despId" | Out-Null; throw 'despesa ainda existe' }
+  catch { if ("$($_.Exception.Message)" -match 'ainda existe') { throw } }
+  Invoke-Api DELETE "/api/fornecedores/$fornId" | Out-Null
+  return 'removidos'
+}
+
+Write-Host "`n=== 12d. Usuarios ===" -ForegroundColor Cyan
+$qaUserEmail = "qa-e2e-$(Get-Date -Format 'yyyyMMddHHmmss')@teste.local"
+Step 'POST /usuarios QA caixa' {
+  $u = Invoke-Api POST '/api/usuarios' @{ email = $qaUserEmail; senha = 'SenhaForte123!'; nome = 'QA E2E'; papel = 'caixa' }
+  $script:qaUid = $u.id
+  if (-not $u.id) { throw 'sem id' }
+  return "id=$($u.id)"
+}
+Step 'GET /usuarios lista contem QA' {
+  $l = Invoke-Api GET '/api/usuarios'
+  $alvo = @($l | Where-Object { $_.id -eq $qaUid })[0]
+  if (-not $alvo) { throw 'usuario QA ausente na lista' }
+  return "count=$($l.Count)"
+}
+Step 'PATCH /usuarios/{id} papel=garcom' {
+  $u = Invoke-Api PATCH "/api/usuarios/$qaUid" @{ papel = 'garcom' }
+  if ($u.papel -ne 'garcom') { throw "papel=$($u.papel)" }
+  return "papel=$($u.papel)"
+}
+Step 'POST /usuarios papel=admin -> 422' {
+  try { Invoke-Api POST '/api/usuarios' @{ email = "qa-adm-$(Get-Date -Format 'yyyyMMddHHmmss')@teste.local"; senha = 'SenhaForte123!'; nome = 'QA Adm'; papel = 'admin' } | Out-Null; throw 'deveria falhar' }
+  catch {
+    $code = 0
+    if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+    elseif ($_.Exception.Message -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+    if ($code -eq 422) { return 'HTTP 422 correto' }
+    throw
+  }
+}
+Step 'GET /usuarios/me preferencias' {
+  $p = Invoke-Api GET '/api/usuarios/me'
+  if (-not $p.tema) { throw 'tema ausente' }
+  $script:temaOrig = $p.tema
+  return "tema=$($p.tema)"
+}
+Step 'PATCH /usuarios/me tema=escuro + restore original' {
+  $p = Invoke-Api PATCH '/api/usuarios/me' @{ tema = 'escuro' }
+  if ($p.tema -ne 'escuro') { throw "tema=$($p.tema)" }
+  $r = Invoke-Api PATCH '/api/usuarios/me' @{ tema = $script:temaOrig }
+  if ($r.tema -ne $script:temaOrig) { throw "restore=$($r.tema)" }
+  return "escuro->$($script:temaOrig) ok"
+}
+Step 'DELETE /usuarios/{id} QA' {
+  Invoke-Api DELETE "/api/usuarios/$qaUid" | Out-Null
+  $l = Invoke-Api GET '/api/usuarios'
+  $alvo = @($l | Where-Object { $_.id -eq $qaUid })[0]
+  if ($alvo) { throw 'usuario QA ainda listado' }
+  return 'removido'
+}
+
 Write-Host "`n=== 13. Onboarding por convite (contas descartaveis) ===" -ForegroundColor Cyan
 # Plano da PLATAFORMA: dono (token-owner.txt) gera convites; usuarios
 # descartaveis criados via Identity Toolkit REST exercitam /restaurantes/primeiro:
@@ -528,6 +677,24 @@ Step 'DELETE categorias QA (todas)' {
   $l = Invoke-Api GET '/api/categorias'
   $n = 0
   foreach ($c in $l) { if ($c.nome -like 'QA *') { Invoke-Api DELETE "/api/categorias/$($c.id)" | Out-Null; $n++ } }
+  return "removidos=$n"
+}
+Step 'DELETE despesas QA (todas)' {
+  $l = Invoke-Api GET '/api/despesas'
+  $n = 0
+  foreach ($d in $l) { if ($d.descricao -like 'QA *') { Invoke-Api DELETE "/api/despesas/$($d.id)" | Out-Null; $n++ } }
+  return "removidas=$n"
+}
+Step 'DELETE fornecedores QA (todos)' {
+  $l = Invoke-Api GET '/api/fornecedores'
+  $n = 0
+  foreach ($f in $l) { if ($f.nome -like 'QA *') { Invoke-Api DELETE "/api/fornecedores/$($f.id)" | Out-Null; $n++ } }
+  return "removidos=$n"
+}
+Step 'DELETE usuarios QA-E2E (todos)' {
+  $l = Invoke-Api GET '/api/usuarios'
+  $n = 0
+  foreach ($u in $l) { if ($u.email -like 'qa-e2e-*') { Invoke-Api DELETE "/api/usuarios/$($u.id)" | Out-Null; $n++ } }
   return "removidos=$n"
 }
 
