@@ -155,7 +155,6 @@ async function main() {
     aceitaDinheiro: true,
     exigeSenhaGerente: true,
     tempoSessaoMinutos: 480,
-    backupAutomatico: true,
     updatedAt: Timestamp.now(),
   }, { merge: true });
   count++;

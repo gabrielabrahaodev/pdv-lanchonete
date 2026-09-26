@@ -21,8 +21,7 @@ service-account.json
 serviceAccountKey.json
 scripts/e2e/token.txt
 
-# Backups locais (o CI commita a pasta backups/ direto no repo)
-backups/
+
 .firebase/
 
 # IDE / OS
