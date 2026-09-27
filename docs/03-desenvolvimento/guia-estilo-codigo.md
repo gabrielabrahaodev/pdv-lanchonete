@@ -48,9 +48,9 @@ Padrões observados e obrigatórios no repositório. Novo código deve seguir es
 
 ### 2.2 Dados e estado
 - Toda chamada à API passa por `api<T>()` (nunca fetch cru); erros tratados como `ApiError`.
-- Queries com `queryKey` estável (ex.: `['mesas']`, `['cozinha-fila']`) registradas no mapa de invalidação do `useRealtime`.
+- Hooks de leitura em `hooks/useFirestore.ts` (um por tela, filtro de campo único, sem `refetchInterval`); escritas via `api()` sem `invalidate` (echo do snapshot cobre).
 - Mutations invalidam chaves relacionadas no `onSuccess`, têm **`onError` visível obrigatório** em fluxo crítico (falha silenciosa parece "botão morto" — bug 11) e, quando dependem de estado volável, **revalidam no servidor dentro do `mutationFn`** em vez de confiar em cache react-query.
-- Polling declarado por tela: KDS 8s · pedido/pagamento 10s · mesas 15s · caixa 30s; `staleTime` para cadastros (produtos 60s).
+- Sem polling: novidade chega por evento; falha de listener vira banner + recarregar.
 
 ### 2.3 UI
 - Design system próprio em `components/ui/index.tsx`: `Button, Card, Badge, Modal, Input, Select, Field, LoadingScreen, ErrorState, EmptyState...` — usar estes componentes, não recriar.

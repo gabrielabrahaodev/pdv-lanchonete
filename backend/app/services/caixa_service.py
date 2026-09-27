@@ -7,11 +7,11 @@ from google.cloud.firestore import transactional
 
 from app.core.firebase import get_db
 from app.services.base import (
+    doc_to_dict,
     ensure_parent,
     get_item,
     item_doc,
     items_col,
-    list_items,
     new_id,
     now_utc,
     stamp_create,
@@ -23,8 +23,19 @@ TOLERANCIA = 0.009
 
 # ------------------------------------------------------------------ sessões
 def listar_sessoes(restaurant_id: str, *, limit: int = 30) -> list[dict]:
-    docs = list_items(restaurant_id, "sessoes_caixa")
-    return docs[:limit]
+    """Sessões recentes (campo único `createdAt`, índice automático).
+
+    NUNCA scan completo: sessões crescem 1/dia para sempre.
+    """
+    from google.cloud.firestore import Query
+
+    snaps = (
+        items_col(restaurant_id, "sessoes_caixa")
+        .order_by("createdAt", direction=Query.DESCENDING)
+        .limit(limit)
+        .stream()
+    )
+    return [doc_to_dict(s) for s in snaps]
 
 
 def sessao_atual(restaurant_id: str) -> dict | None:
@@ -152,8 +163,9 @@ def registrar_pagamento(
 
     if quitado:
         _credit_sessao(restaurant_id, usuario_id, pedido, pagamentos)
-        from app.services import mesas_service
+        from app.services import agregados_service, mesas_service
 
+        agregados_service.registrar_venda(restaurant_id, pedido, pagamentos, now_utc())
         mesas_service.liberar(restaurant_id, pedido["mesaId"])
 
     return pedido_obter(restaurant_id, pedido_id)

@@ -12,8 +12,7 @@ pdv-restaurante/python/
 ├── frontend/           # SPA React (+ node_modules, dist ignorados)
 ├── scripts/            # TS Admin (service-account.json IGNORADO) + e2e/ (suíte de API)
 ├── docs/               # esta biblioteca de documentação
-├── backups/            # JSON diário do Firestore (commitado pelo backup.yml)
-├── .github/workflows/  # ci.yml (pytest+tsc+build) e backup.yml (backup diário)
+├── .github/workflows/  # ci.yml (pytest+tsc+build)
 ├── firestore.rules     # regras de segurança (versionadas)
 ├── firebase.json
 ├── render.yaml         # blueprint da Render
@@ -67,7 +66,7 @@ Regras:
 | Ambiente | Backend | Frontend | Banco |
 |---|---|---|---|
 | Desenvolvimento (atual) | uvicorn :8000 com `.env` local + service account local (sem --reload; reiniciar processo após mudanças) | Vite dev :5173 com proxy `/api` (SW não registrado) | Firebase projeto pdv-lanchonete-1fa79 (dados demo via scripts) |
-| Produção (**ativa desde 2026-08-23**) | Render free (`pdv-lanchonete-dwiw.onrender.com`) com env vars + segredo injetado; dorme ~15 min | Firebase Hosting (`pdv-lanchonete-1fa79.web.app`) com `VITE_API_URL` embutido no build; sem rewrite `/api` (decisão Spark) | mesmo projeto; backup diário automático (`backups/`) |
+| Produção (**ativa desde 2026-08-23**) | Render free (`pdv-lanchonete-dwiw.onrender.com`) com env vars + segredo injetado; dorme ~15 min | Firebase Hosting (`pdv-lanchonete-1fa79.web.app`) com `VITE_API_URL` embutido no build; sem rewrite `/api` (decisão Spark) | mesmo projeto |
 | Staging/homologação (futuro, se necessário) | PaaS com tenant de teste dedicado | Hosting branch channel | mesmo projeto, tenants separados |
 
 ⚠️ Enquanto houver um único projeto Firebase compartilhado, qualquer homologação usa tenants separados — nunca dados reais.
@@ -91,7 +90,7 @@ npm run seed      # usuários por papel, movimentações, caixa aberta, configs 
 
 1. `pytest tests -q` (backend) — obrigatório verde.
 2. `tsc && vite build` (frontend) — sem erros de tipo/build.
-3. Suíte E2E de API (52 passos base + 13 onboarding condicionais) quando o toque afetar fluxo pedido→pagamento→caixa.
+3. Suíte E2E de API (80 passos base + 13 onboarding condicionais) quando o toque afetar fluxo pedido→pagamento→caixa.
 4. Revisão das `firestore.rules` se autenticação/acesso direto mudou.
 
 **CI ativo**: GitHub Actions `.github/workflows/ci.yml` roda pytest + tsc + build em todo push/PR.
@@ -99,7 +98,6 @@ npm run seed      # usuários por papel, movimentações, caixa aberta, configs 
 ## 8. Backup e recuperação
 
 - Código: histórico git — remote `github.com/gabrielabrahaodev/pdv-lanchonete` (privado).
-- Firestore: **backup diário automático** (GitHub Actions `backup.yml`, 03:30 BRT, commita JSON completo por tenant em `backups/`; execução manual local: `cd scripts && npm run backup`). Restauração com scripts Admin (`set`) a partir do JSON.
 - Segredos: rotação da service account via Console GCP se exposta; revogação imediata da anterior.
 
 ## 9. Configuração operacional pós-deploy

@@ -1,15 +1,15 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import QRCode from 'qrcode'
 import { api } from '../../lib/api'
+import { useMesas } from '../../hooks/useFirestore'
 import type { Mesa } from '../../types'
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingScreen, Modal } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
 import { useAuth } from '../../context/AuthContext'
 
 export default function MesasPage() {
-  const qc = useQueryClient()
   const navigate = useNavigate()
   const { me } = useAuth()
   const [novaAberta, setNovaAberta] = useState(false)
@@ -17,16 +17,11 @@ export default function MesasPage() {
   const [qrMesa, setQrMesa] = useState<Mesa | null>(null)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
-  const mesas = useQuery({
-    queryKey: ['mesas'],
-    queryFn: () => api<Mesa[]>('/mesas'),
-    refetchInterval: 15_000,
-  })
+  const mesas = useMesas(me?.restaurantId)
 
   const criar = useMutation({
     mutationFn: () => api(`/mesas?numero=${Number(numero)}`, { method: 'POST' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['mesas'] })
       setNovaAberta(false)
       setNumero('')
     },
@@ -34,7 +29,6 @@ export default function MesasPage() {
 
   const remover = useMutation({
     mutationFn: (id: string) => api(`/mesas/${id}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['mesas'] }),
   })
 
   if (mesas.isLoading) return <LoadingScreen />
@@ -98,7 +92,7 @@ export default function MesasPage() {
         {qrDataUrl ? (
           <div className="space-y-3 text-center">
             <img src={qrDataUrl} alt="QR do cardápio" className="mx-auto w-56 rounded-xl border border-slate-200" />
-            <p className="text-xs text-slate-400">Cliente escaneia e pede direto da mesa — o pedido cai no KDS e na conta.</p>
+            <p className="text-xs text-slate-400">Cliente escaneia e vê o cardápio — pedidos só com o atendente.</p>
             <a href={qrDataUrl} download={`qrcode-mesa-${qrMesa?.numero}.png`}>
               <Button variant="secondary" className="w-full !py-1.5 !text-xs">⬇ Baixar PNG</Button>
             </a>

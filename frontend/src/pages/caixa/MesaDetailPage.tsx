@@ -1,40 +1,36 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../lib/api'
-import type { Mesa, Order } from '../../types'
-import { Badge, Button, Card, ErrorState, LoadingScreen } from '../../components/ui'
+import { useMesa, usePedidoAbertoDaMesa, usePedidosDaMesa, useProdutos } from '../../hooks/useFirestore'
+import { useAuth } from '../../context/AuthContext'
+import type { Order, Product } from '../../types'
+import { Badge, Button, Card, EmptyState, ErrorState, LoadingScreen } from '../../components/ui'
 import { brl, dataHora } from '../../lib/format'
 
 export default function MesaDetailPage() {
   const { mesaId = '' } = useParams()
-  const qc = useQueryClient()
   const navigate = useNavigate()
+  const { me } = useAuth()
+  const rid = me?.restaurantId
 
-  const mesa = useQuery({
-    queryKey: ['mesas', mesaId],
-    queryFn: () => api<Mesa[]>(`/mesas`).then((ms) => ms.find((m) => m.id === mesaId) ?? null),
-    refetchInterval: 15_000,
-  })
+  const mesa = useMesa(rid, mesaId)
 
-  const pedidos = useQuery({
-    queryKey: ['pedidos', 'mesa', mesaId],
-    queryFn: () => api<Order[]>(`/pedidos?mesa_id=${mesaId}`),
-    refetchInterval: 15_000,
-  })
+  const pedidoAberto = usePedidoAbertoDaMesa(rid, mesaId)
+
+  const historico = usePedidosDaMesa(rid, mesaId)
+
+  const produtos = useProdutos(rid)
 
   const cancelar = useMutation({
     mutationFn: (pedidoId: string) => api(`/pedidos/${pedidoId}/cancelar`, { method: 'POST' }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['pedidos'] })
-      qc.invalidateQueries({ queryKey: ['mesas'] })
-    },
   })
 
-  if (mesa.isLoading || pedidos.isLoading) return <LoadingScreen />
+  if (mesa.isLoading || pedidoAberto.isLoading) return <LoadingScreen />
   if (mesa.isError) return <ErrorState error={mesa.error} />
+  if (!mesa.data) return <EmptyState icon="🍽️" message="Mesa não encontrada." />
 
   const m = mesa.data
-  const aberto = (pedidos.data ?? []).find((p) => p.status === 'aberto')
+  const aberto = pedidoAberto.data ?? null
 
   return (
     <div className="mx-auto max-w-3xl p-6">
@@ -65,14 +61,14 @@ export default function MesaDetailPage() {
       </div>
 
       {aberto ? (
-        <PedidoCard pedido={aberto} onCancel={() => cancelar.mutate(aberto.id)} cancelando={cancelar.isPending} />
+        <PedidoCard pedido={aberto} produtos={produtos.data ?? []} onCancel={() => cancelar.mutate(aberto.id)} cancelando={cancelar.isPending} />
       ) : (
         <Card className="p-10 text-center text-sm text-slate-400">
           Nenhum pedido aberto nesta mesa.
         </Card>
       )}
 
-      {(pedidos.data ?? [])
+      {(historico.data ?? [])
         .filter((p) => p.status !== 'aberto')
         .slice(0, 5)
         .map((p) => (
@@ -81,14 +77,14 @@ export default function MesaDetailPage() {
               Pedido anterior — {dataHora(p.criadoEm)}{' '}
               <Badge value={p.status} />
             </summary>
-            <ItensList pedido={p} />
+            <ItensList pedido={p} produtos={produtos.data ?? []} />
           </details>
         ))}
     </div>
   )
 }
 
-function PedidoCard({ pedido, onCancel, cancelando }: { pedido: Order; onCancel: () => void; cancelando: boolean }) {
+function PedidoCard({ pedido, produtos, onCancel, cancelando }: { pedido: Order; produtos: Product[]; onCancel: () => void; cancelando: boolean }) {
   return (
     <Card className="divide-y divide-slate-100">
       <div className="flex items-center justify-between px-5 py-4">
@@ -101,7 +97,7 @@ function PedidoCard({ pedido, onCancel, cancelando }: { pedido: Order; onCancel:
           Cancelar pedido
         </button>
       </div>
-      <ItensList pedido={pedido} />
+      <ItensList pedido={pedido} produtos={produtos} />
       <div className="flex items-center justify-between px-5 py-4">
         <span className="font-bold text-slate-800">Total</span>
         <span className="text-lg font-bold text-brand-600">{brl(pedido.total)}</span>
@@ -110,7 +106,7 @@ function PedidoCard({ pedido, onCancel, cancelando }: { pedido: Order; onCancel:
   )
 }
 
-function ItensList({ pedido }: { pedido: Order }) {
+function ItensList({ pedido, produtos }: { pedido: Order; produtos: Product[] }) {
   return (
     <ul className="divide-y divide-slate-50">
       {pedido.itens
@@ -118,7 +114,7 @@ function ItensList({ pedido }: { pedido: Order }) {
         .map((item) => (
           <li key={item.id} className="flex items-center justify-between px-5 py-2.5">
             <div>
-              <ItemNome item={item} />
+              <ItemNome item={item} produtos={produtos} />
               {item.observacoes && <p className="text-xs italic text-slate-400">“{item.observacoes}”</p>}
             </div>
             <div className="text-right">
@@ -133,13 +129,8 @@ function ItensList({ pedido }: { pedido: Order }) {
   )
 }
 
-function ItemNome({ item }: { item: Order['itens'][number] }) {
-  const produtos = useQuery({
-    queryKey: ['produtos'],
-    queryFn: () => api<import('../../types').Product[]>('/produtos'),
-    staleTime: 60_000,
-  })
-  const produto = produtos.data?.find((p) => p.id === item.produtoId)
+function ItemNome({ item, produtos }: { item: Order['itens'][number]; produtos: Product[] }) {
+  const produto = produtos.find((p) => p.id === item.produtoId)
   const variacao = produto?.variacoes?.find((v) => v.id === item.variacaoId)
   return (
     <p className="text-sm text-slate-800">

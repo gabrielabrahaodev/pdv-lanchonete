@@ -13,8 +13,8 @@ flowchart TB
         LAYOUT["AppLayout (menu, badges, realtime hook)"]
         PAGES["Pages: Caixa · Mesas · Produtos · Categorias · Estoque<br/>Cozinha KDS · Delivery · Relatórios<br/>Fechamento · Financeiro · Configurações · Cardápio<br/>Plataforma (dono)"]
         CTX["Contexts: AuthContext · ThemeContext"]
-        HOOKS["Hooks: useRealtime (onSnapshot)<br/>useAlertasEstoque"]
-        RQ["TanStack Query<br/>(cache + polling 8–30s)"]
+        HOOKS["Hooks: useFirestore<br/>(13, filtrados por tela)"]
+        RQ["TanStack Query<br/>(escritas + telas frias)<br/>+ snapshot fonte (quentes)"]
         LIBS["lib: api.ts (Bearer fetch) · apiPublico.ts<br/>csv.ts · format.ts · impressora.ts (ESC/POS BT)<br/>imagem.ts (compressão + URL pública) · qrcode"]
         FBJS["Firebase JS SDK<br/>(Auth client + Firestore onSnapshot)"]
         PWA["Service Worker (Workbox)<br/>NetworkFirst GET /api/* · precache app shell"]
@@ -41,7 +41,7 @@ flowchart TB
 
     SCRIPTS["Componente: scripts (TS Admin)<br/>init-firestore.ts · seed-data.ts · delete-all-collections.ts<br/>promover-dono · limpar-onboarding-qa · service-account.json (segredo local)"]
 
-    GHACTIONS["GitHub Actions<br/>ci.yml (pytest+tsc+build)<br/>backup.yml (backup diário → backups/)"]
+    GHACTIONS["GitHub Actions<br/>ci.yml (pytest+tsc+build)"]
 
     %% Fluxos
     NAV -->|"HTTPS /api/* (proxy dev :5173→8000; prod: VITE_API_URL direto)"| MAIN
@@ -88,7 +88,7 @@ flowchart TB
 | **Firestore** | Serviço gerenciado | Persistência multi-tenant + plataforma (`sistema/global`, `convites`) | Caminho `restaurantes/{rid}/data/**` |
 | **firestore.rules** | Rules v2 | Isolamento no acesso direto do cliente | Deploy `firebase deploy --only firestore:rules` |
 | **scripts** | Node TS + firebase-admin | Provisionar/dados demo/limpar ambiente/gestão de donos | CLI npm (`npm run init|seed|promover-dono|limpar-onboarding-qa`) |
-| **GitHub Actions** | Workflows YAML | CI (pytest+tsc+build) e backup diário do Firestore em `backups/` | Push/PR e cron 03:30 BRT |
+| **GitHub Actions** | Workflows YAML | CI (pytest+tsc+build) | Push/PR |
 
 ## Pontos de integração notáveis
 

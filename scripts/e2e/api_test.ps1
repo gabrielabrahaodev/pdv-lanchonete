@@ -144,30 +144,23 @@ $null = Step 'POST /produtos com variacao' {
   $script:prodVarId = $p.id
   return "id=$($p.id)"
 }
-Step 'POST publico /mesas/{m}/pedido com variacao+obs (SEM token)' {
+Step 'POST publico /mesas/{m}/pedido SEM token -> 410 (QR só leitura)' {
   $l = Invoke-Api GET '/api/mesas'
   $livre = @($l | Where-Object { $_.status -eq 'livre' })[0]
   if (-not $livre) { throw 'nenhuma mesa livre' }
   $body = @{ itens = @( @{ produtoId = $script:prodVarId; variacaoId = 'varqa1'; qtd = 2; observacoes = 'sem cebola' } ) }
   $json = ConvertTo-Json -InputObject $body -Depth 6 -Compress
-  $r = Invoke-RestMethod -Method Post -Uri "$Base/api/publico/$restId/mesas/$($livre.id)/pedido" -ContentType 'application/json' -Body ([System.Text.Encoding]::UTF8.GetBytes($json)) -TimeoutSec 120
-  $script:pubPedidoId = $r.pedidoId
-  return "pedido=$($r.pedidoId) mesa=$($livre.numero)"
-}
-Step 'item do pedido publico tem variacao e observacao' {
-  $p = Invoke-Api GET "/api/pedidos/$pubPedidoId"
-  $it = $p.itens[0]
-  if ($it.variacaoId -ne 'varqa1') { throw "variacaoId=$($it.variacaoId)" }
-  if ($it.observacoes -ne 'sem cebola') { throw "obs=$($it.observacoes)" }
-  if ($it.precoUnitario -ne 18) { throw "preco=$($it.precoUnitario) (base 15 + adicional 3)" }
-  return "var=varqa1 obs=ok preco=$($it.precoUnitario)"
-}
-Step 'cancelar pedido publico -> mesa livre' {
-  Invoke-Api POST "/api/pedidos/$pubPedidoId/cancelar" | Out-Null
-  $todas = Invoke-Api GET '/api/mesas'
-  $alvo = @($todas | Where-Object { $_.pedidoAtivoId -eq $pubPedidoId })[0]
-  if ($alvo) { throw "mesa $($alvo.id) ainda presa ao pedido" }
-  return 'mesas livres'
+  try {
+    Invoke-RestMethod -Method Post -Uri "$Base/api/publico/$restId/mesas/$($livre.id)/pedido" -ContentType 'application/json' -Body ([System.Text.Encoding]::UTF8.GetBytes($json)) -TimeoutSec 120 | Out-Null
+    throw 'deveria falhar'
+  } catch {
+    if ("$_" -match 'deveria falhar') { throw }
+    $code = 0
+    if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+    elseif ("$_" -match '[\[\(](\d+)[\]\)]') { $code = [int]$Matches[1] }
+    if ($code -eq 410) { return 'HTTP 410 correto' }
+    throw "esperava 410, veio $code"
+  }
 }
 
 Write-Host "`n=== 5. Mesas ===" -ForegroundColor Cyan
@@ -275,6 +268,50 @@ Step 'cleanup dos produtos/ingrediente de bulk' {
   return 'removidos'
 }
 
+Write-Host "`n=== 6c. Produto sem preparo (precisaPreparar=false) ===" -ForegroundColor Cyan
+Step 'POST /estoque/itens p/ receita sem-preparo' {
+  $i = Invoke-Api POST '/api/estoque/itens' @{ nome = 'QA Ingrediente SemPreparo'; unidade = 'un'; quantidadeAtual = 50; minimo = 5; custoMedio = 2 }
+  $script:noPrepIngId = $i.id
+  return "id=$($i.id)"
+}
+Step 'POST /produtos precisaPreparar=false com receita' {
+  $p = Invoke-Api POST '/api/produtos' @{ nome = 'QA Suco SemPreparo'; categoriaId = $catId; preco = 8; ativo = $true; precisaPreparar = $false; variacoes = @(); ingredientes = @( @{ itemId = $script:noPrepIngId; qtd = 2 } ) }
+  $script:noPrepProdId = $p.id
+  if ($p.precisaPreparar -ne $false) { throw "precisaPreparar=$($p.precisaPreparar)" }
+  return "id=$($p.id)"
+}
+Step 'POST /pedidos item sem preparo nasce entregue' {
+  $l = Invoke-Api GET '/api/mesas'
+  $livre = @($l | Where-Object { $_.status -eq 'livre' })[0]
+  if (-not $livre) { throw 'nenhuma mesa livre' }
+  $p = Invoke-Api POST "/api/pedidos`?mesa_id=$($livre.id)&tipo=local" @(
+    @{ produtoId = $script:noPrepProdId; qtd = 2 }
+  )
+  $script:noPrepPedidoId = $p.id
+  if ($p.itens[0].status -ne 'entregue') { throw "item status=$($p.itens[0].status)" }
+  return "pedido=$($p.id) item=entregue"
+}
+Step 'KDS fila nao contem o pedido sem preparo' {
+  $fila = Invoke-Api GET '/api/cozinha/fila'
+  $alvo = @($fila | Where-Object { $_.id -eq $noPrepPedidoId })[0]
+  if ($alvo) { throw 'pedido sem preparo apareceu na fila' }
+  return 'fora da fila ok'
+}
+Step 'baixa de estoque aplicada na criacao' {
+  $e = Invoke-Api GET "/api/estoque/itens/$noPrepIngId"
+  if ([double]$e.quantidadeAtual -ne 46) { throw "saldo=$($e.quantidadeAtual) esperado 46 (50 - 2x2)" }
+  $movs = Invoke-Api GET '/api/estoque/movimentacoes'
+  $doPedido = @($movs | Where-Object { $_.pedidoId -eq $noPrepPedidoId })
+  if ($doPedido.Count -ne 1) { throw "movimentacoes=$($doPedido.Count) esperado 1" }
+  return "saldo=46 movs=1 ok"
+}
+Step 'cancelar pedido + cleanup sem-preparo' {
+  Invoke-Api POST "/api/pedidos/$noPrepPedidoId/cancelar" | Out-Null
+  Invoke-Api DELETE "/api/produtos/$script:noPrepProdId" | Out-Null
+  Invoke-Api DELETE "/api/estoque/itens/$script:noPrepIngId" | Out-Null
+  return 'removidos'
+}
+
 Write-Host "`n=== 7. Caixa ===" -ForegroundColor Cyan
 Step 'sessao-atual' {
   $s = Invoke-Api GET '/api/caixa/sessao-atual'
@@ -367,6 +404,56 @@ Step 'GET /relatorios/resumo inclui a venda do teste' {
   $r = Invoke-Api GET "/api/relatorios/resumo`?inicio=$ini&fim=$fim"
   if ($r.totalPedidos -lt 1) { throw "pedidos=$($r.totalPedidos) (venda do teste deveria contar)" }
   return "pedidos=$($r.totalPedidos) bruto=$($r.faturamentoBruto)"
+}
+
+Write-Host "`n=== 11b. Agregados dia/mes (self-check) ===" -ForegroundColor Cyan
+$diaRef = (Get-Date).ToString('yyyy-MM-dd')
+$mesRef = (Get-Date).ToString('yyyy-MM')
+Step 'GET /api/relatorios/agregado dia (antes)' {
+  $a = Invoke-Api GET "/api/relatorios/agregado`?tipo=dia&ref=$diaRef"
+  $script:aggF0 = [double]$a.faturamento
+  $script:aggP0 = [int]$a.totalPedidos
+  return "fat=$($a.faturamento) ped=$($a.totalPedidos)"
+}
+Step 'venda QA 7.5 (criar + quitar)' {
+  $p = Invoke-Api POST '/api/produtos' @{ nome = 'QA Agregado'; categoriaId = $catId; preco = 7.5 }
+  $script:aggProdId = $p.id
+  $l = Invoke-Api GET '/api/mesas'
+  $livre = @($l | Where-Object { $_.status -eq 'livre' })[0]
+  if (-not $livre) { throw 'nenhuma mesa livre' }
+  $ped = Invoke-Api POST "/api/pedidos`?mesa_id=$($livre.id)&tipo=local" @( @{ produtoId = $script:aggProdId; qtd = 1 } )
+  $pg = Invoke-Api POST "/api/pagamentos/$($ped.id)" @{ tipo = 'pix'; valor = $ped.total }
+  if ($pg.status -ne 'pago') { throw "status=$($pg.status)" }
+  return "total=$($ped.total)"
+}
+Step 'agregado dia somou exato (+7.5, +1 pedido)' {
+  $a = Invoke-Api GET "/api/relatorios/agregado`?tipo=dia&ref=$diaRef"
+  if ([double]$a.faturamento -ne ($script:aggF0 + 7.5)) { throw "fat=$($a.faturamento) esperado $($script:aggF0 + 7.5)" }
+  if ([int]$a.totalPedidos -ne ($script:aggP0 + 1)) { throw "ped=$($a.totalPedidos) esperado $($script:aggP0 + 1)" }
+  return "fat=$($a.faturamento) ped=$($a.totalPedidos)"
+}
+Step 'agregado mes contem a venda' {
+  $a = Invoke-Api GET "/api/relatorios/agregado`?tipo=mes&ref=$mesRef"
+  if ([double]$a.faturamento -lt 7.5) { throw "fat mes=$($a.faturamento)" }
+  if ([int]$a.totalPedidos -lt 1) { throw "ped mes=$($a.totalPedidos)" }
+  if ($null -eq $a.financeiro) { throw 'sem financeiro computado' }
+  return "fat=$($a.faturamento)"
+}
+Step 'despesa QA soma e estorna no agregado' {
+  $a0 = Invoke-Api GET "/api/relatorios/agregado`?tipo=dia&ref=$diaRef"
+  $d0 = [double]$a0.despesasPorCategoria.insumo
+  $data = (Get-Date).ToUniversalTime().ToString('o')
+  $d = Invoke-Api POST '/api/despesas' @{ categoria = 'insumo'; descricao = 'QA Agregado'; valor = 30; data = $data }
+  $a1 = Invoke-Api GET "/api/relatorios/agregado`?tipo=dia&ref=$diaRef"
+  if ([double]$a1.despesasPorCategoria.insumo -ne ($d0 + 30)) { throw "insumo=$($a1.despesasPorCategoria.insumo) esperado $($d0 + 30)" }
+  Invoke-Api DELETE "/api/despesas/$($d.id)" | Out-Null
+  $a2 = Invoke-Api GET "/api/relatorios/agregado`?tipo=dia&ref=$diaRef"
+  if ([double]$a2.despesasPorCategoria.insumo -ne $d0) { throw "estorno falhou: $($a2.despesasPorCategoria.insumo) esperado $d0" }
+  return 'soma+estorno ok'
+}
+Step 'cleanup produto QA agregado' {
+  Invoke-Api DELETE "/api/produtos/$($script:aggProdId)" | Out-Null
+  return 'removido (pedido pago permanece no agregado)'
 }
 
 Write-Host "`n=== 12. Configuracoes ===" -ForegroundColor Cyan

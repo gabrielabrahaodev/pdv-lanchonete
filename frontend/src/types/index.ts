@@ -58,6 +58,7 @@ export interface Product {
   nome: string
   categoriaId: string
   preco: number
+  precisaPreparar: boolean
   variacoes: ProductVariation[]
   ingredientes: ProductIngredient[]
   imagemUrl?: string | null

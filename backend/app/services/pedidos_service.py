@@ -22,7 +22,7 @@ from app.services.base import (
 STATUS_ITEM_VALIDOS = {"preparo", "pronto", "entregue", "cancelado"}
 
 
-def _preco_item(restaurant_id: str, produto_id: str, variacao_id: str | None) -> float:
+def _preco_e_produto(restaurant_id: str, produto_id: str, variacao_id: str | None) -> tuple[float, dict]:
     produto = produtos_service.obter(restaurant_id, produto_id)
     if not produto.get("ativo", True):
         raise HTTPException(409, f"Produto '{produto.get('nome')}' está inativo")
@@ -36,13 +36,22 @@ def _preco_item(restaurant_id: str, produto_id: str, variacao_id: str | None) ->
                 break
         else:
             raise HTTPException(404, "Variação não encontrada no produto")
-    return round(preco, 2)
+    return round(preco, 2), produto
+
+
+def _preco_item(restaurant_id: str, produto_id: str, variacao_id: str | None) -> float:
+    preco, _ = _preco_e_produto(restaurant_id, produto_id, variacao_id)
+    return preco
 
 
 def _montar_item(restaurant_id: str, item_id: str, payload: OrderItemAdd) -> dict:
-    preco = _preco_item(restaurant_id, payload.produto_id, payload.variacao_id)
+    preco, produto = _preco_e_produto(restaurant_id, payload.produto_id, payload.variacao_id)
     data = payload.model_dump(by_alias=True)
-    return {**data, "id": item_id, "precoUnitario": preco, "status": "pendente"}
+    # Produto que não precisa de preparo (ex.: bebida) já nasce entregue:
+    # some da fila da cozinha sozinho pelo filtro de status.
+    precisa = produto.get("precisaPreparar", True)
+    status = "pendente" if precisa else "entregue"
+    return {**data, "id": item_id, "precoUnitario": preco, "status": status}
 
 
 def _total(itens: list[dict]) -> float:
@@ -54,6 +63,7 @@ def criar(restaurant_id: str, usuario_id: str, mesa_id: str, tipo: str, itens_pa
         raise HTTPException(422, "Pedido precisa de pelo menos um item")
 
     itens = [_montar_item(restaurant_id, new_id("item_"), p) for p in itens_payload]
+    consumo_inicial = _consumo_itens_entregues(restaurant_id, itens)
     pedido_data = {
         "mesaId": mesa_id,
         "tipo": tipo if tipo in {"local", "delivery", "balcao"} else "local",
@@ -67,6 +77,7 @@ def criar(restaurant_id: str, usuario_id: str, mesa_id: str, tipo: str, itens_pa
 
     db = get_db()
     mesa_ref = item_doc(restaurant_id, "mesas", mesa_id)
+    saidas_aplicadas: dict[str, float] = {}
 
     # Transação: evita corrida de dois pedidos simultâneos na mesma mesa
     @transactional
@@ -78,6 +89,11 @@ def criar(restaurant_id: str, usuario_id: str, mesa_id: str, tipo: str, itens_pa
         if mesa.get("status") == "ocupada":
             raise HTTPException(409, f"Mesa {mesa.get('numero')} já está ocupada")
         ref = items_col(restaurant_id, "pedidos").document()
+        if consumo_inicial:
+            # Baixa dos itens sem preparo DENTRO da transação; o agregado
+            # vai pós-commit (fase só-escrita não admite o get de existência).
+            _, aplicadas = _aplicar_consumo(t, restaurant_id, ref.id, consumo_inicial, usuario_id)
+            saidas_aplicadas.update(aplicadas)
         t.set(ref, stamp_create(pedido_data))
         t.update(
             mesa_ref,
@@ -86,6 +102,7 @@ def criar(restaurant_id: str, usuario_id: str, mesa_id: str, tipo: str, itens_pa
         return ref.id
 
     pedido_id = _exec(db.transaction())
+    _publicar_saidas_agregado(restaurant_id, saidas_aplicadas)
     return obter(restaurant_id, pedido_id)
 
 
@@ -106,6 +123,8 @@ def listar(restaurant_id: str, *, status: str | None = None, mesa_id: str | None
 
 
 def adicionar_item(restaurant_id: str, usuario_id: str, pedido_id: str, payload: OrderItemAdd) -> dict:
+    saidas_adicionadas: dict[str, float] = {}
+
     def txn(transaction, doc_ref):
         snap = next(iter(transaction.get(doc_ref)), None)
         if not snap.exists:
@@ -115,9 +134,41 @@ def adicionar_item(restaurant_id: str, usuario_id: str, pedido_id: str, payload:
             raise HTTPException(409, "Pedido não está aberto")
         novo = _montar_item(restaurant_id, new_id("item_"), payload)
         itens = [*pedido.get("itens", []), novo]
+        consumo = _consumo_itens_entregues(restaurant_id, [novo])
+        if consumo:
+            _, aplicadas = _aplicar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
+            saidas_adicionadas.update(aplicadas)
         transaction.update(doc_ref, stamp_update({"itens": itens, "total": _total(itens)}))
 
-    return _run_txn(restaurant_id, pedido_id, txn)
+    pedido = _run_txn(restaurant_id, pedido_id, txn)
+    _publicar_saidas_agregado(restaurant_id, saidas_adicionadas)
+    return pedido
+
+
+def _publicar_saidas_agregado(restaurant_id: str, saidas: dict[str, float]) -> None:
+    """Agregado pós-commit (fora da transação — ver agregados_service._gravar)."""
+    if saidas:
+        from app.services import agregados_service
+
+        agregados_service.registrar_saidas(restaurant_id, saidas)
+
+
+def _consumo_itens_entregues(restaurant_id: str, itens: list[dict]) -> dict[str, float]:
+    """Consumo agregado dos itens que nasceram entregues (sem preparo)."""
+    consumo: dict[str, float] = {}
+    receitas: dict[str, dict] = {}
+    for item in itens:
+        if item.get("status") != "entregue":
+            continue
+        pid = item.get("produtoId")
+        if not pid:
+            continue
+        if pid not in receitas:
+            receitas[pid] = _consumo_produto(restaurant_id, pid)
+        mult = float(item.get("qtd", 1) or 1)
+        for k, v in receitas[pid].items():
+            consumo[k] = consumo.get(k, 0.0) + v * mult
+    return consumo
 
 
 def remover_item(restaurant_id: str, pedido_id: str, item_id: str) -> dict:
@@ -167,6 +218,7 @@ def atualizar_status_itens(
     if novo_status not in STATUS_ITEM_VALIDOS:
         raise HTTPException(422, f"Status inválido. Use: {', '.join(sorted(STATUS_ITEM_VALIDOS))}")
     ids = list(dict.fromkeys(item_ids))
+    saidas_transicao: dict[str, float] = {}
 
     def txn(transaction, doc_ref):
         snap = next(iter(transaction.get(doc_ref)), None)
@@ -199,10 +251,13 @@ def atualizar_status_itens(
         if not algum:
             raise HTTPException(404, "Nenhum dos itens informados está neste pedido")
         if consumo:
-            _aplicar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
+            _, aplicadas = _aplicar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
+            saidas_transicao.update(aplicadas)
         transaction.update(doc_ref, stamp_update({"itens": itens}))
 
-    return _run_txn(restaurant_id, pedido_id, txn)
+    pedido = _run_txn(restaurant_id, pedido_id, txn)
+    _publicar_saidas_agregado(restaurant_id, saidas_transicao)
+    return pedido
 
 
 def _consumo_produto(restaurant_id: str, produto_id: str) -> dict[str, float]:
@@ -269,7 +324,8 @@ def _aplicar_consumo(
         )
         transaction.update(ref, stamp_update({"quantidadeAtual": novo_saldo}))
         escreveu = True
-    return escreveu
+    aplicadas = {iid: qtd for (iid, _, qtd, _) in pendentes} if escreveu else {}
+    return escreveu, aplicadas
 
 
 def cancelar(restaurant_id: str, pedido_id: str) -> dict:

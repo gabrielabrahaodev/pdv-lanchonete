@@ -1,30 +1,23 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
-import type { CashSession, Mesa } from '../../types'
+import { useMesas, useSessaoAtual } from '../../hooks/useFirestore'
+import type { Mesa } from '../../types'
+import { useAuth } from '../../context/AuthContext'
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingScreen } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl } from '../../lib/format'
 
 export default function CaixaOverviewPage() {
-  const qc = useQueryClient()
   const navigate = useNavigate()
+  const { me } = useAuth()
 
-  const mesas = useQuery({
-    queryKey: ['mesas'],
-    queryFn: () => api<Mesa[]>('/mesas'),
-    refetchInterval: 15_000,
-  })
+  const mesas = useMesas(me?.restaurantId)
 
-  const sessao = useQuery({
-    queryKey: ['caixa', 'sessao-atual'],
-    queryFn: () => api<CashSession | null>('/caixa/sessao-atual'),
-    refetchInterval: 30_000,
-  })
+  const sessao = useSessaoAtual(me?.restaurantId)
 
   const abrirCaixa = useMutation({
     mutationFn: (valorInicial: number) => api('/caixa/abrir', { method: 'POST', body: { valorInicial } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['caixa'] }),
   })
 
   if (mesas.isLoading) return <LoadingScreen />

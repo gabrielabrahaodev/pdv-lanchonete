@@ -57,10 +57,10 @@ Validação de aceite: Roteiro R-01 completo + `/health` respondendo + login rea
 |---|---|---|
 | 4.1 | Frontend no Firebase Hosting **SEM rewrite** (exigiria Blaze): `VITE_API_URL` embutido no build → `firebase deploy --only hosting` | ✅ https://pdv-lanchonete-1fa79.web.app |
 | 4.2 | API na Render (free tier): `uvicorn app.main:app --host 0.0.0.0 --port $PORT`; envs `FIREBASE_SERVICE_ACCOUNT_JSON`, `CORS_ORIGINS=https://pdv-lanchonete-1fa79.web.app` | ✅ https://pdv-lanchonete-dwiw.onrender.com |
-| 4.3 | Smoke + suíte E2E completa contra produção | ✅ PASS (baseline histórico: 35/35 em 2026-08-23; suíte atual: 52 passos base + 13 onboarding condicionais — ver `scripts/e2e/README.md`) |
-| 4.4 | Backup programado do Firestore | ✅ GitHub Actions diário 03:30 (Brasília) commitando em `backups/` |
+| 4.3 | Smoke + suíte E2E completa contra produção | ✅ PASS (baselines históricos em `scripts/e2e/README.md`; suíte atual: 80 passos base + 13 onboarding condicionais) |
+
 | 4.5 | QRs das mesas apontando para a URL pública definitiva | ⏳ homologação física na loja (celular real) |
-| extra | UptimeRobot HEAD `/health` a cada 10 min (mitiga sleep do free tier) · Sentry opcional via env `SENTRY_DSN` | ✅ / ⏳ |
+| extra | cron-job.org GET `/health` 06–20h BRT + pre-warm (mitiga sleep do free tier) · Sentry opcional via env `SENTRY_DSN` | ✅ |
 | extra | **Authorized domains**: Console Firebase → Authentication → adicionar `pdv-lanchonete-1fa79.web.app` (sem isso o login falha com `auth/unauthorized-domain`) | ✅ |
 
 Rollback: redeploy da versão anterior no Hosting/PaaS (builds versionados por tag git `v2.x.y`).
@@ -79,7 +79,7 @@ Rollback: redeploy da versão anterior no Hosting/PaaS (builds versionados por t
 
 - 7 dias consecutivos de operação sem defeito S1;
 - Fechamentos de caixa com diferença explicável;
-- Backup Firestore agendado e testado (restore em projeto separado);
+- ~~Backup Firestore agendado~~ removido do projeto em 2026-09-26 (sem workflow/scripts/backups); risco aceito + agregados como fonte de DRE histórico;
 - Documentação entregue (manual usuário/técnico) e equipe treinada.
 
 ## 7. Riscos de implantação e mitigação

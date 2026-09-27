@@ -28,7 +28,7 @@ Sistema de Ponto de Venda (PDV) para lanchonete: caixa, salão (mesas), cozinha 
 | API | https://pdv-lanchonete-dwiw.onrender.com |
 | Repositório | https://github.com/gabrielabrahaodev/pdv-lanchonete (privado) |
 
-Push em `master` → CI (pytest/tsc/build) + auto-deploy da API na Render. Frontend exige rebuild com `VITE_API_URL` + `firebase deploy --only hosting`. Backup diário automático do Firestore commitado em `backups/` (GitHub Actions). Detalhes: `DEPLOY.md` na raiz e `05-implantacao/manual-tecnico.md`.
+Push em `master` → CI (pytest/tsc/build) + auto-deploy da API na Render. Frontend exige rebuild com `VITE_API_URL` + `firebase deploy --only hosting`. Detalhes: `DEPLOY.md` na raiz e `05-implantacao/manual-tecnico.md`.
 
 ## Como rodar (desenvolvimento)
 
@@ -45,4 +45,4 @@ npm run dev
 admin@restaurante.com / SenhaForte123!
 ```
 
-> Diagrama de arquitetura geral em imagem: `docs/arquitetura-atual.png` (e `.svg`).
+> Diagramas de arquitetura em imagem: `arquitetura-producao.svg` (produção ativa — Hosting + Render + Actions + UptimeRobot, com as 12 integrações numeradas) e `arquitetura-atual.svg`/`.png` (histórico do ambiente local).

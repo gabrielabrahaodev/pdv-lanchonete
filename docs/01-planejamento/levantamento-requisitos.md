@@ -37,11 +37,11 @@ Registro de **como** os requisitos foram levantados: técnicas aplicadas, entrev
 - **Capturado:** KDS com 3 colunas e auto-refresh (RF-050/051), botão de imprimir comanda (RF-113), baixa automática de ingredientes ao iniciar preparo (RF-034).
 
 ### Cliente
-- **Capturado:** cardápio pelo celular via QR na mesa, sem instalar nada (RF-100..102); pedido chega direto na fila.
+- **Capturado:** cardápio pelo celular via QR na mesa, sem instalar nada (RF-100..102), somente leitura — pedidos só pelo atendente.
 
 ## 3. Observação do processo (shadowing) — achados
 
-1. Pico de atendimento concentra-se em ~3h; telas críticas precisam responder < 1s → polling leve + cache (RNF-007).
+1. Pico de atendimento concentra-se em ~3h; telas críticas precisam responder < 1s → snapshot filtrado por tela como fonte (RNF-007).
 2. Erros mais comuns: item digitado errado (→ remoção só de pendentes, RN-06) e troco (→ campo valor recebido).
 3. Estoque: receita fixa por produto simplifica a baixa (RN-10: ingredientes por 1 unidade).
 4. Impressão térmica Bluetooth já disponível no balcão → ESC/POS via Web Browser (RF-113).
@@ -66,9 +66,9 @@ Registro de **como** os requisitos foram levantados: técnicas aplicadas, entrev
 ## 6. Validação
 
 Cada grupo de requisitos foi verificado contra o sistema implementado:
-- Suíte E2E de API (52 passos base + 13 de onboarding condicionais, todos PASS na produção) cobrindo auth, CRUDs, imagem do produto, pedido→cozinha→pagamento→caixa, estoque, delivery, relatórios, configurações e onboarding por convite;
+- Suíte E2E de API (80 passos base + 13 de onboarding condicionais) cobrindo auth, CRUDs, imagem do produto, pedido→cozinha→pagamento→caixa, estoque, delivery, relatórios, agregados, fornecedores, despesas, usuários e onboarding por convite;
 - Testes manuais B1/M4 (pagamento minimalista 201; plataforma inválida no delivery 422);
-- Testes manuais do cardápio digital e onboarding;
-- pytest (23 testes) sobre as fórmulas do domínio.
+- Testes manuais do cardápio digital (somente-leitura) e onboarding;
+- pytest (35 testes) sobre as fórmulas do domínio e validação de modelos.
 
 Detalhes em `../04-testes/`.

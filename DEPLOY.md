@@ -60,7 +60,7 @@ Invoke-RestMethod https://pdv-lanchonete-dwiw.onrender.com/health    # espera {"
 
 Primeira chamada pode demorar ~60s (instância acordando do sleep) — use timeout ≥120s.
 
-> `/health` aceita **GET e HEAD** (monitores como UptimeRobot fazem HEAD). MAS `/health` é **estático** e não prova que o Firestore está acessível (bugs 7 e 12 tiveram `/health` ok com API quebrada). Após qualquer deploy, sonde também um endpoint que LEIA Firestore, ex.: `GET /api/publico/{rid}/cardapio`.
+> `/health` aceita **GET e HEAD**. MAS `/health` é **estático** e não prova que o Firestore está acessível (bugs 7 e 12 tiveram `/health` ok com API quebrada). Após qualquer deploy, sonde também um endpoint que LEIA Firestore, ex.: `GET /api/publico/{rid}/cardapio`.
 
 ### 4. Frontend build com a URL da API
 
@@ -91,38 +91,24 @@ Sem isso o login retorna `auth/unauthorized-domain`.
 ### 7. Checklist final
 
 - [ ] Login em `https://pdv-lanchonete-1fa79.web.app` funciona
-- [ ] Console do navegador SEM warning `[realtime] ... permission-denied` (tempo real onSnapshot ativo)
-- [ ] QR de uma mesa escaneado do CELULAR real → pedido cai no KDS (rota `/m/{restaurantId}/{mesaId}`)
+- [ ] Console do navegador SEM warning `[realtime] ... indisponível` (tempo real ativo; sem ele, banner vermelho no topo)
+- [ ] QR de uma mesa escaneado do CELULAR real → cardápio somente-leitura, SEM botão de pedido (pedido pelo QR retorna 410)
 - [ ] 🖨 Testar impressora em Configurações (Web Bluetooth exige HTTPS — deve abrir o seletor)
 - [ ] PWA instalável (ícone "Instalar app" no Chrome Android)
 - [ ] Pagamento pix quita pedido e DRE em Relatórios reflete a venda
 
-### 8. UptimeRobot (mitigação grátis do sleep do Render)
+### 8. Keep-alive (mitigação grátis do sleep do Render)
 
 O plano free da Render dorme após 15 min sem tráfego (~30–60s para acordar).
-Configure 1 monitor no UptimeRobot free (sem limites práticos — 50 monitors, intervalo mínimo 5 min):
+Jobs no cron-job.org (grátis), timezone `America/Sao_Paulo`, timeout 30s:
 
-1. uptimerobot.com → conta grátis → **Add New Monitor**
-2. Tipo: **HTTP(s)** → URL: `https://pdv-lanchonete-dwiw.onrender.com/health`
-3. Intervalo: **10 min** (ou 5 min)
-4. Alert contacts: opcional (e-mail/Telegram/Discord)
-5. Save
+1. `pdv-pre-warm-0555` — `GET /health`, 1×/dia às 05:50 e 05:55 (acorda antes de abrir; o 1º pode dar timeout e mesmo assim acorda a instância)
+2. `pdv-keepalive-06-20` — `GET /health`, `*/10 6-20 * * *` (só 06–20h; fora disso a Render dorme sozinha ~20:15 e economiza ~300h/mês do teto 750h)
 
-Pronto — a instância permanece "quente" enquanto o monitor roda. Zero custo, sem limites atingíveis.
-> `/health` aceita GET e HEAD (monitores fazem HEAD).
+Pronto — quente no comercial, dormindo de madrugada. Zero custo.
+> `/health` aceita GET e HEAD. UptimeRobot 24/7 foi pausado (substituído pela janela acima).
 
-### 9. Backup automático do Firestore (GitHub Actions)
-
-Workflow `.github/workflows/backup.yml`: **todo dia 03:30 (Brasília)** exporta todos os tenants
-em JSON e commita em `backups/` no próprio repo privado. Também roda sob demanda
-(Aba Actions → Backup Firestore → Run workflow).
-
-- Secret necessário: `FIREBASE_SERVICE_ACCOUNT_JSON` no GitHub (Settings → Secrets and variables → Actions).
-- Manual local: `cd scripts && npm run backup` → gera `backups/backup-<data>.json`.
-- Restauração: os JSON são completos por tenant (`config` + todas as coleções) — reimportar
-  com um script Admin (`set`) quando necessário.
-
-### 10. Sentry (alerta de erros, opcional mas recomendado)
+### 9. Sentry (alerta de erros, opcional mas recomendado)
 
 O backend já tem integração pronta — fica **inativo** sem a env:
 
@@ -140,8 +126,8 @@ Frontend: deixar para depois (custo de bundle vs benefício — prioridade foi o
 - **pydantic-settings**: a env é vinculada pelo NOME DO CAMPO (case-insensitive, sem prefixo). O campo tem que se chamar `firebase_service_account_json` para ler `FIREBASE_SERVICE_ACCOUNT_JSON` — já corrigido (bug histórico: campo `service_account_json` nunca lia a var da Render e o backend caía no ADC sem projeto → 401 em tudo com token e 500 nos endpoints públicos).
 - **CORS**: valor exato `https://<projeto>.web.app`; erro típico = "CORS policy" no console.
 - **sw.js sem no-cache**: PWA para de receber atualizações (headers já configurados no `firebase.json`).
-- **Render sleep**: primeira chamada lenta ~30–60s; mitigação grátis = UptimeRobot pingando `/health` a cada 10 min, ou abrir o PDV antes de abrir a loja.
-- **Quotas Firestore Spark**: 50k leituras/20k escritas/dia — listeners onSnapshot contam leituras; monitorar no Console.
+- **Render sleep**: primeira chamada lenta ~30–60s; mitigação grátis = cron-job.org pingando `/health` 06–20h BRT (§8), ou abrir o PDV antes de abrir a loja.
+- **Quotas Firestore Spark**: 50k leituras/20k escritas/dia — telas leem via snapshot filtrado por tela (sem polling); pagos/fechados só em sessão e relatórios; monitorar no Console.
 - PowerShell 5.1: `$env:VAR='x'; npm run build` funciona; não usar `set VAR=x`.
 
 ## Baseline de regressão pós-deploy
@@ -150,7 +136,7 @@ Frontend: deixar para depois (custo de bundle vs benefício — prioridade foi o
 > Backend local + suíte E2E com `-Base http://127.0.0.1:8000` → só depois commit/deploy.
 
 ```powershell
-cd backend && .venv\Scripts\python -m pytest tests -q          # 23 passed
+cd backend && .venv\Scripts\python -m pytest tests -q          # 35 passed
 cd scripts\e2e && node get-token.js                            # token vale 1h
 
 # Opcional (seção 13 onboarding): token do DONO da plataforma
@@ -161,7 +147,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1 -Base http://12
 cd frontend && npx tsc --noEmit                                 # exit 0
 ```
 
-Contagem atual: **52 passos** na base + **13 passos** de onboarding (condicionais ao `token-owner.txt`) = 65 no máximo.
+Contagem atual: **80 passos** na base + **13 passos** de onboarding (condicionais ao `token-owner.txt`) = 93 no máximo.
 Último baseline completo validado em produção: 2026-08-24 (51/51 antes da seção onboarding); fix do caixa `abertoEm` revalidado em produção em 2026-08-25.
 
 CI (GitHub Actions) roda pytest + tsc + build em todo push/PR.

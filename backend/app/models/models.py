@@ -52,6 +52,7 @@ class Product(CamelModel):
     nome: str
     categoria_id: str
     preco: float
+    precisa_preparar: bool = True
     variacoes: list[ProductVariation] = []
     ingredientes: list[ProductIngredient] = []
     imagem_url: Optional[str] = None
@@ -65,6 +66,7 @@ class ProductCreate(CamelModel):
     nome: str
     categoria_id: str
     preco: float = Field(gt=0)
+    precisa_preparar: bool = True
     variacoes: list[ProductVariation] = []
     ingredientes: list[ProductIngredient] = []
     imagem_url: Optional[str] = None
@@ -76,6 +78,7 @@ class ProductUpdate(CamelModel):
     nome: Optional[str] = None
     categoria_id: Optional[str] = None
     preco: Optional[float] = Field(default=None, gt=0)
+    precisa_preparar: Optional[bool] = None
     variacoes: Optional[list[ProductVariation]] = None
     ingredientes: Optional[list[ProductIngredient]] = None
     imagem_url: Optional[str] = None

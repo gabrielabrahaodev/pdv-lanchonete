@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { apiPublico } from '../../lib/apiPublico'
 import { brl } from '../../lib/format'
 import { urlImagemProduto } from '../../lib/imagem'
-import ProdutoCustomModal from '../../components/ProdutoCustomModal'
 
 type Produto = {
   id: string
@@ -16,15 +15,10 @@ type Produto = {
   variacoes: { id: string; nome: string; precoAdicional: number }[]
 }
 type Categoria = { id: string; nome: string; icone?: string | null }
-type ItemCarrinho = { key: string; produtoId: string; variacaoId: string | null; nome: string; qtd: number; obs: string }
 
+/** Cardápio digital SOMENTE LEITURA (QR da mesa). Pedidos só pelo atendente. */
 export default function CardapioPage() {
   const { restaurantId = '', mesaId = '' } = useParams()
-  const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([])
-  const [enviando, setEnviando] = useState(false)
-  const [erro, setErro] = useState<string | null>(null)
-  const [enviado, setEnviado] = useState(false)
-  const [customizando, setCustomizando] = useState<Produto | null>(null)
 
   const cardapio = useQuery({
     queryKey: ['cardapio-publico', restaurantId],
@@ -40,74 +34,11 @@ export default function CardapioPage() {
     return grupos
   }, [cardapio])
 
-  function addItem(p: Produto, variacaoId: string | null, qtd: number, obs: string | null) {
-    const variacao = variacaoId ? p.variacoes?.find((v) => v.id === variacaoId) : null
-    const nome = p.nome + (variacao ? ` · ${variacao.nome}` : '')
-    const key = `${p.id}|${variacaoId ?? ''}|${obs ?? ''}`
-    const existe = carrinho.find((i) => i.key === key)
-    if (existe) {
-      setCarrinho(carrinho.map((i) => (i === existe ? { ...i, qtd: i.qtd + qtd } : i)))
-    } else {
-      setCarrinho([...carrinho, { key, produtoId: p.id, variacaoId, nome, qtd, obs: obs ?? '' }])
-    }
-  }
-
-  function confirmarCustomizacao(sel: { variacaoId: string | null; qtd: number; observacoes: string | null }) {
-    if (!customizando) return
-    addItem(customizando, sel.variacaoId, sel.qtd, sel.observacoes)
-    setCustomizando(null)
-  }
-
-  function mudarQtd(idx: number, delta: number) {
-    setCarrinho((cs) =>
-      cs.map((c, i) => (i === idx ? { ...c, qtd: Math.max(0, c.qtd + delta) } : c)).filter((c) => c.qtd > 0),
-    )
-  }
-
-  async function enviar() {
-    setErro(null)
-    setEnviando(true)
-    try {
-      await apiPublico(`/publico/${restaurantId}/mesas/${mesaId}/pedido`, {
-        method: 'POST',
-        body: {
-          itens: carrinho.map((c) => ({
-            produtoId: c.produtoId,
-            variacaoId: c.variacaoId,
-            qtd: c.qtd,
-            observacoes: c.obs || null,
-          })),
-        },
-      })
-      setEnviado(true)
-      setCarrinho([])
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Erro ao enviar pedido')
-    } finally {
-      setEnviando(false)
-    }
-  }
-
-  if (enviado) {
-    return (
-      <div className="grid min-h-full place-items-center bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 p-6">
-        <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-xl">
-          <p className="text-5xl">🎉</p>
-          <h1 className="mt-3 text-xl font-bold text-slate-800">Pedido enviado!</h1>
-          <p className="mt-1 text-sm text-slate-500">A cozinha já recebeu. Pode pedir mais quando quiser.</p>
-          <button onClick={() => setEnviado(false)} className="mt-5 w-full rounded-lg bg-brand-600 py-2.5 font-bold text-white hover:bg-brand-700">
-            Pedir mais alguma coisa
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-full bg-slate-100 pb-28">
+    <div className="min-h-full bg-slate-100 pb-10">
       <header className="bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 px-5 py-7 text-white">
         <h1 className="text-2xl font-extrabold">🍔 Cardápio</h1>
-        <p className="mt-0.5 text-sm text-slate-300">Mesa {mesaId.replace('mesa_', '')} · peça sem chamar ninguém</p>
+        <p className="mt-0.5 text-sm text-slate-300">Mesa {mesaId.replace('mesa_', '')} · chame o atendente para pedir</p>
       </header>
 
       <main className="mx-auto max-w-lg space-y-6 p-4">
@@ -129,10 +60,7 @@ export default function CardapioPage() {
               <ul className="space-y-2">
                 {produtos.map((p) => (
                   <li key={p.id}>
-                    <button
-                      onClick={() => setCustomizando(p)}
-                      className="flex w-full items-center gap-3 rounded-xl bg-white p-3 text-left shadow-sm transition active:scale-[0.99] hover:shadow"
-                    >
+                    <div className="flex w-full items-center gap-3 rounded-xl bg-white p-3 text-left shadow-sm">
                       {p.temImagem || p.imagemUrl ? (
                         <img
                           src={p.temImagem ? urlImagemProduto(restaurantId, p.id) : (p.imagemUrl ?? '')}
@@ -149,8 +77,7 @@ export default function CardapioPage() {
                           {(p.variacoes?.length ?? 0) > 0 ? `a partir de ${brl(p.preco)}` : brl(p.preco)}
                         </span>
                       </span>
-                      <span className="shrink-0 rounded-full bg-brand-600 px-3 py-1 text-xs font-bold text-white">+</span>
-                    </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -158,40 +85,6 @@ export default function CardapioPage() {
           )
         })}
       </main>
-
-      {carrinho.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-          <div className="mx-auto max-w-lg">
-            <ul className="mb-2 max-h-40 space-y-1 overflow-y-auto">
-              {carrinho.map((c, idx) => (
-                <li key={c.key} className="flex items-center gap-2 text-sm">
-                  <span className="min-w-0 flex-1 truncate text-slate-700">
-                    <b>{c.qtd}×</b> {c.nome}
-                    {c.obs && <span className="block truncate text-xs italic text-slate-400">{c.obs}</span>}
-                  </span>
-                  <button onClick={() => mudarQtd(idx, -1)} className="h-6 w-6 rounded-full bg-slate-100 font-bold text-slate-600">−</button>
-                  <button onClick={() => mudarQtd(idx, +1)} className="h-6 w-6 rounded-full bg-slate-100 font-bold text-slate-600">+</button>
-                </li>
-              ))}
-            </ul>
-            {erro && <p className="mb-1 text-xs font-semibold text-rose-600">{erro}</p>}
-            <button
-              onClick={() => void enviar()}
-              disabled={enviando || carrinho.length === 0}
-              className="w-full rounded-xl bg-brand-600 py-3 font-extrabold text-white transition hover:bg-brand-700 disabled:opacity-50"
-            >
-              {enviando ? 'Enviando…' : `Enviar pedido (${carrinho.reduce((s, c) => s + c.qtd, 0)} item(ns))`}
-            </button>
-          </div>
-        </div>
-      )}
-
-      <ProdutoCustomModal
-        key={customizando?.id ?? 'none'}
-        produto={customizando}
-        onClose={() => setCustomizando(null)}
-        onConfirm={confirmarCustomizacao}
-      />
     </div>
   )
 }

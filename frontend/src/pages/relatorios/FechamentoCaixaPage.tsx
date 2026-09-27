@@ -1,22 +1,18 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { api } from '../../lib/api'
+import { useSessoes } from '../../hooks/useFirestore'
+import { useAuth } from '../../context/AuthContext'
 import type { CashSession } from '../../types'
 import { Badge, Button, Card, ErrorState, Field, Input, LoadingScreen, Modal } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl, dataHora } from '../../lib/format'
 
 export default function FechamentoCaixaPage() {
-  const qc = useQueryClient()
   const [modal, setModal] = useState<'abrir' | 'suprimento' | 'sangria' | 'fechar' | null>(null)
+  const { me } = useAuth()
 
-  const sessoes = useQuery({
-    queryKey: ['caixa', 'sessoes'],
-    queryFn: () => api<CashSession[]>('/caixa/sessoes'),
-    refetchInterval: 20_000,
-  })
-
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['caixa'] })
+  const sessoes = useSessoes(me?.restaurantId)
 
   if (sessoes.isLoading) return <LoadingScreen />
   if (sessoes.isError) return <ErrorState error={sessoes.error} />
@@ -119,7 +115,7 @@ export default function FechamentoCaixaPage() {
         {historico.length === 0 && <p className="px-5 py-8 text-center text-sm text-slate-400">Sem sessões fechadas ainda.</p>}
       </Card>
 
-      <SessaoModais modal={modal} onClose={() => setModal(null)} onDone={invalidate} sessaoAtual={atual} />
+      <SessaoModais modal={modal} onClose={() => setModal(null)} onDone={() => setModal(null)} sessaoAtual={atual} />
     </div>
   )
 }

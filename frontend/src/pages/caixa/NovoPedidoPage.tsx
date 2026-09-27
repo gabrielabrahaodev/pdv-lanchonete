@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
+import { useMesa, usePedidoAbertoDaMesa, useProdutos, useCategorias } from '../../hooks/useFirestore'
+import { useAuth } from '../../context/AuthContext'
 import type { Category, Order, Product, ProductVariation } from '../../types'
 import { Badge, Button, Card, ErrorState, Input, LoadingScreen, Select } from '../../components/ui'
 import ProdutoCustomModal from '../../components/ProdutoCustomModal'
@@ -22,7 +24,8 @@ export default function NovoPedidoPage() {
   const [searchParams] = useSearchParams()
   const adicionando = searchParams.get('add') === '1'
   const navigate = useNavigate()
-  const qc = useQueryClient()
+  const { me } = useAuth()
+  const rid = me?.restaurantId
 
   const [cart, setCart] = useState<CartItem[]>([])
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>('')
@@ -30,34 +33,18 @@ export default function NovoPedidoPage() {
   const [customizando, setCustomizando] = useState<{ p: Product; variacaoId?: string } | null>(null)
   const [erro, setErro] = useState<string | null>(null)
 
-  const categorias = useQuery({
-    queryKey: ['categorias'],
-    queryFn: () => api<Category[]>('/categorias'),
-    staleTime: 60_000,
-  })
+  const categorias = useCategorias(rid)
 
-  const produtos = useQuery({
-    queryKey: ['produtos', 'ativos'],
-    queryFn: () => api<Product[]>('/produtos?apenas_ativos=true'),
-    staleTime: 60_000,
-  })
+  const produtos = useProdutos(rid, true)
 
-  const mesa = useQuery({
-    queryKey: ['mesas', mesaId],
-    queryFn: () => api<import('../../types').Mesa[]>(`/mesas`).then((ms) => ms.find((m) => m.id === mesaId) ?? null),
-  })
+  const mesa = useMesa(rid, mesaId)
 
-  const pedidoExistente = useQuery({
-    queryKey: ['pedidos', 'mesa', mesaId],
-    queryFn: () => api<import('../../types').Order[]>(`/pedidos?mesa_id=${mesaId}`),
-    enabled: adicionando,
-  })
+  const pedidoExistente = usePedidoAbertoDaMesa(rid, mesaId)
 
   const criarPedido = useMutation({
     mutationFn: async () => {
       if (adicionando) {
-        const lista = await api<Order[]>(`/pedidos?mesa_id=${encodeURIComponent(mesaId)}`)
-        const existente = lista.find((p) => p.status === 'aberto')
+        const existente = pedidoExistente.data ?? null
         if (!existente) {
           throw new ApiError(409, 'O pedido desta mesa foi fechado. Volte à mesa e abra um novo pedido.')
         }
@@ -85,14 +72,10 @@ export default function NovoPedidoPage() {
       }).then((p) => p.id)
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['pedidos'] })
-      qc.invalidateQueries({ queryKey: ['mesas'] })
       navigate(`/caixa/mesa/${mesaId}`)
     },
     onError: (e) => {
       setErro(e instanceof Error ? e.message : 'Erro ao salvar pedido')
-      qc.invalidateQueries({ queryKey: ['pedidos'] })
-      qc.invalidateQueries({ queryKey: ['mesas'] })
     },
   })
 
@@ -152,7 +135,7 @@ export default function NovoPedidoPage() {
     return <LoadingScreen />
   if (produtos.isError) return <ErrorState error={produtos.error} />
 
-  const pedidoAberto = (pedidoExistente.data ?? []).find((p) => p.status === 'aberto')
+  const pedidoAberto = pedidoExistente.data ?? null
 
   return (
     <div className="flex h-full">

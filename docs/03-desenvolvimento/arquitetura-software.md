@@ -24,7 +24,7 @@ Arquitetura **web de 3 camadas lógicas** com backend stateless e BaaS (Firebase
 | AD-4 | Padrão agregado (arrays embutidos) para pedido/produto | Leitura atômica do agregado (pedido + itens + pagamentos) em 1 doc |
 | AD-5 | Transações Firestore nos pontos de corrida | Mesa, caixa, estoque e onboarding são operações concorridas na realidade do salão |
 | AD-6 | Lógica pura extraída (`calculos.py`) | Testabilidade sem emular banco (pytest) |
-| AD-7 | Tempo real como otimização, não dependência | `onSnapshot` invalida caches; ausência degrada para polling — o app nunca quebra |
+| AD-7 | Tempo real como fonte, não campainha | `onSnapshot` filtrado por tela (`useFirestore.ts`) É os dados; escritas na API; banner em falha — zero polling |
 | AD-8 | Impressão e QR gerados no cliente | Backend não participa da impressão; Web Bluetooth evita servidor dedicado |
 
 ## 2. Camadas e responsabilidades
@@ -67,14 +67,14 @@ HTTP → router (Depends(require_roles)) → service (@transactional quando crí
 src/
 ├── App.tsx            # rotas + guards RequireAuth/RequireNoAuth/RequireAuthFallback
 ├── context/           # AuthContext (onAuthStateChanged + /auth/me), ThemeContext (tema por uid)
-├── hooks/             # useRealtime (onSnapshot→invalidateQueries), useAlertasEstoque
+  ├── hooks/             # useFirestore (13 hooks onSnapshot filtrados = fonte), useAlertas via useEstoque
 ├── lib/               # api.ts (BASE=VITE_API_URL + fetch+Bearer+ApiError), apiPublico.ts, csv.ts, format.ts,
 │                      # impressora.ts (ESC/POS BT + fallback print), firebase.ts (SDK client)
 ├── components/        # layout/AppLayout (menu/badges/PageHeader), ui/index.tsx (design system)
 └── pages/             # 19 páginas organizadas por módulo (inclui Plataforma — console do dono)
 ```
 
-Estado: **TanStack Query** para dados do servidor (chaves por recurso, polling 8–30s); Context apenas para sessão e tema. Nenhuma store global adicional.
+Estado: **TanStack Query** para escritas e telas frias; telas quentes leem de hooks snapshot (`useFirestore.ts`, sem `refetchInterval`); Context apenas para sessão e tema. Nenhuma store global adicional.
 
 ## 3. Segurança
 
@@ -101,7 +101,7 @@ Convenções de integridade: `stamp_update` descarta `None` → limpeza de campo
 ## 5. Performance
 
 - Listagens in-memory (coleções pequenas), sem índices compostos;
-- Cache react-query com `staleTime` (produtos 60s) e `refetchInterval` (mesas 15s, KDS 8s, caixa 30s);
+- Snapshot filtrado por tela como fonte (zero polling); banner + recarregar em falha; persistência local cobre reaberturas;
 - Service Worker NetworkFirst para GETs `/api/*` (timeout 4s, cache 24h, 200 entradas);
 - Payload público do cardápio enxuto (sem ingredientes/custos);
 - **Code-splitting por rota** (`React.lazy`) + chunks de vendor separados (react/firebase/query): o bundle inicial saiu de um único arquivo de ~790 kB para páginas de 2–27 kB carregadas sob demanda — relevante para o cardápio QR no 4G do cliente.
@@ -117,14 +117,14 @@ Convenções de integridade: `stamp_update` descarta `None` → limpeza de campo
 
 ## 7. Diagrama físico
 
-Ver `../02-modelagem/diagrama-componentes.md`, `diagrama-implantacao.md` e imagem `../arquitetura-atual.png`.
+Ver `../02-modelagem/diagrama-componentes.md`, `diagrama-implantacao.md`, o diagrama de **produção** `../arquitetura-producao.svg` (12 integrações numeradas com o que trafega em cada uma) e o histórico local `../arquitetura-atual.svg`/`.png`.
 
 ## 8. Qualidade e operação
 
-- pytest sobre `calculos.py` + validação de modelos (23 testes) — `requirements-dev.txt`;
-- Suíte E2E de API **versionada em `scripts/e2e/`** (52 passos base + 13 de onboarding condicionais ao token do dono da plataforma, alvo padrão = produção) com cleanup automático;
+- pytest sobre `calculos.py` + validação de modelos (35 testes) — `requirements-dev.txt`;
+- Suíte E2E de API **versionada em `scripts/e2e/`** (80 passos base + 13 de onboarding condicionais ao token do dono da plataforma, alvo padrão = produção) com cleanup automático;
 - Tipagem estática TS no frontend (`tsc && vite build`);
 - **CI GitHub Actions** (`.github/workflows/ci.yml`): pytest + tsc + build a cada push/PR;
-- **Backup diário** do Firestore via Actions (`.github/workflows/backup.yml`) commitado em `backups/`;
+
 - Erros 5xx reportáveis ao Sentry (integração env-gated `SENTRY_DSN`, inativa sem DSN);
 - Erros HTTP padronizados em português com códigos coerentes (401/403/404/409/422).

@@ -114,6 +114,30 @@ def list_items(
     return docs
 
 
+def list_items_window(
+    restaurant_id: str,
+    kind: str,
+    field: str,
+    inicio: datetime | None,
+    fim: datetime | None,
+) -> list[dict[str, Any]]:
+    """Janela por intervalo em campo único (índice automático, sem composto).
+
+    ATENÇÃO: `field` é o nome GRAVADO no Firestore (`createdAt` via
+    stamp_create, `data` em despesas), não o normalizado `criadoEm`.
+    """
+    col = items_col(restaurant_id, kind)
+    if inicio is not None:
+        col = col.where(field, ">=", _ensure_utc(inicio))
+    if fim is not None:
+        col = col.where(field, "<=", _ensure_utc(fim))
+    return [doc_to_dict(s) for s in col.stream()]
+
+
+def _ensure_utc(value: datetime) -> datetime:
+    return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
 # ------------------------------------------------------------------ escrita
 def stamp_create(data: dict[str, Any]) -> dict[str, Any]:
     now = now_utc()

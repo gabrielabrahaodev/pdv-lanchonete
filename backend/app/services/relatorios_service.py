@@ -6,13 +6,15 @@ from zoneinfo import ZoneInfo
 
 from app.core.config import settings
 from app.services import calculos, produtos_service
-from app.services.base import list_items
+from app.services.base import list_items, list_items_window
 
 _TZ_EXIBICAO = ZoneInfo(settings.timezone)
 
 
 def resumo(restaurant_id: str, inicio: datetime, fim: datetime) -> dict:
-    pedidos = list_items(restaurant_id, "pedidos")
+    # Janela server-side (campo único, índice automático): pagos/fechados
+    # SÓ são lidos aqui e na sessão — nunca nas telas quentes.
+    pedidos = list_items_window(restaurant_id, "pedidos", "createdAt", inicio, fim)
     pagos = [
         p
         for p in pedidos
@@ -60,11 +62,11 @@ def resumo(restaurant_id: str, inicio: datetime, fim: datetime) -> dict:
     # Despesas por COMPETÊNCIA (campo `data`), qualquer status.
     despesas_periodo = [
         d
-        for d in list_items(restaurant_id, "despesas")
+        for d in list_items_window(restaurant_id, "despesas", "data", inicio, fim)
         if _dt(d.get("data")) is not None and inicio <= _dt(d["data"]) <= fim
     ]
     saidas_com_pedido: list[dict] = []
-    for m in list_items(restaurant_id, "movimentacoes_estoque"):
+    for m in list_items_window(restaurant_id, "movimentacoes_estoque", "createdAt", inicio, fim):
         criado = _dt(m.get("criadoEm"))
         if m.get("tipo") == "saida" and m.get("pedidoId") and criado and inicio <= criado <= fim:
             saidas_com_pedido.append(m)

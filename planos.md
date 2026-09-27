@@ -27,7 +27,7 @@ restaurante nasce EXCLUSIVAMENTE por convite válido (uso único, expira 7d, rev
 | CLI de donos | `npm run promover-dono -- listar \| adicionar --uid X [--exec] \| remover --uid Y [--exec]` |
 | E2E seção 13 | owner gera convite · admin de tenant tenta gerar → 403 · signUp descartável: sem convite 403 → com convite 201 → auto-cura → souDono=false → 3º POST 409 → reuso 403 → revogado 403 · pulada com aviso se token-owner.txt ausente |
 
-**Pendências:** ~~validar E2E local · commit/push · release Hosting~~ ✅ concluídas (commits `00ef1e6`→`ea70b8a`, deployado). Restam: teste manual do usuário (owner + tenant) e revalidar seção 13 contra produção com `token-owner.txt` VÁLIDO (na rodada local de 2026-08-25 os 6 FAIL foram só o token do owner expirado — base 52 passos PASS). Gestão visual de donos e lista de tenants → P3.
+**Pendências:** ~~validar E2E local · commit/push · release Hosting~~ ✅ concluídas (commits `00ef1e6`→`ea70b8a`, deployado). Restam: teste manual do usuário (owner + tenant) e revalidar seção 13 contra produção com `token-owner.txt` VÁLIDO (nas rodadas locais os 6 FAIL são só o token do owner expirado — base 80 passos PASS, 93/6 no total). Gestão visual de donos e lista de tenants → P3.
 E-mail automático de convite → P3 (hoje o link é enviado manualmente pelo owner).
 
 ---
@@ -68,8 +68,7 @@ Implementado, validado e publicado em 2026-08-24 (commit `00ef1e6`).
 | Flag global `onboarding_aberto` | Doc top-level `sistema/global`, campo `onboardingAberto` (ausente = aberto). Gate no `criar_primeiro` → 403 quando fechado |
 | Endpoints do sistema | `GET/PUT /api/sistema/onboarding-aberto` (PUT só admin) |
 | Frontend | Toggle "Auto-cadastro aberto" na ConfiguracoesPage, visível só para admin |
-| Backup diário | Task Scheduler **12:00** ("PDV-Backup-Firestore") → `scripts\backup-diario.ps1` → `npm run backup`; retenção dos 14 mais recentes; log em `backups\agendamento.log`; dumps dentro do OneDrive (cópia fora da máquina grátis) |
-| Restore | `scripts/restaurar-backup.ts` (`npm run restaurar`) — dry-run é o padrão, `--exec` grava, pula coleção `onboarding` sem `--com-onboarding` |
+
 
 **Validação:** pytest 23/23 · E2E local 50 PASS / 0 FAIL (52 definidos, 2 condicionais de
 caixa pulados por já haver sessão aberta — por design) · tsc limpo.
@@ -146,6 +145,20 @@ Impacto imediato na operação diária do caixa.
   `sistema/global.donoUids[]`.
 
 ## Registro de correções recentes
+
+- **2026-09-26 — Snapshot como fonte (economia de leituras)**: frontend lê via
+  `onSnapshot` filtrado por tela (`hooks/useFirestore.ts`), zero `refetchInterval`;
+  escritas seguem na API; banner de tempo-real + persistência local; `useRealtime` e
+  `useAlertasEstoque` removidos. Leituras estimadas ~10k/dia (antes: milhões).
+- **2026-09-26 — Atendente-only + `precisaPreparar`**: pedido público pelo QR
+  desligado (410, cardápio vira somente-leitura); produto sem preparo nasce
+  `entregue` (fora da fila do KDS) com baixa de estoque na criação; checkbox no
+  form + badge na lista. E2E §4c vira assert 410, §6c cobre o fluxo.
+- **2026-09-26 — Agregados dia/mês**: vendas e despesas somadas via `Increment`
+  na escrita; `GET /relatorios/agregado`; self-check §11b (delta exato + estorno);
+  sem backfill. Limpeza do histórico via `npm run limpar-historico-vendas`.
+- **2026-09-26 — Backup automático removido** do projeto (workflow, scripts,
+  pasta `backups/`); keep-alive passa a cron-job.org 06–20h BRT (UptimeRobot pausado).
 
 - **2026-08-25** — fix caixa "Invalid Date": `abrir()` agora grava `abertoEm` na sessão
   (`caixa_service.py`); frontend usa fallback `abertoEm ?? criadoEm`. Commit `a047dec`,

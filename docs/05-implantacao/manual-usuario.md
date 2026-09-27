@@ -42,7 +42,7 @@ A tela inicial (**Caixa**) mostra todas as mesas e o resumo do caixa aberto.
 
 ## 3. Cozinha (KDS)
 
-Tela escura com 3 colunas: **⏳ Pendente · 🔥 Em preparo · 🔔 Pronto**. Atualiza sozinha (~8s).
+Tela escura com 3 colunas: **⏳ Pendente · 🔥 Em preparo · 🔔 Pronto**. Atualiza sozinha em tempo real (só itens que precisam de preparo aparecem).
 - **Iniciar preparo** → move para preparo *(e baixa os ingredientes da receita do estoque, se configurado)*.
 - **Marcar pronto** → move para pronto.
 - **Entregar** → finaliza o item.

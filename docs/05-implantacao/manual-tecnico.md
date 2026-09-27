@@ -60,7 +60,7 @@ backend/app
  models/models.py   # CamelModel (alias camelCase)
 frontend/src
  lib/api.ts         # fetch + Bearer getIdToken() + ApiError(status)
- hooks/useRealtime  # onSnapshot → invalidateQueries (degrada p/ polling)
+  hooks/useFirestore  # 13 hooks onSnapshot filtrados por tela = fonte dos dados (zero polling)
  context/*          # AuthContext (/auth/me), ThemeContext (tema por uid)
 ```
 
@@ -69,7 +69,7 @@ frontend/src
 Estrutura e dicionário completos em `../02-modelagem/esquema-logico-banco-dados.md`. Pontos técnicos:
 
 - Leitura sempre via `doc_to_dict` (normaliza createdAt→criadoEm etc.).
-- `list_items` carrega a coleção e ordena em memória — sem índices compostos; revisar quando uma coleção passar de ~poucos milhares de docs.
+- `list_items` carrega a coleção e ordena em memória — sem índices compostos; telas quentes usam filtros server-side de campo único (`status==aberto`, janelas de data, `limit`); `list_items_window` para janelas.
 - Queries transacionais usadas: `sessoes_caixa where status==aberto`.
 - Limpeza de campo: **DELETE_FIELD explícito** (stamp_update descarta None).
 
@@ -83,10 +83,10 @@ Estrutura e dicionário completos em `../02-modelagem/esquema-logico-banco-dados
 ## 7. Testes
 
 ```powershell
-# unitários (23; CI roda via backend/requirements-dev.txt)
+# unitários (35; CI roda via backend/requirements-dev.txt)
 backend\.venv\Scripts\python -m pytest tests -q
 
-# suíte E2E de API (52 passos base + 13 de onboarding condicionais) — versionada em scripts/e2e/, alvo padrão = produção
+# suíte E2E de API (80 passos base + 13 de onboarding condicionais) — versionada em scripts/e2e/, alvo padrão = produção
 cd scripts\e2e
 node get-token.js        # expira em 1h — refazer se der 401
 powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1
@@ -114,14 +114,14 @@ Fluxo validado ponta a ponta: categoria/produto QA → pedido em mesa livre → 
 | **Erro 500 que chega ao browser como falha de CORS** | exceção não tratada passa fora do CORSMiddleware | middleware interno `_Erros500Json` devolve 500 JSON dentro da pilha (bug 9) |
 | "+ Adicionar itens" dá 409 silencioso / botão morto | tela usava cache react-query de estado volável; mutation sem onError | revalidar no servidor dentro do `mutationFn` + onError visível (bug 11) |
 | Caixa mostra "desde Invalid Date" | sessão antiga sem campo `abertoEm` | corrigido (2026-08-25): backend grava `abertoEm`; frontend usa fallback `criadoEm` |
-| onSnapshot warning no console | rules não publicadas | `firebase deploy --only firestore:rules` (app segue por polling) |
+| onSnapshot warning no console + banner vermelho | rules não publicadas | `firebase deploy --only firestore:rules` (leituras caem no cache; escritas falham) |
 | PowerShell: filtro sobre array devolve array | pipar Invoke-RestMethod direto em Where-Object | atribuir a variável antes: `$l = Invoke-...; @($l | Where ...)[0]` |
 | ConvertTo-Json desmonta array de 1 | comportamento PS 5.1 | `ConvertTo-Json -InputObject $array` |
 
 ## 9. Operação e manutenção básica
 
-- **Produção**: app https://pdv-lanchonete-1fa79.web.app · API https://pdv-lanchonete-dwiw.onrender.com (free tier: dorme após ~15 min; UptimeRobot pinga `/health` a cada 10 min). Release frontend: build com `VITE_API_URL` + `firebase deploy --only hosting`. Push em `master` → CI + auto-deploy da API.
-- **Backup**: automático diário 03:30 (Brasília) via GitHub Actions → JSON completo commitado em `backups/`. Manual local: `cd scripts && npm run backup`.
+- **Produção**: app https://pdv-lanchonete-1fa79.web.app · API https://pdv-lanchonete-dwiw.onrender.com (free tier: dorme após ~15 min; cron-job.org mantém aquecido 06–20h BRT). Release frontend: build com `VITE_API_URL` + `firebase deploy --only hosting`. Push em `master` → CI + auto-deploy da API.
+
 - **Sentry (opcional)**: criar projeto FastAPI no sentry.io → env `SENTRY_DSN` na Render → redeploy. Inativo sem DSN.
 - Reset total do banco demo: `scripts/delete-all-collections.ts` (**destrutivo**).
 - Reinício limpo do backend local: parar PID de `backend/server.pid`, subir novamente.

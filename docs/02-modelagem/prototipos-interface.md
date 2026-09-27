@@ -127,7 +127,7 @@ Wireframes textuais fiéis às telas implementadas (`frontend/src/pages`). Ident
 │ │ [Iniciar preparo]  │  │ [Marcar pronto]    │           │
 │ └────────────────────┘  └────────────────────┘           │
 └─────────────────────────────────────────────────────────┘
-  tema escuro fixo; auto-refresh ~8s; 🖨 imprime comanda;
+  tema escuro fixo; tempo real (snapshot filtrado); 🖨 imprime comanda;
   botão avança TODOS os itens selecionados em 1 chamada (bulk)
 ```
 
@@ -263,17 +263,11 @@ Formulário:
 │ ┌─────────────────────────┐ │
 │ │[🖼] X-Burger  a partir  │ │
 │ │              de R$22,00 │ │ ← "a partir de" quando há variações;
-│ │ descrição curta  [+ Add]│ │   foto pública do produto (temImagem)
+│ │ descrição curta         │ │   foto pública do produto (temImagem)
 │ └─────────────────────────┘ │
-│ ┌ Carrinho (2 itens) R$28 ┐ │
-│ │ 1x X-Burger  − 1 +      │ │
-│ │ obs: sem cebola         │ │
-│ │ [Enviar pedido à cozinha]│ │
-│ └─────────────────────────┘ │
-│  ✔ Pedido enviado! Nº abc123│
+│ Chame o atendente para pedir│
 └─────────────────────────────┘
-  sem login; rate limit 12/min/IP; clicar no produto abre
-  modal de customização (variação + retirar/adicionar + obs)
+  somente leitura, sem login; pedidos pelo QR desativados (410)
 ```
 
 ## 16. Plataforma (console do dono)
@@ -283,7 +277,7 @@ Formulário:
 │ [Gerar convite]                                        │
 │ Link copiável: …/select-restaurant?t=Ab3xY…  [copiar]  │
 │ ─ Convites ─                                           │
-│ Ab3xY… · ativa · expira 30/08      [revogar]           │
+│ Ab3xY… · ativa · expira 30/08   [📋 link] [revogar]  │
 │ K9mPq… · usada por rest_7f2c · 25/08                   │
 │ R2vLt… · expirada                                      │
 └────────────────────────────────────────────────────────┘

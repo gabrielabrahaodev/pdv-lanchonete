@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? 'AIzaSyDqzQ8D8e8wDM8wgw57l_1SZDzZjNdy3Y4',
@@ -11,4 +11,9 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
-export const db = getFirestore(app)
+// Cache local persistente: reaberturas saem do disco (de graça), só
+// documentos novos/alterados pagam leitura. Sem isso, cada reload
+// recobra o retrato inicial inteiro.
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+})

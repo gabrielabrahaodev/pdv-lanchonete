@@ -46,8 +46,8 @@ flowchart LR
     FH["Firebase Hosting<br/>pdv-lanchonete-1fa79.web.app<br/>SPA estática + PWA (sem rewrite /api)"]
     RN["Render free tier<br/>pdv-lanchonete-dwiw.onrender.com<br/>uvicorn FastAPI<br/>env FIREBASE_SERVICE_ACCOUNT_JSON + CORS_ORIGINS"]
 
-    GHA["GitHub Actions<br/>ci.yml: pytest+tsc+build a cada push/PR<br/>backup.yml: export diário 03:30 BRT → backups/"]
-    MON["UptimeRobot<br/>HEAD /health a cada 10 min"]
+    GHA["GitHub Actions<br/>ci.yml: pytest+tsc+build a cada push/PR"]
+    MON["cron-job.org<br/>GET /health 06–20h BRT"]
     GH["Repo GitHub privado<br/>push em master → auto-deploy Render"]
 
     AUTH2[("Firebase Auth")]
@@ -106,12 +106,12 @@ flowchart LR
 | Celular cliente | Rota pública `/m/:restaurantId/:mesaId` | Sem auth; rate limit ativo no backend; cardápio digital habilitado nas configurações |
 | Impressora térmica | ESC/POS Bluetooth LE | Emparelhada com o SO do dispositivo que imprime; service UUID `18f0`; fallback janela print quando indisponível |
 | Firebase | Auth + Firestore + Hosting | Usuários com claims `{restaurantId, papel}`; **regras publicadas**; Authorized Domains com `pdv-lanchonete-1fa79.web.app` |
-| CI/CD e monitoramento | GitHub Actions + UptimeRobot | `ci.yml` (pytest+tsc+build), `backup.yml` (backup diário em `backups/`), monitor HEAD `/health` 10 min |
+| CI/CD e monitoramento | GitHub Actions + cron-job.org | `ci.yml` (pytest+tsc+build), keep-alive GET `/health` 06–20h BRT |
 
 ### Considerações
 
 - **Sem estado no backend** — toda persistência é Firestore; a API pode escalar horizontalmente sem sessão local.
 - **TLS** — Web Bluetooth e Service Worker exigem contexto seguro (HTTPS ou localhost).
 - **Custo** — plano Spark suporta o piloto; limites de leitura/escrita diários devem ser monitorados antes de escalar.
-- **Backup/DR** — ATIVO: export diário automático via `backup.yml` commitado em `backups/`.
+
 - **Smoke pós-deploy** — `/health` é estático: sondar também um endpoint que LEIA Firestore (ex.: cardápio público).

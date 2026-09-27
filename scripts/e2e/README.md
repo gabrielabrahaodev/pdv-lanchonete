@@ -18,7 +18,7 @@ cd scripts\e2e
 # 1. Token (expira em 1h — gere de novo se começar a dar 401 "Token inválido ou expirado")
 node get-token.js
 
-# 2. Suíte completa da API (52 passos base + 13 de onboarding condicionais) — padrão: produção (Render)
+# 2. Suíte completa da API (80 passos base + 13 de onboarding condicionais) — padrão: produção (Render)
 powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1
 
 # Contra o backend local:
@@ -31,8 +31,10 @@ node e2e_test.js
 ## O que a suíte cobre
 
 auth (401/me) · CRUD categorias/produtos (com guard 409 de categoria em uso) · imagem do produto
-(PUT + rota pública de bytes) · mesas · cardápio público com variação+observações (pedido SEM token) ·
-pedido→cozinha bulk com baixa agregada de estoque (regressão do bug 10) · pagamento pix minimalista quita pedido e libera mesa ·
+ (PUT + rota pública de bytes) · mesas · cardápio público somente-leitura (pedido SEM token → 410) ·
+pedido→cozinha bulk com baixa agregada de estoque (regressão do bug 10) · produto sem
+preparo nasce `entregue`, fora da fila, com baixa na criação · pedido público pelo QR
+desligado (410, QR só leitura) · pagamento pix minimalista quita pedido e libera mesa ·
 caixa (abrir/suprimento/sangria/fechar, condicionais se já houver sessão aberta) ·
 estoque (item/movimentação/lista/delete) · delivery (criar/confirmar/listar/cancelar + 422 plataforma inválida) ·
 relatório resumo **incluindo a venda recém-criada** · configurações ·
@@ -82,6 +84,6 @@ npm run promover-dono -- remover --uid <uid> --exec
 
 ## Estado atual
 
-- Suíte atual: **73 passos** na base + **13 passos** de onboarding (seção 13, condicional ao `token-owner.txt`) = 86 no máximo
-- Backend local (2026-08-25): **59 PASS / 6 FAIL** — os 6 falhas foram todos na seção 13 por `token-owner.txt` EXPIRADO (>1h); a base 52/52 PASS. Com owner token válido a seção 13 roda completa
+- Suíte atual: **80 passos** na base + **13 passos** de onboarding (seção 13, condicional ao `token-owner.txt`) = 93 no máximo
+- Backend local (2026-09-26): **93 PASS / 6 FAIL** — os 6 falhas foram todos na seção 13 por `token-owner.txt` EXPIRADO (>1h). Com owner token válido a seção 13 roda completa
 - Produção (Render): 51/51 PASS (2026-08-24, antes da seção onboarding); fix do caixa `abertoEm` revalidado em produção em 2026-08-25

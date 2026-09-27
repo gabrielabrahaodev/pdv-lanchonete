@@ -5,7 +5,7 @@ Rastreia cada requisito até sua origem (caso de uso/regra de negócio), impleme
 Legenda:
 - **UC** = Caso de Uso (`especificacao-casos-de-uso.md`) · **RN** = Regra de Negócio (`documento-regras-negocio.md`)
 - **Impl.** = arquivos principais no repositório
-- **Teste** = `pytest` (backend/tests), `E2E-API` (suíte api_test.ps1 — 52 passos base + 13 onboarding condicionais), `MAN` (teste manual/homologação)
+- **Teste** = `pytest` (backend/tests), `E2E-API` (suíte api_test.ps1 — 80 passos base + 13 onboarding condicionais), `MAN` (teste manual/homologação)
 
 ## 1. Requisitos Funcionais
 
@@ -34,7 +34,7 @@ Legenda:
 | RF-042 | Crédito no caixa + libera mesa na quitação | UC-07, RN-12 | `PagamentoPage` navegação / `_credit_sessao`, `mesas.liberar` | E2E fluxo completo |
 | RF-043 | Sessões de caixa (abrir/supr./sangria/fechar) | UC-08, RN-13 | `FechamentoCaixaPage.tsx` / `caixa_service` | E2E-API §caixa |
 | RF-050/051 | KDS fila + status item | UC-05 | `CozinhaPage.tsx` / `cozinha_service`, `routers/cozinha` | E2E-API §cozinha |
-| RF-060..062 | Estoque itens/movimentações/alertas | UC-10, RN-14/15 | `EstoquePage.tsx`, `useAlertasEstoque` / `estoque_service` | E2E-API §estoque |
+| RF-060..062 | Estoque itens/movimentações/alertas | UC-10, RN-14/15 | `EstoquePage.tsx`, badge via `useEstoque` / `estoque_service` | E2E-API §estoque |
 | RF-070/071 | Delivery criar + máquina de estados | UC-14, RN-16 | `DeliveryPage.tsx` / `delivery_service.TRANSICOES` | E2E-API §delivery; MAN M4 (uber→422) |
 | RF-080..082 | Fornecedores/despesas/pagar-reabrir | UC-11, RN-17/19 | `FinanceiroPage.tsx` / `despesas_service`, `fornecedores_service` | E2E-API §financeiro |
 | RF-090 | Relatório resumo vendas | UC-12, RN-22 | `RelatoriosPage.tsx` / `relatorios_service.resumo` | E2E-API §relatórios |
@@ -43,7 +43,7 @@ Legenda:
 | RF-100..102 | Cardápio digital público + rate limit | UC-13, RN-20/21 | `CardapioPage.tsx`, `apiPublico.ts` / `routers/publico.py` | MAN (QR + pedido); E2E público |
 | RF-110 | SPA áreas completas | todos | `App.tsx`, `AppLayout.tsx`, `pages/*` | MAN homologação |
 | RF-111 | Tema escuro por usuário (classe dark) | RN-24 | `ThemeContext.tsx`, `index.css` (@custom-variant) | MAN |
-| RF-112 | Realtime onSnapshot invalida react-query | RNF-007 | `useRealtime.ts` | MAN (warning sem rules) |
+| RF-112 | Realtime onSnapshot como fonte | RNF-007 | `useFirestore.ts` (13 hooks) | MAN (banner sem rules) |
 | RF-113 | Impressão ESC/POS BT + fallback | UC-05/06/15 | `impressora.ts`, KDS/Pagamento/Configurações | MAN (comanda/recibo/teste) |
 | RF-114 | Exportação CSV pt-BR | UC-10/11/12 | `csv.ts` + botões nas páginas | MAN |
 | RF-115 | PWA + cache NetworkFirst /api GET | RNF-011 | `vite.config.ts` (VitePWA), `public/icons` | MAN build+preview |
@@ -58,7 +58,7 @@ Legenda:
 | RNF-004 | Transações em pontos críticos | `@transactional` em pedidos/caixa/estoque/onboarding | E2E (409 corrida mesa/caixa) |
 | RNF-005 | Idempotência da baixa (`baixadoEm`) | `pedidos_service.atualizar_status_item` | MAN retry |
 | RNF-006 | UI responsiva/padrões de estado | `components/ui/index.tsx`, Tailwind | MAN |
-| RNF-007 | Performance polling/cache | `refetchInterval` 8–30s; `staleTime` produtos | MAN |
+| RNF-007 | Performance quota/leituras | Snapshot filtrado por tela como fonte, zero polling; pago/fechado só em sessão e relatórios | E2E-API; MAN |
 | RNF-008 | Portabilidade | FastAPI + build estático Vite | Build/preview |
 | RNF-009 | Localização BRL/pt-BR/fuso | `format.ts`, `settings.timezone`, tzdata | pytest indireto; E2E |
 | RNF-010 | Testabilidade (lógica pura) | `services/calculos.py` + `tests/` | **pytest 23/23** |
@@ -83,4 +83,4 @@ Legenda:
 | Configurações PUT | RF-092 |
 | Onboarding por convite (seção 13, condicional ao token-owner) | RF-004/005/005a, RN-03/25 |
 
-Verificação contínua: CI `.github/workflows/ci.yml` (pytest+tsc+build a cada push/PR); backup diário `.github/workflows/backup.yml`.
+Verificação contínua: CI `.github/workflows/ci.yml` (pytest+tsc+build a cada push/PR).

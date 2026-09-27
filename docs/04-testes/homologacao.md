@@ -64,7 +64,7 @@ Confirmar, sob a ótica do negócio, que os fluxos operacionais diários funcion
 
 ## 6. Pendências conhecidas NÃO bloqueantes para aceite
 
-1. `firestore.rules` ainda não publicadas → tempo real via onSnapshot desativado (polling ativo). Publicar antes do go-live multi-dispositivo.
+1. `firestore.rules` ainda não publicadas → banner vermelho de tempo real (sem ele as telas não atualizam sozinhas). Publicar antes do go-live multi-dispositivo.
 2. Deploy em produção (Render/Firebase Hosting) pendente — homologação pode ocorrer em ambiente local controlado.
 3. Integração automática iFood/Goomer fora de escopo desta fase (registro manual).
 

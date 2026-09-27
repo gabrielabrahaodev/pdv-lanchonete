@@ -7,7 +7,7 @@ Reimplementação do PDV com **TypeScript + Tailwind** no frontend, **Python (Fa
 | Camada | Tecnologia |
 |--------|------------|
 | Frontend | Vite + React 18 + TypeScript + Tailwind CSS 4 |
-| Dados/Estado | TanStack Query (polling conservador p/ plano Spark) |
+| Dados/Estado | Snapshot do Firestore como fonte (hooks `useFirestore`, sem polling) + TanStack Query p/ escritas e telas frias |
 | Backend | FastAPI + firebase-admin (acesso exclusivo ao Firestore) |
 | Auth | Firebase Auth (client) + verificação de ID token no backend |
 | Banco | Firestore — `restaurantes/{restaurantId}/data/{colecao}/items/{id}` |
@@ -38,7 +38,7 @@ python/
 
 - **API**: push em `master` dispara auto-deploy na Render. Credenciais via env `FIREBASE_SERVICE_ACCOUNT_JSON` + `CORS_ORIGINS`.
 - **Frontend**: rebuild obrigatório com a URL da API embutida (`VITE_API_URL`) → `firebase deploy --only hosting`. Passo a passo completo no `DEPLOY.md`.
-- A instância da Render dorme após ~15 min sem tráfego (cold start ~30–60s); UptimeRobot mantém `/health` pingado.
+- A instância da Render dorme após ~15 min sem tráfego (cold start ~30–60s); cron-job.org mantém `/health` aquecido só no horário comercial (06–20h BRT), com pre-warm 05:50/05:55.
 
 ## Como rodar
 
@@ -76,7 +76,7 @@ npx ts-node delete-all-collections.ts   # limpar tudo
 
 ## Módulos
 
-Login · Seleção de Restaurante / Onboarding por convite · Caixa (mesas/pedidos/pagamentos) · Produtos & Categorias (com foto) · Mesas (QR code por mesa) · Estoque/Inventário (receitas + baixa automática) · KDS Cozinha (cartão por mesa, bulk) · Delivery · Financeiro (fornecedores/despesas/DRE) · Relatórios & Fechamento de Caixa · Cardápio digital por QR Code · Impressão térmica ESC/POS · Configurações · Plataforma (convites — donos)
+Login · Seleção de Restaurante / Onboarding por convite · Caixa (mesas/pedidos/pagamentos) · Produtos & Categorias (com foto, flag `precisaPreparar`) · Mesas (QR code por mesa) · Estoque/Inventário (receitas + baixa automática) · KDS Cozinha (cartão por mesa, bulk, só itens com preparo) · Delivery · Financeiro (fornecedores/despesas/DRE + agregados dia/mês) · Relatórios & Fechamento de Caixa · Cardápio digital por QR Code (somente leitura — pedidos só pelo atendente) · Impressão térmica ESC/POS · Configurações · Plataforma (convites — donos)
 
 ## Papéis (custom claims)
 
@@ -85,14 +85,13 @@ Login · Seleção de Restaurante / Onboarding por convite · Caixa (mesas/pedid
 ## Testes & CI
 
 ```powershell
-# Unitários (lógica pura)
-cd backend && .venv\Scripts\python -m pytest tests -q
+# Unitários (backend/tests: lógica pura + validação de modelos)
+cd backend && .venv\Scripts\python -m pytest tests -q   # 35 passed
 
-# Suíte E2E da API (padrão: produção; -Base http://127.0.0.1:8000 para local)
+# Suíte E2E da API — 80 passos base + 13 de onboarding (padrão: produção; -Base http://127.0.0.1:8000 para local)
 cd scripts\e2e && powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1
 ```
 
 - CI: `.github/workflows/ci.yml` — pytest + tsc + build em todo push/PR.
-- Backup diário do Firestore: `.github/workflows/backup.yml` commita em `backups/`.
 - Regra de fluxo: **validar em localhost antes de qualquer deploy**.
 - O dev server do frontend NÃO registra service worker — testar PWA com `npm run build && npm run preview`.

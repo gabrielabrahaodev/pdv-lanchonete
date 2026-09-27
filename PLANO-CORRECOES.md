@@ -26,7 +26,7 @@ Sistema completo e validado localmente:
    - Banco/Auth → Firestore/Firebase Auth (Spark, quotas grátis suficientes)
 2. **Cloud Run DESCARTADO**: exige billing/cartão ativo mesmo no free tier (política GCP).
 3. **Sem rewrite `/api/*`** (era recurso do plano Blaze): frontend chama a API por URL direta via `VITE_API_URL` + CORS liberado.
-4. **Tradeoff aceito**: Render free **dorme após 15 min** sem tráfego (~30–60s para acordar). Mitigações grátis documentadas: abrir o PDV antes de abrir a loja, ou ping agendado (UptimeRobot free a cada 10 min).
+4. **Tradeoff aceito**: Render free **dorme após 15 min** sem tráfego (~30–60s para acordar). Mitigações grátis documentadas: abrir o PDV antes de abrir a loja, ou ping agendado (cron-job.org 06–20h BRT com pre-warm).
 
 ## ARQUIVOS A CRIAR/MODIFICAR (o trabalho desta sessão)
 
@@ -109,13 +109,13 @@ services:
 - **CORS**: valor exato `https://<projeto>.web.app` (com https, sem barra final); erro típico = "CORS policy" no console do navegador
 - **Vite**: `VITE_*` é embutido NO BUILD, não é runtime — rebuild sempre que mudar
 - **sw.js sem no-cache**: PWA para de receber atualizações (por isso os headers no firebase.json)
-- **Render sleep**: primeira chamada lenta ~30–60s; UptimeRobot free pingando `/health` a cada 10 min resolve
+- **Render sleep**: primeira chamada lenta ~30–60s; cron-job.org 06–20h BRT com pre-warm resolve
 - **Quotas Firestore Spark**: 50k leituras/20k escritas por dia — listeners onSnapshot contam leituras; monitorar uso no Console se o movimento for alto
 - PowerShell 5.1: `$env:VAR='x'; npm run build` funciona; não usar `set VAR=x`
 
 ## BASELINE PARA REGRESSÃO PÓS-DEPLOY
 
-- `cd backend && .venv\Scripts\python -m pytest tests -q` → 23 passed
+- `cd backend && .venv\Scripts\python -m pytest tests -q` → 35 passed
 - `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\e2e\api_test.ps1` → suíte versionada em `scripts/e2e/` (token expira em 1h: `node get-token.js` antes)
 - `cd frontend && npx tsc --noEmit` → exit 0
 

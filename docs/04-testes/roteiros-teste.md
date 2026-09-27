@@ -62,7 +62,7 @@ Com impressora Bluetooth pareada: KDS 🖨 (comanda), pagamento quitado (recibo)
 
 ## Roteiro R-07 — PWA/offline
 
-`npm run build && npm run preview` → instalar pelo ícone do navegador → navegar por telas já visitadas → modo avião: leituras servidas do cache; escrita exibe erro claro; voltar a online retoma polling.
+`npm run build && npm run preview` → instalar pelo ícone do navegador → navegar por telas já visitadas → modo avião: leituras servidas do cache; escrita exibe erro claro; voltar a online retoma snapshot (banner some).
 
 ## Evidências e rastreabilidade
 

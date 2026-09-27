@@ -11,7 +11,7 @@ Manter o sistema operacional, seguro e evoluindo: correção de defeitos, atuali
 | **Corretiva** | bug em quitação de pagamento; mesa travada ocupada; 404 após deploy |
 | **Adaptativa** | mudança de versão do SDK firebase-admin/Firestore; nova política do Firebase; mudança de fuso/legislação |
 | **Perfectiva** | novos filtros no relatório; impressão de cupom não fiscal; paginação de coleções grandes |
-| **Preventiva** | backup/restauro testado; rotação da service account; revisão de quotas Spark; limpeza de pedidos antigos |
+| **Preventiva** | rotação da service account; revisão de quotas Spark; limpeza de pedidos antigos |
 
 ## 3. Níveis de suporte e SLA
 
@@ -28,7 +28,7 @@ Severidades (herdadas do plano de testes): **S1** operação parada/perda financ
 | Rotina | Frequência | Procedimento |
 |---|---|---|
 | Verificação `/health` + login | diária (abertura) | checklist de abertura da loja |
-| Backup Firestore | **diária (automática)** — GitHub Actions `backup.yml` 03:30 BRT commitando em `backups/` (+ agendamento local 12:00, retenção 14) | restaurar em projeto de teste a cada mês |
+
 | Revisão de fechamentos | semanal | diferenças de caixa explicadas; relatório × caixa |
 | Atualização de dependências | mensal / janela controlada | stack GCP/Firebase só com **pin exato** e E2E contra produção logo depois (bug 12); demais: `pip list --outdated`, `npm outdated` com regressão R-01 |
 | Rotação de segredos | trimestral ou sob suspeita | nova service account no GCP → atualizar `.env`/Render → revogar antiga |
@@ -72,16 +72,16 @@ Admin/Gerente → Configurações → Usuários → editar usuário → nova sen
 | Disponibilidade do backend (horário de funcionamento) | ≥ 99,5% |
 | Erros 5xx por dia | 0 (investigar qualquer ocorrência) |
 | Diferenças de caixa inexplicadas | 0 por semana |
-| Tempo de resposta das telas principais | < 1s percebido (cache/polling) |
+| Tempo de resposta das telas principais | < 1s percebido (snapshot como fonte) |
 | Defeitos S1/S2 abertos | 0 / ≤ 2 |
 
-Ferramentas atuais: logs locais do uvicorn · **UptimeRobot ativo** (HEAD `/health` a cada 10 min — lembrete: `/health` é estático, não prova leitura de Firestore) · Sentry opcional via `SENTRY_DSN` · alertas de quota Firebase no console.
+Ferramentas atuais: logs locais do uvicorn · **cron-job.org ativo** (GET `/health` 06–20h BRT + pre-warm — lembrete: `/health` é estático, não prova leitura de Firestore) · Sentry opcional via `SENTRY_DSN` · alertas de quota Firebase no console.
 
 ## 8. Evolução prevista (roadmap de manutenção)
 
 1. ~~Publicação das rules + onSnapshot ativo~~ ✅ (2026-08-23)
 2. ~~Deploy produção (Render + Firebase Hosting) com TLS~~ ✅ (2026-08-23)
-3. ~~CI (GitHub Actions): pytest + build a cada push~~ ✅ (`ci.yml`; + backup diário `backup.yml`)
+3. ~~CI (GitHub Actions): pytest + build a cada push~~ ✅ (`ci.yml`)
 4. Webhook iFood/Goomer (delivery automático).
 5. Fila offline de escritas do PWA (background sync).
 6. Paginação/índices quando coleções passarem de ~5 mil docs.
@@ -91,5 +91,5 @@ Ferramentas atuais: logs locais do uvicorn · **UptimeRobot ativo** (HEAD `/heal
 | Papel | Manutenção |
 |---|---|
 | Dono/Gerente | N1, validar regras de negócio novas, aprovar evoluções |
-| Suporte designado | N2, POPs, backups |
+| Suporte designado | N2, POPs |
 | Desenvolvedor | N3, releases, segurança, roadmap |

@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { api } from '../../lib/api'
+import { useDeliveryAtivos, useDeliveryHistorico, useProdutos } from '../../hooks/useFirestore'
+import { useAuth } from '../../context/AuthContext'
 import type { DeliveryOrder } from '../../types'
 import { Badge, Button, Card, EmptyState, ErrorState, Field, Input, LoadingScreen, Modal } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
@@ -16,24 +18,27 @@ const FLUXO: Record<DeliveryOrder['status'], { proximo?: DeliveryOrder['status']
 }
 
 export default function DeliveryPage() {
-  const qc = useQueryClient()
   const [novoAberto, setNovoAberto] = useState(false)
+  const { me } = useAuth()
+  const rid = me?.restaurantId
 
-  const pedidos = useQuery({
-    queryKey: ['delivery'],
-    queryFn: () => api<DeliveryOrder[]>('/delivery/pedidos'),
-    refetchInterval: 15_000,
-  })
+  const ativosQ = useDeliveryAtivos(rid)
+  const historicoQ = useDeliveryHistorico(rid)
+
+  const pedidos = {
+    isLoading: ativosQ.isLoading || historicoQ.isLoading,
+    isError: ativosQ.isError || historicoQ.isError,
+    error: ativosQ.error ?? historicoQ.error,
+    data: [...(ativosQ.data ?? []), ...(historicoQ.data ?? [])],
+  }
 
   const mudarStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       api(`/delivery/pedidos/${id}/status`, { method: 'PATCH', body: { status } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['delivery'] }),
   })
 
   const cancelar = useMutation({
     mutationFn: (id: string) => api(`/delivery/pedidos/${id}/status`, { method: 'PATCH', body: { status: 'cancelled' } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['delivery'] }),
   })
 
   if (pedidos.isLoading) return <LoadingScreen />
@@ -122,15 +127,11 @@ export default function DeliveryPage() {
 }
 
 function NovoDeliveryModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const qc = useQueryClient()
+  const { me } = useAuth()
   const [form, setForm] = useState({ clienteNome: '', clienteTelefone: '', clienteEndereco: '' })
   const [itens, setItens] = useState<{ produtoId: string; qtd: number }[]>([])
 
-  const produtos = useQuery({
-    queryKey: ['produtos', 'ativos'],
-    queryFn: () => api<{ id: string; nome: string; preco: number }[]>('/produtos?apenas_ativos=true'),
-    enabled: open,
-  })
+  const produtos = useProdutos(open ? me?.restaurantId : null)
 
   const criar = useMutation({
     mutationFn: () =>
@@ -145,7 +146,6 @@ function NovoDeliveryModal({ open, onClose }: { open: boolean; onClose: () => vo
         },
       }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['delivery'] })
       setForm({ clienteNome: '', clienteTelefone: '', clienteEndereco: '' })
       setItens([])
       onClose()

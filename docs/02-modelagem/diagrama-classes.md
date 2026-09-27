@@ -55,6 +55,7 @@ classDiagram
         +preco: float
         +ativo: bool
         +estoqueMinimo: int
+        +precisaPreparar: bool = true
         +temImagem: bool
         +imagemUrl: str?
     }

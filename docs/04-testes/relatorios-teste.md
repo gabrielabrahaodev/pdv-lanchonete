@@ -15,7 +15,7 @@ Consolidação das execuções de teste realizadas. Fontes: saída do pytest, su
 | Fluxo ponta a ponta Firestore real (`e2e_test.js`) | 2026-08-22 · 2026-08-23 | login, leituras, pedido+mesa em batch, cleanup OK | ✅ Aprovado |
 | Cardápio digital + onboarding + tema (manual) | sessão parte 3 | comportamentos validados | ✅ Aprovados |
 | CI GitHub Actions (pytest + tsc + build) | desde 2026-08-24 | verde em todo push/PR | ✅ Ativa |
-| Backup Firestore via Actions | 2026-08-24 | export JSON completo commitado em `backups/` | ✅ Ativa |
+
 
 **Conclusão:** sistema em produção validado de ponta a ponta. Suíte E2E agora **versionada em `scripts/e2e/`** (antes vivia em pasta temporária).
 
@@ -77,7 +77,10 @@ Estado final: **34/34 PASS**, ambiente limpo (cleanup automático dos recursos `
 | D-4 | Corridas em mesa/caixa/estoque | S2 | `@transactional` nos services | CT-001/002 |
 | D-5 | Baixa de estoque poderia duplicar em retry | S2 | idempotência `baixadoEm` | CT-007 |
 | D-6 | Campo pydantic `service_account_json` nunca lia a env `FIREBASE_SERVICE_ACCOUNT_JSON` → em produção caía no ADC sem projeto: **401 em toda rota autenticada + 500 nos públicos**, com `/health` ok | **S1** (produção) | campo renomeado para `firebase_service_account_json` (`config.py`) | suíte E2E 35/35 contra a Render |
-| D-7 | `/health` só aceitava GET → monitor UptimeRobot fazia HEAD e recebia 405 ("serviço fora" com tudo saudável) | S3 | `@app.api_route("/health", methods=["GET","HEAD"])` | `curl -I /health` → 200 |
+| D-7 | `/health` só aceitava GET → monitor fazia HEAD e recebia 405 ("serviço fora" com tudo saudável) | S3 | `@app.api_route("/health", methods=["GET","HEAD"])` | `curl -I /health` → 200 |
+| D-8 | Pagamento/produto aceitava valor/preço zero/negativo → pagamento negativo corrompia o total do pedido | S2 | `Field(gt=0)` em `PaymentCreate.valor` e `ProductCreate/Update.preco` | `test_validacao_valores.py` (8 testes) + probes 422 na API |
+| D-9 | Agregados gravados com `set(merge)` e chaves pontilhadas criavam campos literais `"a.b"`; leitura achava mapas vazios | S2 | caminhos com ponto SÓ em `update()` (+ base zerada idempotente no `NotFound`) | §11b self-check (delta exato + estorno) |
+| D-10 | Agregado atualizado DENTRO da transação do pedido → `ReadAfterWriteError` (500) | S1 | agregado pós-commit, fora da transação (bugs.py: só dinheiro na txn) | §6b/§6c (baixa agregada + sem-preparo) |
 
 Nenhum defeito aberto conhecido no escopo entregue.
 
@@ -89,6 +92,6 @@ Lacunas aceitas (planejadas): automação de UI (E2E browser), carga/performance
 ## 7. Execução em produção (2026-08-23/24) — fechamento
 
 A janela sugerida foi executada: rules publicadas · deploy Render + Hosting concluídos ·
-suíte 35/35 contra a API de produção · onSnapshot ativo sem warnings · backup automático
+suíte 35/35 contra a API de produção · onSnapshot ativo sem warnings
 validado ponta a ponta. Pendência restante: homologação física na loja (impressora Bluetooth,
 QR de mesa escaneado de celular real, instalação do PWA).

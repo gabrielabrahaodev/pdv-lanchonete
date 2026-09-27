@@ -9,6 +9,7 @@
     "init:prod": "node dist/init-firestore.js",
     "seed": "ts-node seed-data.ts",
     "limpar-onboarding-qa": "ts-node limpar-onboarding-qa.ts",
+    "limpar-historico-vendas": "ts-node limpar-historico-vendas.ts",
     "promover-dono": "ts-node promover-dono.ts",
     "clean": "rm -rf dist"
   },

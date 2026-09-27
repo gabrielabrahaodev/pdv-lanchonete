@@ -166,7 +166,7 @@ function ConfigForm({ initial }: { initial: ConfigType }) {
             Cardápio digital (QR na mesa)
           </span>
           <span className="mt-0.5 block text-xs text-slate-400">
-            Cliente escaneia o QR, escolhe e envia o pedido sozinho — cai direto no KDS e na conta da mesa.
+            Cliente escaneia o QR e vê o cardápio — pedidos só com o atendente.
           </span>
         </span>
       </label>

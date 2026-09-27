@@ -57,8 +57,8 @@ Plano e material de treinamento para a equipe do restaurante. Formato: sessões 
 
 **Conteúdo:**
 1. Categorias: tela própria (ícone, ordem, ativa/inativa); exclusão bloqueada com produto vinculado.
-2. Produtos: preço-fonte da verdade; variações; foto (upload comprimido); **receita por 1 unidade** (base da baixa automática); inativo não aparece para vender.
-3. Mesas: criar, reservar/inativar, gerar QR do cardápio.
+2. Produtos: preço-fonte da verdade; variações; foto (upload comprimido); **receita por 1 unidade** (base da baixa automática); flag **precisa de preparo** (desmarcado = item já nasce entregue, fora do KDS); inativo não aparece para vender.
+3. Mesas: criar, reservar/inativar, gerar QR do cardápio (somente leitura — pedidos só pelo atendente).
 4. Estoque: entrada (compras), saída, ajuste; mínimo dispara alerta; saldo pode ficar negativo (sistema não trava produção).
 5. Financeiro: fornecedores; despesas por categoria e competência; marcar pago/reabrir; despesa NÃO mexe no caixa.
 6. Relatórios: período, vendas por hora/forma, top produtos, resultado gerencial; exportar CSV.

@@ -38,7 +38,7 @@ flowchart TD
     X --> Y([Fim])
 
     H -. item pendente pode ser removido .-> H
-    Q -. cliente pede pelo QR .-> Z[Cardápio digital adiciona<br/>itens ao pedido ativo]
+    Q -. cliente vê o cardápio pelo QR (somente leitura) .-> Z[Atendente lança<br/>o pedido na mesa]
     Z --> J
 ```
 

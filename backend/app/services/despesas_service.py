@@ -75,11 +75,15 @@ def criar(restaurant_id: str, payload: DespesaCreate) -> dict:
     data = payload.model_dump(by_alias=True)
     data.setdefault("status", "pendente")
     ref.set(stamp_create({**data, "restaurantId": restaurant_id}))
-    return obter(restaurant_id, ref.id)
+    criado = obter(restaurant_id, ref.id)
+    from app.services import agregados_service
+
+    agregados_service.ajustar_despesa(restaurant_id, None, criado)
+    return criado
 
 
 def atualizar(restaurant_id: str, despesa_id: str, payload: DespesaUpdate) -> dict:
-    obter(restaurant_id, despesa_id)
+    anterior = obter(restaurant_id, despesa_id)
     dump = payload.model_dump(by_alias=True)
     reabrir = dump.pop("ativoPago", None)  # True=marca pago agora; False=reabre (limpa pagoEm)
     changes = {k: v for k, v in dump.items() if v is not None}
@@ -93,7 +97,11 @@ def atualizar(restaurant_id: str, despesa_id: str, payload: DespesaUpdate) -> di
         changes["pagoEm"] = DELETE_FIELD
     if changes:
         item_doc(restaurant_id, "despesas", despesa_id).update(stamp_update(changes))
-    return obter(restaurant_id, despesa_id)
+    novo = obter(restaurant_id, despesa_id)
+    from app.services import agregados_service
+
+    agregados_service.ajustar_despesa(restaurant_id, anterior, novo)
+    return novo
 
 
 def marcar_pago(restaurant_id: str, despesa_id: str, payload: DespesaPagar | None) -> dict:
@@ -106,5 +114,8 @@ def marcar_pago(restaurant_id: str, despesa_id: str, payload: DespesaPagar | Non
 
 
 def remover(restaurant_id: str, despesa_id: str) -> None:
-    obter(restaurant_id, despesa_id)
+    anterior = obter(restaurant_id, despesa_id)
     item_doc(restaurant_id, "despesas", despesa_id).delete()
+    from app.services import agregados_service
+
+    agregados_service.ajustar_despesa(restaurant_id, anterior, None)

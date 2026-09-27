@@ -1,10 +1,12 @@
-"""Cardápio digital — endpoints PÚBLICOS (sem token) para o cliente na mesa.
+"""Cardápio digital — endpoints PÚBLICOS (sem token), SOMENTE LEITURA.
+
+Pedido pelo QR foi DESATIVADO (só atendente cria pedido): o POST de pedido
+responde 410 Gone para que QRs impressos exibam mensagem clara.
 
 Segurança: sem autenticação por design (o cliente não tem conta). Mitigações:
 - flag `cardapioDigitalAtivo` nas configurações do restaurante;
 - rate limit simples por IP em memória;
-- preços SEMPRE resolvidos no servidor; mesa valida existência/estado.
-"""
+- preços SEMPRE resolvidos no servidor (no cardápio exibido)."""
 from __future__ import annotations
 
 import time
@@ -12,9 +14,8 @@ from collections import defaultdict, deque
 
 from fastapi import APIRouter, HTTPException, Request, Response
 
-from app.models.models import OrderItemAdd
-from app.services import pedidos_service, produtos_service
-from app.services.base import config_doc, get_item, items_col, list_items
+from app.services import produtos_service
+from app.services.base import config_doc, items_col, list_items
 
 router = APIRouter(prefix="/publico", tags=["cardapio-digital"])
 
@@ -95,50 +96,15 @@ def imagem_produto(restaurant_id: str, produto_id: str) -> Response:
     )
 
 
-@router.post("/{restaurant_id}/mesas/{mesa_id}/pedido", status_code=201)
-def pedir_na_mesa(restaurant_id: str, mesa_id: str, request: Request, body: dict) -> dict:
-    """Cliente envia o pedido pela mesa.
+@router.post("/{restaurant_id}/mesas/{mesa_id}/pedido", status_code=410)
+def pedir_na_mesa(restaurant_id: str, mesa_id: str) -> dict:
+    """Pedido pelo QR DESATIVADO — somente o atendente cria pedidos.
 
-    Mesa livre -> cria novo pedido; mesa ocupada -> adiciona itens ao pedido ativo.
+    Mantido como 410 Gone (em vez de remover a rota) para que QRs já
+    impressos exibam mensagem clara em vez de 404 seco. Cardápio e fotos
+    seguem públicos.
     """
-    _rate_limit(request)
-    _garantir_cardapio_ativo(restaurant_id)
-
-    bruto = body.get("itens") or []
-    if not isinstance(bruto, list) or not bruto or len(bruto) > 30:
-        raise HTTPException(422, "Envie de 1 a 30 itens")
-    try:
-        itens_payload = [
-            OrderItemAdd(
-                produto_id=str(x["produtoId"]),
-                variacao_id=x.get("variacaoId"),
-                qtd=int(x["qtd"]),
-                observacoes=(x.get("observacoes") or None)[:200] if x.get("observacoes") else None,
-            )
-            for x in bruto
-        ]
-    except (KeyError, TypeError, ValueError):
-        raise HTTPException(422, "Formato de item inválido")
-
-    mesa = get_item(restaurant_id, "mesas", mesa_id)
-    if not mesa:
-        raise HTTPException(404, "Mesa não encontrada")
-    if mesa.get("status") == "inativa":
-        raise HTTPException(409, "Mesa indisponível")
-
-    if mesa.get("status") == "ocupada" and mesa.get("pedidoAtivoId"):
-        for payload in itens_payload:
-            pedidos_service.adicionar_item(restaurant_id, "cardapio_digital", mesa["pedidoAtivoId"], payload)
-        return {"pedidoId": mesa["pedidoAtivoId"], "mesaId": mesa_id, "adicionadoA": True}
-
-    pedido = pedidos_service.criar(
-        restaurant_id,
-        usuario_id="cardapio_digital",
-        mesa_id=mesa_id,
-        tipo="local",
-        itens_payload=itens_payload,
-    )
-    return {"pedidoId": pedido["id"], "mesaId": mesa_id, "adicionadoA": False}
+    raise HTTPException(410, "Pedidos pelo QR desativados — chame o atendente")
 
 
 def restaurant_doc_exists(restaurant_id: str) -> bool:

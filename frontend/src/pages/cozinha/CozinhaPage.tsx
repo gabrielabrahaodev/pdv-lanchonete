@@ -1,22 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { hora } from '../../lib/format'
 import { imprimir, linhasComanda } from '../../lib/impressora'
-
-interface FilaItem {
-  id: string
-  mesaId: string
-  criadoEm: string
-  itens: {
-    id: string
-    produtoId: string
-    variacaoId?: string | null
-    qtd: number
-    observacoes?: string | null
-    status: 'pendente' | 'preparo' | 'pronto' | 'entregue' | 'cancelado'
-  }[]
-}
+import { useCozinhaFila, useProdutos } from '../../hooks/useFirestore'
+import { useAuth } from '../../context/AuthContext'
 
 const SECOES = [
   { status: 'pendente', titulo: '⏳ Pendentes', proximo: 'preparo', acao: '🔥 Iniciar preparo', botao: 'bg-amber-100 text-amber-800 hover:bg-amber-200' },
@@ -25,8 +13,8 @@ const SECOES = [
 ] as const
 
 export default function CozinhaPage() {
-  const qc = useQueryClient()
   const [, setTick] = useState(0)
+  const { me } = useAuth()
 
   // atualiza o tempo decorrido nos cartões
   useEffect(() => {
@@ -34,23 +22,14 @@ export default function CozinhaPage() {
     return () => clearInterval(t)
   }, [])
 
-  const fila = useQuery({
-    queryKey: ['cozinha-fila'],
-    queryFn: () => api<FilaItem[]>('/cozinha/fila'),
-    refetchInterval: 8_000,
-  })
+  const fila = useCozinhaFila(me?.restaurantId)
 
-  const produtos = useQuery({
-    queryKey: ['produtos'],
-    queryFn: () => api<{ id: string; nome: string; variacoes: { id: string; nome: string }[] }[]>('/produtos'),
-    staleTime: 60_000,
-  })
+  const produtos = useProdutos(me?.restaurantId)
 
   /** Vários itens do MESMO pedido numa única transação (sem contenção). */
   const mudarStatus = useMutation({
     mutationFn: ({ pedidoId, itemIds, novo }: { pedidoId: string; itemIds: string[]; novo: string }) =>
       api(`/cozinha/pedidos/${pedidoId}/itens/status`, { method: 'PATCH', body: { itemIds, novoStatus: novo } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['cozinha-fila'] }),
   })
 
   const nomeProduto = (produtoId: string) => {
@@ -74,7 +53,7 @@ export default function CozinhaPage() {
       <header className="mb-5 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white">👨‍🍳 Cozinha — KDS</h1>
-          <p className="text-xs text-slate-400">Um cartão por mesa · atualiza a cada 8s</p>
+          <p className="text-xs text-slate-400">Um cartão por mesa · tempo real</p>
         </div>
         <span className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-bold text-emerald-400">
           {pedidos.length} mesa(s) ativa(s)

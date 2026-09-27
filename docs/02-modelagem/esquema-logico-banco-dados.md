@@ -18,6 +18,8 @@ restaurantes/{restaurantId}                     ← doc raiz {nome, criadorUid, 
     ├── delivery_orders/items/{deliveryId}
     ├── fornecedores/items/{id}
     └── despesas/items/{id}
+    ├── agregados_diarios/items/{YYYY-MM-DD}   ← pré-computado (vendas+despesas do dia)
+    └── agregados_mensais/items/{YYYY-MM}      ← pré-computado (vendas+despesas do mês)
 
 onboarding/{uid}                                ← coleção top-level (guard transacional)
 sistema/global                                  ← doc top-level {donoUids[]} — donos da plataforma
@@ -46,7 +48,7 @@ Campos em camelCase (como gravados). `criadoEm/atualizadoEm` são normalizados n
 id · restaurantId · nome · ordem:int · ativo:bool · icone? · cor?
 
 ### produtos/items/{id}
-id · restaurantId · nome · categoriaId · preco:float · variacoes:[{id, nome, precoAdicional, ativo}] · ingredientes:[{itemId, qtd}] · temImagem:bool · imagemUrl? (externa, fallback) · ativo · estoqueMinimo:int
+id · restaurantId · nome · categoriaId · preco:float · precisaPreparar:bool (default true; false = item nasce `entregue`, fora da fila do KDS) · variacoes:[{id, nome, precoAdicional, ativo}] · ingredientes:[{itemId, qtd}] · temImagem:bool · imagemUrl? (externa, fallback) · ativo · estoqueMinimo:int
 
 ### imagens/items/{produtoId}
 id(=produtoId) · restaurantId? · imagemBase64:string (≤200k chars) · mime: jpeg|png|webp · criadoEm. Servida publicamente por `GET /api/publico/{rid}/imagens/{produtoId}`; apagada junto com o produto.
@@ -80,6 +82,9 @@ id · restaurantId · nome · documento? · telefone? · email? · observacoes? 
 ### despesas/items/{id}
 id · restaurantId · categoria: insumo|folha|conta_fixa|outra · descricao · valor>0 · data (competência) · vencimento? · fornecedorId? · usuarioId? · formaPagamento? · observacoes? · pagoEm? (removido com DELETE_FIELD na reabertura)
 
+### agregados_diarios/items/{YYYY-MM-DD} e agregados_mensais/items/{YYYY-MM}
+faturamento · totalPedidos · vendasPorHora:{HH:valor} · vendasPorFormaPagamento:{tipo:valor} · topProdutos:{produtoId:qtd} · saidasPorItem:{itemId:qtd} · despesasPorCategoria:{cat:valor} · totalDespesas · restaurantId. Somados via `Increment` atômico na quitação/baixa/despesa (sem backfill); leitura em `GET /relatorios/agregado`.
+
 ### sistema/global (doc top-level)
 donoUids: string[] — uids dos donos da plataforma (guard de `/api/sistema/*`; sem tenant).
 
@@ -92,9 +97,11 @@ O sistema evita índices compostos deliberadamente:
 
 | Operação | Estratégia |
 |---|---|
-| Listagens (`list_items`) | Stream da subcoleção inteira + ordenação/filtro em memória (coleções pequenas no escopo do PDV) |
+| Listagens pequenas (mesas, produtos, estoque) | Stream da subcoleção + ordenação/filtro em memória, ou snapshot filtrado no client |
+| Telas quentes (KDS, detalhe, delivery) | Filtro server-side de campo único (`status==aberto`, `in [...]`, janelas de data, `limit`) ou listener equivalente — nunca scan de histórico |
+| Relatórios/DRE | Janela `inicio/fim` na query + agregados dia/mês pré-computados (`GET /relatorios/agregado`) |
 | Sessão de caixa aberta | `where("status","==" ,"aberto")` dentro de transação (índice automático de campo único) |
-| Filtros de pedidos/despesas | Feitos pós-leitura no serviço; filtros adicionais podem ser passados como query params |
+| Filtros de pedidos/despesas | Janela server-side; filtros adicionais pós-leitura no serviço |
 
 ## 4. Regras de acesso (resumo das firestore.rules)
 
@@ -114,7 +121,7 @@ match /restaurantes/{rid}/{document=**} {
 | Onboarding por convite | transação única: valida+consome convite, cria raiz + configurações + docs-pai + mesas + doc admin + marcador; claims no Auth (auto-cura no retry) |
 | Abrir pedido | set pedido(aberto) + update mesa(ocupada) na MESMA transação |
 | Preparo de item | movimentação saida(pedidoId) + saldo do item + item.baixadoEm na mesma transação (bulk agrega ingredientes) |
-| Quitação | update pedido(pago, pagamentos[]) + transação na sessão + mesa liberada (DELETE_FIELDs) |
+| Quitação | update pedido(pago, pagamentos[]) + transação na sessão + agregados dia/mês + mesa liberada (DELETE_FIELDs) |
 | Cancelar pedido | status=cancelado + mesa liberada; sem estorno de estoque |
 | Remover usuário | Auth disabled=true + delete do doc (histórico de vendas preserva ids) |
 | Excluir produto | delete do produto + da imagem em `imagens/items/{produtoId}` (cascade) |

@@ -30,7 +30,7 @@ Pedido é criado dentro de `@transactional`: lê mesa, bloqueia se `ocupada` (40
 `adicionar_item` e `remover_item` rodam via `_run_txn` (txn + re-leitura pós-commit). Regras: pedido aberto; remoção só de `pendente`; total recalculado com `calculos.total_pedido`.
 
 ### 2.3 Baixa automática (`atualizar_status_item` / bulk)
-Condições: `novo_status == "preparo"` ∧ item estava `pendente` ∧ `not baixadoEm`. Lê `configuracoes.baixaEstoqueAutomatica` **dentro da txn**. Consumo = `agregar_consumo_receita(receita, qtd)` agrupado por itemId. Para cada ingrediente existente no estoque: cria movimentação `saida` (com `saldoApos`, `pedidoId`) e decrementa saldo (pode ficar negativo). Marca `baixadoEm`. Falhas permissivas: produto removido ou ingrediente inexistente → segue sem travar.
+Condições: `novo_status == "preparo"` ∧ item estava `pendente` ∧ `not baixadoEm`. Lê `configuracoes.baixaEstoqueAutomatica` **dentro da txn**. Consumo = `agregar_consumo_receita(receita, qtd)` agrupado por itemId. Para cada ingrediente existente no estoque: cria movimentação `saida` (com `saldoApos`, `pedidoId`) e decrementa saldo (pode ficar negativo). Marca `baixadoEm`. Falhas permissivas: produto removido ou ingrediente inexistente → segue sem travar. **Exceção**: item de produto com `precisaPreparar: false` nasce `entregue` (fora da fila) e, se tem receita, a baixa é aplicada na **criação** (`criar`/`adicionar_item`), nunca na transição.
 
 A transição é feita preferencialmente pelo endpoint **bulk** `PATCH /api/cozinha/pedidos/{pedido}/itens/status` `{itemIds[], novoStatus}` — TODA a transição numa única transação, com consumo AGREGADO dos ingredientes compartilhados (`_consumo_produto` × qtd → `_aplicar_consumo`: uma leitura/escrita por ingrediente). A rota antiga por item apenas delega ao bulk. Regra de ouro do Firestore: **fase 1 lê todos os docs, fase 2 executa todas as escritas** (bug 10).
 
@@ -97,7 +97,7 @@ Criar: papel restrito a {gerente, caixa, garcom, cozinha}; só admin cria gerent
 |---|---|
 | Chamadas | wrapper único `api()` injeta `Bearer getIdToken()`, lança `ApiError{status,message}` |
 | Dados servidor | TanStack Query; invalidação cruzada após mutações (pedidos↔mesas↔caixa) |
-| Tempo real | `useRealtime` mapeia coleção→query keys e invalida; erro só loga warning |
+| Tempo real | hooks `useFirestore` filtrados por tela são a fonte; erro vira banner |
 | Tema | classe `dark` no `<html>`; cache `pdv:tema:{uid}`; PATCH confirma no servidor |
 | CSV | `baixarCsv` com `;` + BOM `\uFEFF` e escape RFC |
 | Impressão | payload ESC/POS (init, align, bold, double-strike/grande, corte), chunks 180B; fallback janela print |
@@ -110,17 +110,18 @@ Criar: papel restrito a {gerente, caixa, garcom, cozinha}; só admin cria gerent
 | auth | GET /auth/me | qualquer autenticado |
 | restaurantes | POST /restaurantes/primeiro — EXIGE convite válido (payload `token`) fora do bootstrap | sem claim tenant |
 | categorias | GET/POST/PATCH/DELETE (409 se produto vinculado) | admin, gerente, caixa |
-| produtos | GET/POST/PATCH/DELETE (+filtros categoria/apenas_ativos); PUT/DELETE /{id}/imagem (coleção `imagens/items/{produtoId}`, base64 ≤200k chars jpeg/png/webp, cascade delete) | admin, gerente, caixa |
+| produtos | GET/POST/PATCH/DELETE (+filtros categoria/apenas_ativos, campo `precisaPreparar` default true); PUT/DELETE /{id}/imagem (coleção `imagens/items/{produtoId}`, base64 ≤200k chars jpeg/png/webp, cascade delete) | admin, gerente, caixa |
 | mesas | GET, POST, PATCH status, DELETE | CRUD: adm/ger/caixa; status: +garçom |
 | pedidos | GET (?status&mesa_id), POST ?mesa_id&tipo, POST itens, DELETE itens/{id}, PATCH itens/{id}/status, POST cancelar | escrita: adm/ger/caixa/garçom; status: +cozinha; cancelar: adm/ger/caixa |
-| pagamentos | POST /{pedido_id} (201) — aceita N pagamentos parciais até somar o total | adm/ger/caixa |
+| pagamentos | POST /{pedido_id} (201) — aceita N pagamentos parciais até somar o total; `valor` exige `> 0` (422) | adm/ger/caixa |
 | cozinha | GET /fila; PATCH /pedidos/{p}/itens/status **bulk** `{itemIds[],novoStatus}` (preferencial); PATCH item único delega ao bulk | adm/ger/caixa/cozinha |
 | estoque | itens CRUD; POST movimentacoes; GET movimentacoes (?item_id&limit) | adm/ger |
 | fornecedores | CRUD | adm/ger/caixa |
 | despesas | CRUD + POST /{id}/pagar | adm/ger/caixa |
 | caixa | GET sessoes/sessao-atual; POST abrir/suprimento/sangria/fechar | adm/ger/caixa |
 | delivery | GET/POST pedidos; PATCH status | criar: adm/ger/caixa/garçom; status: +cozinha |
-| publico | GET /{rid}/cardapio; GET /{rid}/imagens/{produto_id} (bytes); POST /{rid}/mesas/{mesa}/pedido | sem auth (cardápio rate-limited; imagens fora de propósito) |
+| publico | GET /{rid}/cardapio; GET /{rid}/imagens/{produto_id} (bytes); POST /{rid}/mesas/{mesa}/pedido → **410** (pedido pelo QR desativado; só atendente) | sem auth (cardápio rate-limited; imagens fora de propósito) |
+| relatorios | GET /resumo?inicio&fim (janela server-side); GET /agregado?tipo=dia\|mes&ref= (pré-computado, ~70 leituras) | adm/ger/caixa |
 | sistema | POST/GET /sistema/convites; DELETE /sistema/convites/{token} | dono da plataforma (`sistema/global.donoUids`) |
 | relatorios | GET /resumo?inicio&fim | adm/ger/caixa |
 | configuracoes | GET ""; PUT "" | PUT: adm/ger |

@@ -67,7 +67,7 @@ erDiagram
 | **CONFIGURACOES** | nome, moeda, timezone, impressoraTipo/Endereco, baixaEstoqueAutomatica, cardapioDigitalAtivo | Doc único `data/configuracoes` |
 | **USUARIO** | id(=uid Auth), nome, email, papel, ativo, tema | Papel ∈ {admin, gerente, caixa, garcom, cozinha}; claims espelham papel |
 | **CATEGORIA** | id, nome, ordem, ativo, icone, cor | Ordenação do cardápio |
-| **PRODUTO** | id, nome, categoriaId, preco, temImagem, imagemUrl?, ativo, estoqueMinimo | Preço-fonte da verdade; foto vive em IMAGEM_PRODUTO |
+| **PRODUTO** | id, nome, categoriaId, preco, precisaPreparar(default true), temImagem, imagemUrl?, ativo, estoqueMinimo | Preço-fonte da verdade; foto vive em IMAGEM_PRODUTO |
 | **IMAGEM_PRODUTO** | produtoId(=id do doc), imagemBase64 ≤200k chars, mime(jpeg/png/webp), criadoEm | Coleção `imagens/items/{produtoId}` — fora do doc p/ não pesar listagens |
 | **VARIACAO** | id, nome, precoAdicional, ativo | Embutida em PRODUTO |
 | **INGREDIENTE_RECEITA** | itemId, qtd | Embutida; qtd por 1 unidade do produto |

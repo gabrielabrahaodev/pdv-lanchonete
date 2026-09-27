@@ -1,29 +1,31 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { baixarCsv } from '../../lib/csv'
-import type { InventoryItem, StockMovement } from '../../types'
+import { useEstoque, useMovimentacoes } from '../../hooks/useFirestore'
+import { useAuth } from '../../context/AuthContext'
+import type { InventoryItem } from '../../types'
 import { Badge, Button, Card, EmptyState, ErrorState, Field, Input, LoadingScreen, Modal, Select } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl, dataHora } from '../../lib/format'
 
 export default function EstoquePage() {
-  const qc = useQueryClient()
+  const { me } = useAuth()
   const [apenasAlertas, setApenasAlertas] = useState(false)
   const [novoAberto, setNovoAberto] = useState(false)
   const [movItem, setMovItem] = useState<InventoryItem | null>(null)
 
-  const itens = useQuery({
-    queryKey: ['estoque', apenasAlertas],
-    queryFn: () => api<InventoryItem[]>(`/estoque/itens${apenasAlertas ? '?apenas_alertas=true' : ''}`),
-    refetchInterval: 30_000,
-  })
+  const estoqueQ = useEstoque(me?.restaurantId)
+  const movimentacoes = useMovimentacoes(me?.restaurantId)
 
-  const movimentacoes = useQuery({
-    queryKey: ['movimentacoes'],
-    queryFn: () => api<StockMovement[]>('/estoque/movimentacoes?limit=50'),
-    refetchInterval: 60_000,
-  })
+  const itens = {
+    isLoading: estoqueQ.isLoading,
+    isError: estoqueQ.isError,
+    error: estoqueQ.error,
+    data: apenasAlertas
+      ? (estoqueQ.data ?? []).filter((i) => (i.quantidadeAtual ?? 0) <= (i.minimo ?? 0))
+      : (estoqueQ.data ?? []),
+  }
 
   if (itens.isLoading) return <LoadingScreen />
   if (itens.isError) return <ErrorState error={itens.error} />
@@ -109,7 +111,6 @@ export default function EstoquePage() {
           item={movItem}
           onClose={() => {
             setMovItem(null)
-            movimentacoes.refetch()
           }}
         />
       )}
@@ -126,7 +127,6 @@ function exportarItens(itens: InventoryItem[]) {
 }
 
 function NovoItemModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const qc = useQueryClient()
   const [form, setForm] = useState({ nome: '', unidade: 'un', quantidadeAtual: '', minimo: '', custoMedio: '' })
 
   const criar = useMutation({
@@ -142,7 +142,6 @@ function NovoItemModal({ open, onClose }: { open: boolean; onClose: () => void }
         },
       }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['estoque'] })
       setForm({ nome: '', unidade: 'un', quantidadeAtual: '', minimo: '', custoMedio: '' })
       onClose()
     },
@@ -177,7 +176,6 @@ function NovoItemModal({ open, onClose }: { open: boolean; onClose: () => void }
 }
 
 function MovimentacaoModal({ item, onClose }: { item: InventoryItem; onClose: () => void }) {
-  const qc = useQueryClient()
   const [tipo, setTipo] = useState<'entrada' | 'saida' | 'ajuste'>('entrada')
   const [qtd, setQtd] = useState('')
   const [observacao, setObservacao] = useState('')
@@ -189,7 +187,6 @@ function MovimentacaoModal({ item, onClose }: { item: InventoryItem; onClose: ()
         body: { tipo, itemId: item.id, qtd: Number(qtd.replace(',', '.')), observacao: observacao || null },
       }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['estoque'] })
       onClose()
     },
   })

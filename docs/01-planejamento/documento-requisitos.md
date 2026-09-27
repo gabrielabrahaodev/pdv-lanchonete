@@ -113,7 +113,7 @@ Convenções de prioridade: **Essencial** (o sistema não opera sem), **Importan
 |---|---|---|
 | RF-110 | SPA com áreas: Caixa, Mesas, Produtos, Categorias (tela própria), Estoque (badge de alertas), Cozinha KDS (cartão por mesa), Delivery, Relatórios, Fechamento de caixa, Financeiro, Configurações, Seleção de restaurante/onboarding e console Plataforma (dono). | Essencial |
 | RF-111 | Tema claro/escuro POR USUÁRIO: classe `dark` no `<html>`, cache localStorage por uid + persistência via API. | Importante |
-| RF-112 | Tempo real: `onSnapshot` do Firestore nas coleções quentes invalida caches do react-query; sem regras publicadas/offline, cai para polling (8–30s). | Importante |
+| RF-112 | Tempo real como fonte: `onSnapshot` filtrado por tela (`hooks/useFirestore.ts`) é a fonte dos dados; escritas seguem na API; sem polling. Falha vira banner + recarregar (sem congelar silencioso). | Importante |
 | RF-113 | Impressão térmica ESC/POS via Web Bluetooth (service `18f0`, char `2af1`, chunks de 180 bytes) com fallback janela `print()`: comanda no KDS, recibo na quitação, teste em Configurações. | Importante |
 | RF-114 | Exportação CSV (Excel pt-BR: `;` + BOM) em Relatórios, Financeiro e Estoque. | Desejável |
 | RF-115 | PWA instalável (manifest, ícones, autoUpdate) com cache NetworkFirst para GETs `/api/*` (timeout 4s, validade 24h, 200 entradas). | Importante |
@@ -128,11 +128,11 @@ Convenções de prioridade: **Essencial** (o sistema não opera sem), **Importan
 | RNF-004 | Confiabilidade | Operações concorridas críticas (abrir pedido em mesa, abrir caixa, movimentação de estoque, crédito no caixa, reserva de onboarding) executam em transações Firestore. | Essencial |
 | RNF-005 | Integridade | Idempotência da baixa de estoque via campo `baixadoEm` (retry não deduplica em dobro). | Essencial |
 | RNF-006 | Usabilidade | Interface responsiva (desktop/tablet/celular), menu colapsável, drawer mobile, feedback de carregamento/erro/vazio padronizado. | Essencial |
-| RNF-007 | Performance | Listagens lêm coleção inteira em memória (coleções pequenas) ordenadas sem índices compostos; polling entre 8s e 30s conforme tela. | Importante |
+| RNF-007 | Performance/quota | Leituras via snapshot filtrado por tela (sem polling); pagos/fechados só em sessão e relatórios; janelas de data server-side; agregados dia/mês. Orçamento ~10k leituras/dia. | Importante |
 | RNF-008 | Portabilidade | Backend Python 3.12 + FastAPI; frontend build estático servível em qualquer host; PWA em Chrome/Edge (Web Bluetooth requer Chromium). | Importante |
 | RNF-009 | Localização | Moeda BRL, datas/horas pt-BR, fuso configurável (default `America/Sao_Paulo`), CSV compatível com Excel pt-BR. | Essencial |
-| RNF-010 | Testabilidade | Regras de cálculo puras isoladas em `calculos.py` cobertas por pytest (23 testes); suíte E2E de API reproduz fluxo completo. | Essencial |
+| RNF-010 | Testabilidade | Regras de cálculo puras isoladas em `calculos.py` + validação de modelos cobertas por pytest (35 testes); suíte E2E de API reproduz fluxo completo. | Essencial |
 | RNF-011 | Custo | Infraestrutura inicial custo zero (Firebase Spark); leituras minimizadas por cache/staleTime. | Importante |
-| RNF-012 | Observabilidade | `/health` para verificação (aceita GET **e HEAD**; é estático — smoke real deve ler Firestore); logs de acesso uvicorn; erros HTTP com mensagens claras em português; Sentry opcional (`SENTRY_DSN`); backup diário automático (`backup.yml`). | Importante |
+| RNF-012 | Observabilidade | `/health` para verificação (aceita GET **e HEAD**; é estático — smoke real deve ler Firestore); logs de acesso uvicorn; erros HTTP com mensagens claras em português; Sentry opcional (`SENTRY_DSN`). | Importante |
 | RNF-013 | Manutenibilidade | Camadas router → service → base(Firestore); modelos Pydantic espelham os contratos camelCase; documentação viva nesta pasta. | Essencial |
 | RNF-014 | Compatibilidade de dados | Documentos antigos com `createdAt/updatedAt` são normalizados para `criadoEm/atualizadoEm` na leitura. | Essencial |

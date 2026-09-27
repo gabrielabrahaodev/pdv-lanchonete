@@ -1,40 +1,30 @@
 import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { useCategorias, useProdutos } from '../../hooks/useFirestore'
+import { useAuth } from '../../context/AuthContext'
 import type { Category, Product } from '../../types'
 import { Button, Card, EmptyState, ErrorState, Input, LoadingScreen, Select } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl } from '../../lib/format'
 import { urlImagemProduto } from '../../lib/imagem'
-import { useAuth } from '../../context/AuthContext'
 
 export default function ProdutosPage() {
-  const qc = useQueryClient()
   const [busca, setBusca] = useState('')
   const [categoriaFiltro, setCategoriaFiltro] = useState('')
   const { me } = useAuth()
 
-  const produtos = useQuery({
-    queryKey: ['produtos'],
-    queryFn: () => api<Product[]>('/produtos'),
-    refetchInterval: 30_000,
-  })
+  const produtos = useProdutos(me?.restaurantId)
 
-  const categorias = useQuery({
-    queryKey: ['categorias'],
-    queryFn: () => api<Category[]>('/categorias'),
-    staleTime: 60_000,
-  })
+  const categorias = useCategorias(me?.restaurantId)
 
   const toggleAtivo = useMutation({
     mutationFn: (p: Product) => api(`/produtos/${p.id}`, { method: 'PATCH', body: { ativo: !p.ativo } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['produtos'] }),
   })
 
   const remover = useMutation({
     mutationFn: (id: string) => api(`/produtos/${id}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['produtos'] }),
   })
 
   const lista = useMemo(() => {
@@ -116,6 +106,11 @@ export default function ProdutosPage() {
                   >
                     {p.ativo ? 'ativo' : 'inativo'}
                   </button>
+                  {p.precisaPreparar === false && (
+                    <span className="ml-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-700">
+                      sem preparo
+                    </span>
+                  )}
                 </td>
                 <td className="px-5 py-3 text-right">
                   <Link to={`/produtos/editar/${p.id}`} className="mr-3 text-xs font-semibold text-brand-600 hover:underline">

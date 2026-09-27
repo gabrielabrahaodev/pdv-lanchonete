@@ -39,6 +39,7 @@ export default function ProdutoFormPage() {
     preco: '',
     estoqueMinimo: '0',
     ativo: true,
+    precisaPreparar: true,
   })
   const [variacoes, setVariacoes] = useState<VariacaoForm[]>([])
   const [ingredientes, setIngredientes] = useState<IngredienteForm[]>([])
@@ -58,6 +59,7 @@ export default function ProdutoFormPage() {
         preco: String(p.preco).replace('.', ','),
         estoqueMinimo: String(p.estoqueMinimo ?? 0),
         ativo: p.ativo,
+        precisaPreparar: p.precisaPreparar ?? true,
       })
       setTemImagem(!!p.temImagem)
       setNovaImagem(null)
@@ -106,6 +108,7 @@ export default function ProdutoFormPage() {
         preco: Number(form.preco.replace(',', '.')),
         estoqueMinimo: Number(form.estoqueMinimo) || 0,
         ativo: form.ativo,
+        precisaPreparar: form.precisaPreparar,
         variacoes: variacoes.map((v) => ({
           id: v.id,
           nome: v.nome.trim(),
@@ -206,6 +209,15 @@ export default function ProdutoFormPage() {
               className="h-4 w-4 accent-brand-600"
             />
             Produto ativo
+          </label>
+          <label className="flex items-end gap-2 pb-1 text-sm font-medium text-slate-600" title="Desmarcado: item já nasce entregue e não aparece na cozinha">
+            <input
+              type="checkbox"
+              checked={form.precisaPreparar}
+              onChange={(e) => setForm({ ...form, precisaPreparar: e.target.checked })}
+              className="h-4 w-4 accent-brand-600"
+            />
+            Precisa de preparo
           </label>
         </div>
 

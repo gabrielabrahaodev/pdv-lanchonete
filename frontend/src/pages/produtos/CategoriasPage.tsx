@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
+import { useCategorias, useProdutos } from '../../hooks/useFirestore'
+import { useAuth } from '../../context/AuthContext'
 import type { Category, Product } from '../../types'
 import { Badge, Button, Card, EmptyState, ErrorState, Field, Input, LoadingScreen, Modal } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
@@ -16,17 +18,12 @@ export default function CategoriasPage() {
   const [editando, setEditando] = useState<Category | null>(null)
   const [form, setForm] = useState<FormState>(VAZIO)
   const [erro, setErro] = useState<string | null>(null)
+  const { me } = useAuth()
+  const rid = me?.restaurantId
 
-  const categorias = useQuery({
-    queryKey: ['categorias'],
-    queryFn: () => api<Category[]>('/categorias'),
-  })
+  const categorias = useCategorias(rid)
 
-  const produtos = useQuery({
-    queryKey: ['produtos'],
-    queryFn: () => api<Product[]>('/produtos'),
-    staleTime: 60_000,
-  })
+  const produtos = useProdutos(rid)
 
   function abrirNova() {
     setEditando(null)
@@ -55,7 +52,6 @@ export default function CategoriasPage() {
         : api('/categorias', { method: 'POST', body })
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['categorias'] })
       qc.invalidateQueries({ queryKey: ['cardapio-publico'] })
       setModalAberto(false)
     },
@@ -65,7 +61,6 @@ export default function CategoriasPage() {
   const toggleAtivo = useMutation({
     mutationFn: (c: Category) => api(`/categorias/${c.id}`, { method: 'PATCH', body: { ativo: !c.ativo } }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['categorias'] })
       qc.invalidateQueries({ queryKey: ['cardapio-publico'] })
     },
   })
@@ -73,8 +68,7 @@ export default function CategoriasPage() {
   const remover = useMutation({
     mutationFn: (c: Category) => api(`/categorias/${c.id}`, { method: 'DELETE' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['categorias'] })
-      qc.invalidateQueries({ queryKey: ['produtos'] })
+      qc.invalidateQueries({ queryKey: ['cardapio-publico'] })
     },
     onError: (e) => setErro(e instanceof Error ? e.message : 'Erro ao remover'),
   })

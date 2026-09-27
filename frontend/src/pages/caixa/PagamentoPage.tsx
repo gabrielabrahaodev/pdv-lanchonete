@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../lib/api'
+import { usePedido, useProdutos } from '../../hooks/useFirestore'
+import { useAuth } from '../../context/AuthContext'
 import type { Order } from '../../types'
 import { Badge, Button, Card, ErrorState, Field, Input, LoadingScreen } from '../../components/ui'
 import { brl, dataHora } from '../../lib/format'
@@ -16,20 +18,13 @@ const FORMAS = [
 
 export default function PagamentoPage() {
   const { pedidoId = '' } = useParams()
-  const qc = useQueryClient()
   const navigate = useNavigate()
+  const { me } = useAuth()
+  const rid = me?.restaurantId
 
-  const pedido = useQuery({
-    queryKey: ['pedidos', pedidoId],
-    queryFn: () => api<Order>(`/pedidos/${pedidoId}`),
-    refetchInterval: 10_000,
-  })
+  const pedido = usePedido(rid, pedidoId)
 
-  const produtos = useQuery({
-    queryKey: ['produtos'],
-    queryFn: () => api<{ id: string; nome: string }[]>('/produtos'),
-    staleTime: 60_000,
-  })
+  const produtos = useProdutos(rid)
 
   const [forma, setForma] = useState<string>('dinheiro')
   const [valor, setValor] = useState('')
@@ -50,9 +45,6 @@ export default function PagamentoPage() {
         },
       }),
     onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: ['pedidos'] })
-      qc.invalidateQueries({ queryKey: ['caixa'] })
-      qc.invalidateQueries({ queryKey: ['mesas'] })
       const pago = (data as Order).status === 'pago'
       if (pago) navigate('/caixa')
       else resetValores()

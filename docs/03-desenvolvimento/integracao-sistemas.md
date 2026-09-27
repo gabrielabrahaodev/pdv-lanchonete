@@ -12,11 +12,10 @@ Descreve todas as integrações do sistema: contratos, autenticação, fluxos e 
 | I-02 | SPA ↔ Firebase Auth (login) | bidirecional | Firebase JS SDK (REST por trás) | ✅ Implementada |
 | I-03 | API ↔ Firestore | saída | firebase-admin (gRPC/HTTP) | ✅ Implementada |
 | I-04 | API ↔ Firebase Auth Admin | saída | verify_id_token, claims, gestão de usuários | ✅ Implementada |
-| I-05 | SPA ↔ Firestore (tempo real) | entrada opcional | onSnapshot sob firestore.rules | ✅ Implementada (degrada p/ polling) |
+| I-05 | Firestore → SPA (tempo real como fonte) | entrada | `onSnapshot` filtrado por tela (`useFirestore.ts`); banner em falha | ✅ Implementada |
 | I-06 | Navegador ↔ Impressora térmica | saída | Web Bluetooth GATT (ESC/POS) | ✅ Implementada |
-| I-09 | UptimeRobot → API | entrada | HEAD `/health` a cada 10 min (mitiga sleep da Render) | ✅ Ativa |
-| I-10 | GitHub Actions → Firestore (backup diário) | saída | `backup.yml` 03:30 BRT → commit em `backups/` | ✅ Ativa |
-| I-11 | GitHub Actions CI | interno | `ci.yml`: pytest + tsc + build a cada push/PR | ✅ Ativa |
+| I-09 | cron-job.org → API | entrada | GET `/health` 06–20h BRT + pre-warm (mitiga sleep da Render) | ✅ Ativa |
+| I-10 | GitHub Actions CI | interno | `ci.yml`: pytest + tsc + build a cada push/PR | ✅ Ativa |
 | I-07 | Plataformas de delivery (iFood/Goomer) | entrada manual | registro manual na tela Delivery | ⏳ Manual (webhook planejado) |
 | I-08 | Gateway de pagamento / PIX dinâmico | — | — | ❌ Fora de escopo |
 
@@ -53,11 +52,13 @@ sequenceDiagram
 
 - Caminho canônico: `restaurantes/{rid}/data/{colecao}/items/{doc}` (+ doc único `data/configuracoes`); top-level: `onboarding/{uid}`, `sistema/global` (donoUids) e `convites/{token}`.
 - Escritas: **somente** pela API com service account — ordem de resolução (`core/firebase.py`): env `FIREBASE_SERVICE_ACCOUNT_JSON` (nuvem) → arquivo local `scripts/service-account.json` (dev) → ADC.
-- Leituras em tempo real do cliente: `collection(db, restaurantes/{rid}/data/{kind}/items)` com regras:
+- Leituras em tempo real como fonte: hooks `useFirestore.ts` (queries filtradas por
+  tela sob `restaurantes/{rid}/data/{kind}/items`) com regras:
   ```js
   allow read: request.auth != null && request.auth.token.restaurantId == restaurantId;
   ```
-  Falha (rules não publicadas/offline) é tratada como warning e o app segue com polling.
+  Falha vira banner vermelho + botão recarregar (sem congelar silencioso); persistência
+  local cobre reaberturas.
 - Transações usadas nos pontos críticos (ver arquitetura §4). Batch no onboarding.
 
 ## 5. I-06 — Impressão térmica (Web Bluetooth)
@@ -97,7 +98,7 @@ Para webhook futuro: endpoint público dedicado com HMAC/signature da plataforma
 |---|---|
 | Token expirado (401) | Cliente exibe mensagem; novo login resolve (token ~1h) |
 | Firestore indisponível | API responde 500; PWA serve leituras do cache até 24h |
-| onSnapshot bloqueado | warning no console; polling continua |
+| onSnapshot bloqueado | banner vermelho + recarregar; cache local cobre reabertura |
 | Bluetooth ausente/falha | fallback automático janela print; cancelamento explícito não cai no fallback |
 | Rate limit público (429) | Cardápio informa "aguarde um instante" |
 | Claims defasados | 403 → usuário refaz login (após onboarding/troca de papel o app força refresh automaticamente) |

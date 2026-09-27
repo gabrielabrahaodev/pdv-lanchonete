@@ -59,7 +59,7 @@ Especificação textual dos casos de uso principais. Os diagramas estão em `../
 |---|---|
 | Ator principal | Cozinheiro (papéis permitidos: admin/gerente/caixa/cozinha) |
 | Pré-condições | Existem itens `pendente` em pedidos abertos |
-| Fluxo básico | 1. Abrir **Cozinha (KDS)** — fila atualiza a cada ~8s (e em tempo real quando disponível). 2. UM cartão POR MESA agrupando todos os itens do pedido (com variação/observação). 3. Botão avança os itens do cartão em bloco via endpoint BULK (`PATCH /api/cozinha/pedidos/{pedido}/itens/status {itemIds[], novoStatus}`): `Iniciar preparo` → `Marcar pronto` → `Entregar`. 4. Opcional: 🖨 imprime a comanda do cartão (Bluetooth/fallback). |
+| Fluxo básico | 1. Abrir **Cozinha (KDS)** — fila em tempo real (snapshot filtrado; banner se cair). 2. UM cartão POR MESA agrupando todos os itens do pedido (com variação/observação; itens sem preparo nem aparecem — nascem `entregue`). 3. Botão avança os itens do cartão em bloco via endpoint BULK (`PATCH /api/cozinha/pedidos/{pedido}/itens/status {itemIds[], novoStatus}`): `Iniciar preparo` → `Marcar pronto` → `Entregar`. 4. Opcional: 🖨 imprime a comanda do cartão (Bluetooth/fallback). |
 | Regras associadas | RN-07 (baixa automática de ingredientes ao iniciar preparo), RN-08 (idempotência via `baixadoEm`). |
 | Fluxos alternativos | A1: status inválido → 422. A2: produto removido/sem receita → preparo segue normalmente, sem baixa. |
 | Pós-condições | Itens avançam de coluna; estoque debitado (quando aplicável). |

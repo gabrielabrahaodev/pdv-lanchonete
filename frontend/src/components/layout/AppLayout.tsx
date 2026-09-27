@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { useAlertasEstoque } from '../../hooks/useAlertasEstoque'
-import { useRealtime } from '../../hooks/useRealtime'
+import { useEstoque, useRealtimeStatus } from '../../hooks/useFirestore'
 import { Badge } from '../ui'
 
 const NAV = [
@@ -23,9 +22,10 @@ export default function AppLayout() {
   const [drawerAberto, setDrawerAberto] = useState(false)
   const { me, logout } = useAuth()
   const navigate = useNavigate()
-  const alertas = useAlertasEstoque()
+  const estoque = useEstoque(me?.restaurantId)
+  const alertasCount = (estoque.data ?? []).filter((i) => (i.quantidadeAtual ?? 0) <= (i.minimo ?? 0)).length
+  const realtimeOk = useRealtimeStatus()
   const [online, setOnline] = useState(navigator.onLine)
-  useRealtime(me?.restaurantId, ['pedidos', 'mesas', 'estoque', 'despesas'])
 
   useEffect(() => {
     const on = () => setOnline(true)
@@ -50,6 +50,15 @@ export default function AppLayout() {
       {!online && (
         <div className="fixed inset-x-0 top-0 z-[60] bg-amber-500 py-1 text-center text-sm font-medium text-white">
           Sem conexão — dados podem estar desatualizados. Aguarde para lançar pedidos/pagamentos.
+        </div>
+      )}
+      {/* tempo real instável: listeners falhando — dados podem atrasar */}
+      {online && !realtimeOk && (
+        <div className="fixed inset-x-0 top-0 z-[60] bg-rose-500 py-1 text-center text-sm font-medium text-white">
+          Tempo real instável — os dados podem atrasar.{' '}
+          <button onClick={() => window.location.reload()} className="font-bold underline">
+            Recarregar
+          </button>
         </div>
       )}
 
@@ -108,9 +117,9 @@ export default function AppLayout() {
             >
               <span className="relative text-lg">
                 {item.icon}
-                {item.to === '/estoque' && alertas.count > 0 && (
+                {item.to === '/estoque' && alertasCount > 0 && (
                   <span className="absolute -right-2 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
-                    {alertas.count}
+                    {alertasCount}
                   </span>
                 )}
               </span>

@@ -35,7 +35,7 @@ Fornecer um sistema de ponto de venda completo, leve e acessível por navegador,
 ### 3.1 Dentro do escopo
 - Módulos: Login/onboarding (por convite), Caixa (mesas/pedidos/pagamentos), Cozinha KDS, Produtos e Categorias, Estoque (itens, movimentações, receitas), Delivery, Relatórios, Financeiro (fornecedores, despesas), Configurações, Usuários/papéis, Cardápio digital público, Impressão térmica ESC/POS via Web Bluetooth, PWA offline-read, Plataforma multi-loja (convites de provisionamento).
 - Backend REST FastAPI com Firestore como persistência multi-tenant.
-- Testes: pytest de lógica pura + suíte E2E de API (52 passos base + 13 onboarding condicionais) + fluxo ponta a ponta validado contra o Firestore real.
+- Testes: pytest de lógica pura + validação de modelos + suíte E2E de API (80 passos base + 13 onboarding condicionais) + fluxo ponta a ponta validado contra o Firestore real.
 
 ### 3.2 Fora do escopo (nesta fase)
 - Integração automática com APIs do iFood/Goomer (delivery hoje registra pedidos manualmente).
@@ -54,7 +54,7 @@ Fornecer um sistema de ponto de venda completo, leve e acessível por navegador,
 | E4 | Financeiro + DRE | `/relatorios/resumo` retorna bloco `financeiro` consistente |
 | E5 | Segurança multi-tenant | Claims `restaurantId`/`papel` + `firestore.rules` publicadas |
 | E6 | Documentação | Esta biblioteca de documentos |
-| E7 | Produção no ar (Render + Firebase Hosting) | CI (`ci.yml`) + backup diário (`backup.yml`) + monitoramento UptimeRobot |
+| E7 | Produção no ar (Render + Firebase Hosting) | CI (`ci.yml`) + keep-alive cron-job.org 06–20h BRT |
 | E8 | Provisionamento por convite (plataforma) | Onboarding exige convite; console `/plataforma`; guard `donoUids` |
 
 ## 5. Stakeholders
