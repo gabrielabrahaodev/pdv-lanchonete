@@ -182,21 +182,9 @@ export default function NovoPedidoPage() {
               </button>
               <div className="mt-auto pt-3">
                 <div className="flex flex-wrap gap-1.5">
-                  <Button variant="secondary" className="!px-2 !py-1 !text-xs" onClick={() => setCustomizando({ p })}>
+                  <Button variant="secondary" className="!px-2 !py-1 !text-xs min-h-11" onClick={() => setCustomizando({ p })}>
                     Personalizar
                   </Button>
-                  {p.variacoes
-                    ?.filter((v) => v.ativo)
-                    .map((v) => (
-                      <button
-                        key={v.id}
-                        onClick={() => setCustomizando({ p, variacaoId: v.id })}
-                        className="rounded-lg bg-brand-50 px-2 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-100"
-                      >
-                        {v.nome}
-                        {v.precoAdicional > 0 ? ` (+${brl(v.precoAdicional)})` : ''}
-                      </button>
-                    ))}
                 </div>
               </div>
             </Card>
