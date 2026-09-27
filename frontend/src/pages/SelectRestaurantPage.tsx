@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { auth } from '../lib/firebase'
+import { Store } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { Button, Card, Field, Input, LoadingScreen } from '../components/ui'
 import type { AuthMe } from '../types'
@@ -27,8 +28,8 @@ export default function SelectRestaurantPage() {
   return (
     <div className="grid min-h-full place-items-center bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 p-4">
       <Card className="w-full max-w-md p-8 text-center">
-        <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-brand-600 text-2xl text-white shadow-lg shadow-brand-200">
-          🏪
+        <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-200">
+          <Store className="h-7 w-7" aria-hidden="true" />
         </div>
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
           {restaurantId ? (data?.restaurantNome ?? 'Restaurante') : 'Bem-vindo!'}
@@ -49,7 +50,7 @@ export default function SelectRestaurantPage() {
 
         <button
           onClick={() => logout()}
-          className="mt-4 text-xs font-semibold text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"
+          className="mt-4 text-xs font-semibold text-slate-500 hover:text-rose-600 dark:hover:text-rose-400"
         >
           Sair da conta
         </button>
@@ -160,7 +161,7 @@ function PrimeiroRestauranteForm() {
           </p>
         )}
         <Button type="submit" className="w-full py-2.5" loading={criar.isPending} disabled={!nome.trim()}>
-          🚀 Criar meu estabelecimento
+          Criar meu estabelecimento
         </Button>
       </form>
     </div>

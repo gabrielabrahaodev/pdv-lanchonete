@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
+import { UtensilsCrossed } from 'lucide-react'
 import { api } from '../../lib/api'
 import { useMesas, useSessaoAtual } from '../../hooks/useFirestore'
 import type { Mesa } from '../../types'
@@ -51,7 +52,7 @@ export default function CaixaOverviewPage() {
         <Card className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-2 p-4">
           <div className="flex items-center gap-2">
             <Badge value="aberto" label="Caixa aberto" />
-            <span className="text-xs text-slate-400">desde {new Date(s.abertoEm ?? s.criadoEm).toLocaleString('pt-BR')}</span>
+            <span className="text-xs text-slate-500">desde {new Date(s.abertoEm ?? s.criadoEm).toLocaleString('pt-BR')}</span>
           </div>
           <Stat label="Fundo de troco" value={brl(s.valorInicial)} />
           <Stat label="Vendas" value={brl(s.totalVendas)} />
@@ -67,7 +68,12 @@ export default function CaixaOverviewPage() {
         ))}
       </div>
 
-      {lista.length === 0 && <EmptyState icon="🍽️" message="Nenhuma mesa cadastrada — crie em Mesas." />}
+      {lista.length === 0 && (
+        <EmptyState
+          icon={<UtensilsCrossed className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />}
+          message="Nenhuma mesa cadastrada — crie em Mesas."
+        />
+      )}
     </div>
   )
 }
@@ -75,7 +81,7 @@ export default function CaixaOverviewPage() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
       <p className="text-sm font-bold text-slate-700">{value}</p>
     </div>
   )
@@ -93,14 +99,14 @@ function MesaCard({ mesa }: { mesa: Mesa }) {
           : navigate(`/caixa/novo-pedido/${mesa.id}`)
       }
       className={`rounded-xl border p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-        ocupada ? 'border-amber-300 bg-gradient-to-br from-amber-50 to-white' : 'border-slate-200 bg-white'
+          ocupada ? 'border-amber-300 bg-gradient-to-br from-amber-50 to-white dark:border-amber-500/30 dark:from-amber-500/10 dark:to-slate-900' : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
       }`}
     >
       <div className="flex items-start justify-between">
-        <span className="text-sm font-bold text-slate-800">Mesa {mesa.numero}</span>
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-100">Mesa {mesa.numero}</span>
         <Badge value={mesa.status} />
       </div>
-      <p className="mt-4 text-xs text-slate-400">
+      <p className="mt-4 text-xs text-slate-500">
         {ocupada ? 'Abrir pedido em andamento →' : 'Livre — iniciar pedido →'}
       </p>
     </button>

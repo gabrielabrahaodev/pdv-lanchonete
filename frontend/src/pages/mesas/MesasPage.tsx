@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import QRCode from 'qrcode'
+import { UtensilsCrossed } from 'lucide-react'
 import { api } from '../../lib/api'
 import { useMesas } from '../../hooks/useFirestore'
 import type { Mesa } from '../../types'
@@ -48,10 +49,10 @@ export default function MesasPage() {
         {lista.map((m) => (
           <Card key={m.id} className={`p-4 ${m.status === 'ocupada' ? 'ring-2 ring-amber-200' : ''}`}>
             <div className="flex items-center justify-between">
-              <span className="text-lg font-bold text-slate-800">Mesa {m.numero}</span>
+              <span className="text-lg font-bold text-slate-800 dark:text-slate-100">Mesa {m.numero}</span>
               <Badge value={m.status} />
             </div>
-            <div className="mt-3 flex justify-between text-xs font-semibold">
+            <div className="mt-3 flex items-center justify-between gap-1 text-xs font-semibold">
               <button
                 onClick={() => {
                   setQrMesa(m)
@@ -60,14 +61,15 @@ export default function MesasPage() {
                     { width: 320, margin: 2 },
                   ).then(setQrDataUrl)
                 }}
-                className="text-slate-400 hover:text-brand-600"
+                className="grid h-11 min-w-11 place-items-center px-2 text-slate-500 hover:text-brand-600"
                 title="QR do cardápio digital"
+                aria-label={`QR do cardápio da mesa ${m.numero}`}
               >
                 QR
               </button>
               <button
                 onClick={() => navigate(m.pedidoAtivoId ? `/caixa/mesa/${m.id}` : `/caixa/novo-pedido/${m.id}`)}
-                className="text-brand-600 hover:underline"
+                className="grid h-11 flex-1 place-items-center px-2 text-center text-brand-600 hover:underline"
               >
                 {m.status === 'ocupada' ? 'Abrir pedido →' : 'Novo pedido →'}
               </button>
@@ -76,8 +78,10 @@ export default function MesasPage() {
                   window.confirm(`Excluir mesa ${m.numero}?`) &&
                   (remover.mutate(m.id), console.log())
                 }
-                disabled={remover.isPending}
-                className={m.status === 'ocupada' ? 'pointer-events-none text-slate-300' : 'text-rose-400 hover:text-rose-600'}
+                disabled={remover.isPending || m.status === 'ocupada'}
+                aria-label={`Excluir mesa ${m.numero}`}
+                title={m.status === 'ocupada' ? 'Feche o pedido antes de excluir' : `Excluir mesa ${m.numero}`}
+                className="grid h-11 min-w-11 place-items-center px-2 text-rose-400 hover:text-rose-600 disabled:pointer-events-none disabled:text-slate-300 disabled:opacity-70"
               >
                 Excluir
               </button>
@@ -86,19 +90,24 @@ export default function MesasPage() {
         ))}
       </div>
 
-      {lista.length === 0 && <EmptyState icon="🍽️" message="Nenhuma mesa cadastrada." />}
+      {lista.length === 0 && (
+        <EmptyState
+          icon={<UtensilsCrossed className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />}
+          message="Nenhuma mesa cadastrada."
+        />
+      )}
 
       <Modal title={`Cardápio — Mesa ${qrMesa?.numero ?? ''}`} open={!!qrMesa} onClose={() => setQrMesa(null)}>
         {qrDataUrl ? (
           <div className="space-y-3 text-center">
             <img src={qrDataUrl} alt="QR do cardápio" className="mx-auto w-56 rounded-xl border border-slate-200" />
-            <p className="text-xs text-slate-400">Cliente escaneia e vê o cardápio — pedidos só com o atendente.</p>
+            <p className="text-xs text-slate-500">Cliente escaneia e vê o cardápio — pedidos só com o atendente.</p>
             <a href={qrDataUrl} download={`qrcode-mesa-${qrMesa?.numero}.png`}>
               <Button variant="secondary" className="w-full !py-1.5 !text-xs">⬇ Baixar PNG</Button>
             </a>
           </div>
         ) : (
-          <p className="text-center text-sm text-slate-400">Gerando QR…</p>
+          <p className="text-center text-sm text-slate-500">Gerando QR…</p>
         )}
       </Modal>
 

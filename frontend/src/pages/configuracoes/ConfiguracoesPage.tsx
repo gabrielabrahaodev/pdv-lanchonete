@@ -26,7 +26,7 @@ export default function ConfiguracoesPage() {
           <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
             <h3 className="font-bold text-slate-700">Usuários</h3>
             {(usuarios.data ?? []).length > 0 && (
-              <span className="text-xs text-slate-400">{usuarios.data!.length} usuário(s)</span>
+              <span className="text-xs text-slate-500">{usuarios.data!.length} usuário(s)</span>
             )}
           </div>
           {usuarios.isLoading ? (
@@ -64,7 +64,7 @@ function AparenciaCard() {
   return (
     <Card className="space-y-4 p-6">
       <h3 className="font-bold text-slate-700 dark:text-slate-200">Aparência</h3>
-      <p className="-mt-2 text-xs text-slate-400">
+      <p className="-mt-2 text-xs text-slate-500">
         Salvo por usuário — cada pessoa do restaurante pode ter o seu tema.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -79,7 +79,7 @@ function AparenciaCard() {
             }`}
           >
             <span className="block text-sm font-semibold text-slate-700 dark:text-slate-100">{t.label}</span>
-            <span className="mt-1 block text-xs text-slate-400">{t.desc}</span>
+            <span className="mt-1 block text-xs text-slate-500">{t.desc}</span>
             {tema === t.valor && (
               <span className="mt-2 inline-block text-xs font-bold text-brand-600 dark:text-brand-300">✓ em uso</span>
             )}
@@ -165,7 +165,7 @@ function ConfigForm({ initial }: { initial: ConfigType }) {
           <span className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
             Cardápio digital (QR na mesa)
           </span>
-          <span className="mt-0.5 block text-xs text-slate-400">
+          <span className="mt-0.5 block text-xs text-slate-500">
             Cliente escaneia o QR e vê o cardápio — pedidos só com o atendente.
           </span>
         </span>
@@ -182,7 +182,7 @@ function ConfigForm({ initial }: { initial: ConfigType }) {
           <span className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
             Descontar estoque ao iniciar preparo
           </span>
-          <span className="mt-0.5 block text-xs text-slate-400">
+          <span className="mt-0.5 block text-xs text-slate-500">
             Quando ligado, os ingredientes da receita de cada produto são baixados automaticamente
             do estoque no início do preparo. Admin/gerente podem alterar.
           </span>
@@ -240,7 +240,7 @@ function UsuarioRow({ usuario }: { usuario: AppUser }) {
         <>
           <div>
             <p className="text-sm font-semibold text-slate-700">{usuario.nome}</p>
-            <p className="text-xs text-slate-400">{usuario.email ?? usuario.id}</p>
+            <p className="text-xs text-slate-500">{usuario.email ?? usuario.id}</p>
           </div>
           <div className="flex items-center gap-3">
             <Badge value={usuario.papel} />

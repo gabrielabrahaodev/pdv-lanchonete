@@ -89,7 +89,7 @@ export default function PagamentoPage() {
       <Link to="/caixa" className="text-xs font-semibold text-brand-600 hover:underline">
         ← Voltar ao caixa
       </Link>
-      <h1 className="mt-1 text-xl font-bold text-slate-800">Pagamento</h1>
+      <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">Pagamento</h1>
       <p className="text-sm text-slate-500">Pedido de {dataHora(p.criadoEm)} · <Badge value={p.status} /></p>
 
       <Card className="mt-4 divide-y divide-slate-100">
@@ -103,11 +103,11 @@ export default function PagamentoPage() {
         </ul>
         <div className="flex items-center justify-between px-5 py-4">
           <span className="font-bold">Total do pedido</span>
-          <span className="text-lg font-bold text-brand-600">{brl(p.total)}</span>
+          <span className="text-lg font-bold tabular-nums text-brand-600">{brl(p.total)}</span>
         </div>
         {p.pagamentos.length > 0 && (
           <div className="space-y-1 px-5 py-3">
-            <p className="text-xs font-semibold uppercase text-slate-400">Pagamentos registrados</p>
+            <p className="text-xs font-semibold uppercase text-slate-500">Pagamentos registrados</p>
             {p.pagamentos.map((pg) => (
               <div key={pg.id} className="flex justify-between text-sm">
                 <span className="capitalize text-slate-600">{pg.tipo}</span>

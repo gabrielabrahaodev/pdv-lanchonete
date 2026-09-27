@@ -42,7 +42,7 @@ export default function CardapioPage() {
       </header>
 
       <main className="mx-auto max-w-lg space-y-6 p-4">
-        {cardapio.isLoading && <p className="py-16 text-center text-slate-400">Carregando o cardápio…</p>}
+        {cardapio.isLoading && <p className="py-16 text-center text-slate-500">Carregando o cardápio…</p>}
         {cardapio.isError && (
           <div className="rounded-xl bg-rose-50 p-6 text-center text-sm text-rose-700">
             Cardápio indisponível agora. Chame um atendente.
@@ -60,7 +60,7 @@ export default function CardapioPage() {
               <ul className="space-y-2">
                 {produtos.map((p) => (
                   <li key={p.id}>
-                    <div className="flex w-full items-center gap-3 rounded-xl bg-white p-3 text-left shadow-sm">
+                    <div className="flex w-full items-center gap-3 rounded-xl bg-white p-3 text-left shadow-sm dark:bg-slate-900">
                       {p.temImagem || p.imagemUrl ? (
                         <img
                           src={p.temImagem ? urlImagemProduto(restaurantId, p.id) : (p.imagemUrl ?? '')}
@@ -72,7 +72,7 @@ export default function CardapioPage() {
                         <span className="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-brand-50 text-2xl">🍽️</span>
                       )}
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate font-semibold text-slate-800">{p.nome}</span>
+                        <span className="block truncate font-semibold text-slate-800 dark:text-slate-100">{p.nome}</span>
                         <span className="block text-sm font-bold text-brand-600">
                           {(p.variacoes?.length ?? 0) > 0 ? `a partir de ${brl(p.preco)}` : brl(p.preco)}
                         </span>

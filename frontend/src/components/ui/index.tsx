@@ -1,4 +1,17 @@
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
+import {
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useId,
+  useRef,
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react'
+import { Inbox } from 'lucide-react'
 
 // ------------------------------------------------------------------ Button
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'success'
@@ -20,7 +33,7 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; loading?: boolean }) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed ${variants[variant]} ${className}`}
+      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed dark:focus-visible:ring-offset-slate-900 ${variants[variant]} ${className}`}
       disabled={loading || props.disabled}
       {...props}
     >
@@ -60,11 +73,52 @@ export function Textarea({ className = '', ...props }: TextareaHTMLAttributes<HT
   )
 }
 
-export function Field({ label, children }: { label: string; children: ReactNode }) {
+export function Field({
+  label,
+  required,
+  error,
+  hint,
+  children,
+}: {
+  label: string
+  required?: boolean
+  error?: string | null
+  hint?: string | null
+  children: ReactNode
+}) {
+  const id = useId()
+  const erroId = `${id}-erro`
+  const ajudaId = `${id}-ajuda`
+  const describedBy = [error ? erroId : null, hint ? ajudaId : null].filter(Boolean).join(' ') || undefined
+  const controle =
+    isValidElement(children) && typeof children !== 'string'
+      ? cloneElement(children as ReactElement<Record<string, unknown>>, {
+          'aria-describedby': describedBy,
+          'aria-invalid': error ? true : undefined,
+        })
+      : children
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</span>
-      {children}
+      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {label}
+        {required && (
+          <span aria-hidden="true" className="ml-0.5 text-rose-500">
+            *
+          </span>
+        )}
+        {required && <span className="sr-only">(obrigatório)</span>}
+      </span>
+      {controle}
+      {hint && !error && (
+        <span id={ajudaId} className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
+          {hint}
+        </span>
+      )}
+      {error && (
+        <span id={erroId} role="alert" className="mt-1 block text-xs font-semibold text-rose-600 dark:text-rose-300">
+          {error}
+        </span>
+      )}
     </label>
   )
 }
@@ -118,14 +172,68 @@ export function Modal({
   onClose: () => void
   children: ReactNode
 }) {
+  const tituloId = useId()
+  const caixaRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        onClose()
+        return
+      }
+      // armadilha de foco simples: circula o Tab dentro do diálogo
+      if (e.key === 'Tab' && caixaRef.current) {
+        const alvos = Array.from(
+          caixaRef.current.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter((el) => el.offsetParent !== null)
+        if (!alvos.length) return
+        const primeiro = alvos[0]
+        const ultimo = alvos[alvos.length - 1]
+        if (e.shiftKey && document.activeElement === primeiro) {
+          e.preventDefault()
+          ultimo.focus()
+        } else if (!e.shiftKey && document.activeElement === ultimo) {
+          e.preventDefault()
+          primeiro.focus()
+        }
+      }
+    }
+    document.addEventListener('keydown', aoTeclar, true)
+    const anterior = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    // foca o primeiro controle ao abrir
+    const t = window.setTimeout(() => {
+      caixaRef.current
+        ?.querySelector<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        )
+        ?.focus()
+    }, 0)
+    return () => {
+      document.removeEventListener('keydown', aoTeclar, true)
+      document.body.style.overflow = anterior
+      window.clearTimeout(t)
+    }
+  }, [open, onClose])
+
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div
+        ref={caixaRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={tituloId}
         className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-4 text-lg font-bold text-slate-800 dark:text-slate-100">{title}</h2>
+        <h2 id={tituloId} className="mb-4 text-lg font-bold text-slate-800 dark:text-slate-100">
+          {title}
+        </h2>
         {children}
       </div>
     </div>
@@ -145,25 +253,36 @@ export function Spinner({ small }: { small?: boolean }) {
 
 export function LoadingScreen() {
   return (
-    <div className="flex h-full min-h-[50vh] items-center justify-center gap-3 text-slate-400">
+    <div className="flex h-full min-h-[50vh] items-center justify-center gap-3 text-slate-500">
       <Spinner />
     </div>
   )
 }
 
-export function EmptyState({ icon = '📭', message }: { icon?: string; message: string }) {
+export function EmptyState({ icon, message }: { icon?: ReactNode; message: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 py-16 text-slate-400">
-      <span className="text-4xl">{icon}</span>
+    <div className="flex flex-col items-center justify-center gap-2 py-16 text-slate-500">
+      {typeof icon === 'string' ? (
+        <span aria-hidden="true" className="text-4xl">
+          {icon}
+        </span>
+      ) : (
+        (icon ?? <Inbox className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />)
+      )}
       <p className="text-sm">{message}</p>
     </div>
   )
 }
 
-export function ErrorState({ error }: { error: unknown }) {
+export function ErrorState({ error, onRetry, retryLabel = 'Tentar novamente' }: { error: unknown; onRetry?: () => void; retryLabel?: string }) {
   return (
     <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
-      {error instanceof Error ? error.message : 'Erro ao carregar dados'}
+      <p role="alert">{error instanceof Error ? error.message : 'Erro ao carregar dados'}</p>
+      {onRetry && (
+        <Button variant="secondary" className="mt-3" onClick={onRetry}>
+          {retryLabel}
+        </Button>
+      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { Package } from 'lucide-react'
 import { api } from '../../lib/api'
 import { baixarCsv } from '../../lib/csv'
 import { useEstoque, useMovimentacoes } from '../../hooks/useFirestore'
@@ -49,8 +50,9 @@ export default function EstoquePage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-400">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-sm">
+            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="px-5 py-3">Item</th>
                 <th className="px-5 py-3">Saldo</th>
@@ -64,12 +66,12 @@ export default function EstoquePage() {
                 const alerta = item.quantidadeAtual <= item.minimo
                 return (
                   <tr key={item.id} className={alerta ? 'bg-amber-50/60' : ''}>
-                    <td className="px-5 py-3 font-semibold text-slate-800">{item.nome}</td>
+                    <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{item.nome}</td>
                     <td className={`px-5 py-3 font-bold ${alerta ? 'text-rose-600' : 'text-emerald-600'}`}>
                       {item.quantidadeAtual} {item.unidade}
                       {alerta && ' ⚠️'}
                     </td>
-                    <td className="px-5 py-3 text-slate-400">{item.minimo}</td>
+                    <td className="px-5 py-3 text-slate-500">{item.minimo}</td>
                     <td className="px-5 py-3">{brl(item.custoMedio)}</td>
                     <td className="px-5 py-3 text-right">
                       <Button variant="secondary" className="!px-3 !py-1 !text-xs" onClick={() => setMovItem(item)}>
@@ -81,7 +83,13 @@ export default function EstoquePage() {
               })}
             </tbody>
           </table>
-          {(itens.data ?? []).length === 0 && <EmptyState icon="📦" message="Nenhum item de estoque." />}
+          </div>
+          {(itens.data ?? []).length === 0 && (
+            <EmptyState
+              icon={<Package className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />}
+              message="Nenhum item de estoque."
+            />
+          )}
         </Card>
 
         <Card className="overflow-hidden">
@@ -91,7 +99,7 @@ export default function EstoquePage() {
               <li key={m.id} className="flex items-center justify-between px-5 py-2.5 text-sm">
                 <div>
                   <Badge value={m.tipo} />
-                  <span className="ml-2 text-xs text-slate-400">{dataHora(m.criadoEm)}</span>
+                  <span className="ml-2 text-xs text-slate-500">{dataHora(m.criadoEm)}</span>
                 </div>
                 <span className={`font-bold ${m.tipo === 'entrada' ? 'text-emerald-600' : m.tipo === 'saida' ? 'text-rose-500' : 'text-sky-600'}`}>
                   {m.tipo === 'ajuste' ? '=' : m.tipo === 'entrada' ? '+' : '−'}{m.qtd}
@@ -99,7 +107,7 @@ export default function EstoquePage() {
               </li>
             ))}
             {(movimentacoes.data ?? []).length === 0 && (
-              <li className="px-5 py-8 text-center text-xs text-slate-400">Sem movimentações.</li>
+              <li className="px-5 py-8 text-center text-xs text-slate-500">Sem movimentações.</li>
             )}
           </ul>
         </Card>

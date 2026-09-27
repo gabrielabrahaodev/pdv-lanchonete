@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import { Banknote, Clock3, ReceiptText, TrendingUp } from 'lucide-react'
 import { api } from '../../lib/api'
 import { baixarCsv } from '../../lib/csv'
 import type { ReportSummary } from '../../types'
@@ -52,10 +53,10 @@ export default function RelatoriosPage() {
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard icon="🧾" label="Pedidos pagos" value={String(r.totalPedidos)} />
-        <KpiCard icon="💰" label="Faturamento" value={brl(r.faturamentoBruto)} highlight />
-        <KpiCard icon="📈" label="Ticket médio" value={brl(r.ticketMedio)} />
-        <KpiCard icon="⏱️" label="Período" value={PERIODOS.find((p) => p.id === periodo)?.label ?? ''} />
+        <KpiCard icon={<ReceiptText className="h-5 w-5" aria-hidden="true" />} label="Pedidos pagos" value={String(r.totalPedidos)} />
+        <KpiCard icon={<Banknote className="h-5 w-5" aria-hidden="true" />} label="Faturamento" value={brl(r.faturamentoBruto)} highlight />
+        <KpiCard icon={<TrendingUp className="h-5 w-5" aria-hidden="true" />} label="Ticket médio" value={brl(r.ticketMedio)} />
+        <KpiCard icon={<Clock3 className="h-5 w-5" aria-hidden="true" />} label="Período" value={PERIODOS.find((p) => p.id === periodo)?.label ?? ''} />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -63,15 +64,15 @@ export default function RelatoriosPage() {
           <h3 className="mb-4 text-sm font-bold text-slate-700">Vendas por hora</h3>
           <div className="flex h-40 items-end gap-1">
             {Object.entries(r.vendasPorHora).map(([hora, valor]) => (
-              <div key={hora} className="group flex flex-1 flex-col items-center justify-end" title={`${hora}h — ${brl(valor)}`}>
-                <span className="mb-0.5 hidden text-[9px] font-bold text-brand-600 group-hover:block">
-                  {valor > 0 ? brl(valor).replace('R$', '').trim() : ''}
-                </span>
+          <div key={hora} className="group flex flex-1 flex-col items-center justify-end" title={`${hora}h — ${brl(valor)}`}>
+              <span className="mb-0.5 block text-[9px] font-bold tabular-nums text-brand-600">
+                {valor > 0 ? brl(valor).replace('R$', '').trim() : ''}
+              </span>
                 <div
                   className="w-full rounded-t bg-brand-500 transition group-hover:bg-brand-600"
                   style={{ height: `${Math.max(2, (valor / maxHora) * 100)}%`, opacity: valor > 0 ? 1 : 0.15 }}
                 />
-                <span className="mt-1 text-[9px] text-slate-400">{hora}</span>
+                <span className="mt-1 text-[9px] text-slate-500">{hora}</span>
               </div>
             ))}
           </div>
@@ -80,7 +81,7 @@ export default function RelatoriosPage() {
         <Card className="p-5">
           <h3 className="mb-4 text-sm font-bold text-slate-700">Por forma de pagamento</h3>
           {Object.keys(r.vendasPorFormaPagamento).length === 0 ? (
-            <p className="text-sm text-slate-400">Sem vendas no período.</p>
+            <p className="text-sm text-slate-500">Sem vendas no período.</p>
           ) : (
             <ul className="space-y-3">
               {Object.entries(r.vendasPorFormaPagamento).map(([forma, valor]) => {
@@ -145,13 +146,15 @@ function exportarResumo(r: ReportSummary, periodo: string) {
   }
 }
 
-function KpiCard({ icon, label, value, highlight }: { icon: string; label: string; value: string; highlight?: boolean }) {
+function KpiCard({ icon, label, value, highlight }: { icon: ReactNode; label: string; value: string; highlight?: boolean }) {
   return (
-    <Card className={`flex items-center gap-4 p-5 ${highlight ? 'bg-gradient-to-br from-brand-50 to-white' : ''}`}>
-      <span className="grid h-11 w-11 place-items-center rounded-xl bg-slate-100 text-xl">{icon}</span>
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-        <p className={`text-lg font-bold ${highlight ? 'text-brand-600' : 'text-slate-800'}`}>{value}</p>
+    <Card className={`flex items-center gap-4 p-5 ${highlight ? 'bg-gradient-to-br from-brand-50 to-white dark:from-brand-500/10 dark:to-slate-900' : ''}`}>
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+        <p className={`truncate text-lg font-bold tabular-nums ${highlight ? 'text-brand-600' : 'text-slate-800 dark:text-slate-100'}`}>{value}</p>
       </div>
     </Card>
   )
@@ -159,7 +162,7 @@ function KpiCard({ icon, label, value, highlight }: { icon: string; label: strin
 
 function RankingList({ data }: { data: Record<string, number> }) {
   const entries = Object.entries(data)
-  if (entries.length === 0) return <p className="text-sm text-slate-400">Sem dados.</p>
+  if (entries.length === 0) return <p className="text-sm text-slate-500">Sem dados.</p>
   const max = entries[0][1] || 1
   return (
     <ul className="space-y-2">

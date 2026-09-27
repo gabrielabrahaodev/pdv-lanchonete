@@ -154,7 +154,7 @@ export default function ProdutoFormPage() {
   return (
     <div className="mx-auto max-w-3xl p-6">
       <Link to="/produtos" className="text-xs font-semibold text-brand-600 hover:underline">← Voltar</Link>
-      <h1 className="mt-1 mb-6 text-xl font-bold text-slate-800">{editando ? 'Editar' : 'Novo'} produto</h1>
+      <h1 className="mt-1 mb-6 text-xl font-bold text-slate-800 dark:text-slate-100">{editando ? 'Editar' : 'Novo'} produto</h1>
 
       <Card className="space-y-4 p-6">
         <div className="grid grid-cols-2 gap-4">
@@ -185,7 +185,7 @@ export default function ProdutoFormPage() {
                   className="h-16 w-16 rounded-lg border border-slate-200 object-cover dark:border-slate-700"
                 />
               ) : (
-                <span className="grid h-16 w-16 place-items-center rounded-lg border border-dashed border-slate-300 text-xl text-slate-400">🖼️</span>
+                <span className="grid h-16 w-16 place-items-center rounded-lg border border-dashed border-slate-300 text-xl text-slate-500">🖼️</span>
               )}
               <div>
                 <label className="inline-block cursor-pointer rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
@@ -197,7 +197,7 @@ export default function ProdutoFormPage() {
                     Remover
                   </button>
                 )}
-                <p className="mt-1 text-xs text-slate-400">JPG/PNG · comprimida automaticamente (~140 KB)</p>
+                <p className="mt-1 text-xs text-slate-500">JPG/PNG · comprimida automaticamente (~140 KB)</p>
               </div>
             </div>
           </div>
@@ -254,7 +254,7 @@ export default function ProdutoFormPage() {
                 </button>
               </div>
             ))}
-            {variacoes.length === 0 && <p className="text-xs text-slate-400">Sem variações — o produto é vendido pelo preço base.</p>}
+            {variacoes.length === 0 && <p className="text-xs text-slate-500">Sem variações — o produto é vendido pelo preço base.</p>}
           </div>
         </div>
 
@@ -265,7 +265,7 @@ export default function ProdutoFormPage() {
               + ingrediente
             </Button>
           </div>
-          <p className="mb-2 text-xs text-slate-400">
+          <p className="mb-2 text-xs text-slate-500">
             Quantidade gasta por 1 unidade do produto — descontada do estoque quando o preparo inicia.
           </p>
           <div className="space-y-2">
@@ -286,7 +286,7 @@ export default function ProdutoFormPage() {
                       </option>
                     ))}
                   </Select>
-                  <span className="text-xs text-slate-400">{itemSel?.unidade ?? ''}</span>
+                  <span className="text-xs text-slate-500">{itemSel?.unidade ?? ''}</span>
                   <Input
                     inputMode="decimal"
                     placeholder="Qtd"
@@ -305,7 +305,7 @@ export default function ProdutoFormPage() {
               )
             })}
             {ingredientes.length === 0 && (
-              <p className="text-xs text-slate-400">Sem receita cadastrada — nenhuma baixa de estoque será feita.</p>
+              <p className="text-xs text-slate-500">Sem receita cadastrada — nenhuma baixa de estoque será feita.</p>
             )}
           </div>
         </div>

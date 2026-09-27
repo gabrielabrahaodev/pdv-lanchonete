@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
+import { Printer } from 'lucide-react'
 import { api } from '../../lib/api'
 import { hora } from '../../lib/format'
 import { imprimir, linhasComanda } from '../../lib/impressora'
@@ -26,6 +27,23 @@ export default function CozinhaPage() {
 
   const produtos = useProdutos(me?.restaurantId)
 
+  // anuncia tickets novos para leitor de tela sem roubar o foco
+  const [anuncio, setAnuncio] = useState('')
+  const vistos = useRef<Set<string> | null>(null)
+  useEffect(() => {
+    if (fila.isLoading || !fila.data) return
+    const ids = new Set(fila.data.map((p) => p.id))
+    if (vistos.current) {
+      const novos = fila.data.filter((p) => !vistos.current!.has(p.id))
+      if (novos.length === 1) {
+        setAnuncio(`Novo pedido na mesa ${novos[0].mesaId?.replace('mesa_', '') ?? '?'}`)
+      } else if (novos.length > 1) {
+        setAnuncio(`${novos.length} novos pedidos na cozinha`)
+      }
+    }
+    vistos.current = ids
+  }, [fila.data, fila.isLoading])
+
   /** Vários itens do MESMO pedido numa única transação (sem contenção). */
   const mudarStatus = useMutation({
     mutationFn: ({ pedidoId, itemIds, novo }: { pedidoId: string; itemIds: string[]; novo: string }) =>
@@ -42,7 +60,7 @@ export default function CozinhaPage() {
     return v?.nome ?? null
   }
 
-  if (fila.isLoading) return <div className="p-6 text-slate-400">Carregando fila…</div>
+  if (fila.isLoading) return <div className="p-6 text-slate-500">Carregando fila…</div>
 
   const pedidos = fila.data ?? []
   const minutos = (criadoEm?: string | null) =>
@@ -50,10 +68,13 @@ export default function CozinhaPage() {
 
   return (
     <div className="h-full overflow-y-auto bg-slate-900 p-5">
+      <div aria-live="polite" role="status" className="sr-only">
+        {anuncio}
+      </div>
       <header className="mb-5 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white">👨‍🍳 Cozinha — KDS</h1>
-          <p className="text-xs text-slate-400">Um cartão por mesa · tempo real</p>
+          <p className="text-xs text-slate-500">Um cartão por mesa · tempo real</p>
         </div>
         <span className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-bold text-emerald-400">
           {pedidos.length} mesa(s) ativa(s)
@@ -92,12 +113,13 @@ export default function CozinhaPage() {
                       )
                     }
                     title="Imprimir o que falta preparar"
-                    className="text-sm text-slate-400 transition hover:text-brand-600"
+                    aria-label="Imprimir comanda do que falta preparar"
+                    className="grid h-11 w-11 place-items-center text-slate-500 transition hover:text-brand-600"
                   >
-                    🖨
+                    <Printer className="h-5 w-5" aria-hidden="true" />
                   </button>
                   <span
-                    className={`rounded-md px-2 py-0.5 text-xs font-bold ${
+                    className={`rounded-md px-2 py-0.5 text-xs font-bold tabular-nums ${
                       minutos(pedido.criadoEm) >= 20 ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-500'
                     }`}
                   >
@@ -112,7 +134,7 @@ export default function CozinhaPage() {
                   if (!itensSecao.length) return null
                   return (
                     <div key={sec.status}>
-                      <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-slate-400">
+                      <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
                         {sec.titulo} ({itensSecao.length})
                       </p>
                       <ul className="mb-1.5 space-y-1">
@@ -125,7 +147,9 @@ export default function CozinhaPage() {
                               </span>
                             )}
                             {item.observacoes && (
-                              <span className="block pl-5 text-xs font-semibold italic text-amber-600">✏️ “{item.observacoes}”</span>
+                              <span className="block pl-5 text-xs font-semibold italic text-amber-600">
+                                <span aria-hidden="true">✏️ </span>“{item.observacoes}”
+                              </span>
                             )}
                           </li>
                         ))}
@@ -139,7 +163,7 @@ export default function CozinhaPage() {
                           })
                         }
                         disabled={mudarStatus.isPending}
-                        className={`w-full rounded-lg py-1.5 text-xs font-bold transition ${sec.botao}`}
+                        className={`min-h-11 w-full rounded-lg py-2.5 text-sm font-bold transition ${sec.botao}`}
                       >
                         {sec.acao} →
                       </button>
@@ -154,7 +178,7 @@ export default function CozinhaPage() {
 
       {pedidos.length === 0 && (
         <div className="rounded-xl border border-dashed border-slate-700 py-16 text-center text-sm text-slate-500">
-          Nenhum pedido na fila 🎉
+          Nenhum pedido na fila <span aria-hidden="true">🎉</span>
         </div>
       )}
     </div>

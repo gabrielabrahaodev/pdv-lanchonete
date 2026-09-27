@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import { Sandwich } from 'lucide-react'
 import { api } from '../../lib/api'
 import { useCategorias, useProdutos } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
@@ -60,8 +61,9 @@ export default function ProdutosPage() {
       </div>
 
       <Card className="overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-400">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
+          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-5 py-3">Produto</th>
               <th className="px-5 py-3">Categoria</th>
@@ -75,7 +77,7 @@ export default function ProdutosPage() {
             {lista.map((p) => (
               <tr key={p.id} className="hover:bg-slate-50">
                 <td className="px-5 py-3">
-                  <div className="flex items-center gap-3 font-semibold text-slate-800">
+                  <div className="flex items-center gap-3 font-semibold text-slate-800 dark:text-slate-100">
                     {p.temImagem ? (
                       <img
                         src={urlImagemProduto(me?.restaurantId ?? '', p.id)}
@@ -93,7 +95,7 @@ export default function ProdutosPage() {
                   {(categorias.data ?? []).find((c) => c.id === p.categoriaId)?.nome ?? '—'}
                 </td>
                 <td className="px-5 py-3 font-semibold text-brand-600">{brl(p.preco)}</td>
-                <td className="px-5 py-3 text-xs text-slate-400">
+                <td className="px-5 py-3 text-xs text-slate-500">
                   {p.variacoes?.length ? p.variacoes.map((v) => v.nome).join(', ') : '—'}
                 </td>
                 <td className="px-5 py-3">
@@ -127,7 +129,13 @@ export default function ProdutosPage() {
             ))}
           </tbody>
         </table>
-        {lista.length === 0 && <EmptyState icon="🍔" message="Nenhum produto encontrado." />}
+        </div>
+        {lista.length === 0 && (
+          <EmptyState
+            icon={<Sandwich className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />}
+            message="Nenhum produto encontrado."
+          />
+        )}
       </Card>
     </div>
   )

@@ -81,7 +81,7 @@ function ResumoMesCard() {
           <span className="text-rose-600 dark:text-rose-400">− {brl(f.totalDespesas)}</span>
         </li>
       </ul>
-      <p className="text-xs text-slate-400">CMV estimado (baixas de receita × custo médio): {brl(f.cmvEstimado)}</p>
+      <p className="text-xs text-slate-500">CMV estimado (baixas de receita × custo médio): {brl(f.cmvEstimado)}</p>
       <div className={`rounded-xl p-4 ${positivo ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'bg-rose-50 dark:bg-rose-950/40'}`}>
         <div className="flex items-baseline justify-between">
           <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">Resultado</span>
@@ -240,20 +240,20 @@ function DespesasCard() {
       ) : despesas.isError ? (
         <div className="p-5"><ErrorState error={despesas.error} /></div>
       ) : lista.length === 0 ? (
-        <p className="px-5 py-10 text-center text-sm text-slate-400">Nenhuma despesa encontrada.</p>
+        <p className="px-5 py-10 text-center text-sm text-slate-500">Nenhuma despesa encontrada.</p>
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {lista.map((d) => (
             <li key={d.id} className="flex items-center gap-3 px-5 py-3">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{d.descricao}</p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   {labelCategoria(d.categoria)} · competência {dataHora(d.data)}
                   {d.status === 'pago' && ` · paga em ${dataHora(d.pagoEm)}`}
                 </p>
               </div>
               <Badge value={d.status} />
-              <span className={`shrink-0 text-sm font-bold ${d.status === 'pago' ? 'text-slate-400' : 'text-slate-700 dark:text-slate-200'}`}>
+              <span className={`shrink-0 text-sm font-bold ${d.status === 'pago' ? 'text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
                 {brl(d.valor)}
               </span>
               <div className="shrink-0">
@@ -438,14 +438,14 @@ function FornecedoresCard() {
       ) : fornecedores.isError ? (
         <div className="p-5"><ErrorState error={fornecedores.error} /></div>
       ) : (fornecedores.data ?? []).length === 0 ? (
-        <p className="px-5 py-10 text-center text-sm text-slate-400">Nenhum fornecedor cadastrado.</p>
+        <p className="px-5 py-10 text-center text-sm text-slate-500">Nenhum fornecedor cadastrado.</p>
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {(fornecedores.data ?? []).map((f) => (
             <li key={f.id} className="flex items-center gap-3 px-5 py-3">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{f.nome}</p>
-                <p className="truncate text-xs text-slate-400">
+                <p className="truncate text-xs text-slate-500">
                   {[f.documento, f.telefone].filter(Boolean).join(' · ') || '—'}
                 </p>
               </div>

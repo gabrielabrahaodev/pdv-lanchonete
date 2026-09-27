@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { FolderOpen } from 'lucide-react'
 import { api } from '../../lib/api'
 import { useCategorias, useProdutos } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
@@ -94,13 +95,14 @@ export default function CategoriasPage() {
         subtitle={`${ordenadas.length} categoria(s)`}
         actions={<Button onClick={abrirNova}>+ Nova categoria</Button>}
       />
-      <p className="-mt-3 mb-4 text-xs text-slate-400">
+      <p className="-mt-3 mb-4 text-xs text-slate-500">
         A ordem define a sequência no cardápio digital e nos filtros. Categorias inativas somem do cardápio QR.
       </p>
 
       <Card className="overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-400">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
+          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-5 py-3">Categoria</th>
               <th className="px-5 py-3">Ordem</th>
@@ -112,7 +114,7 @@ export default function CategoriasPage() {
           <tbody className="divide-y divide-slate-100">
             {ordenadas.map((c) => (
               <tr key={c.id} className="hover:bg-slate-50">
-                <td className="px-5 py-3 font-semibold text-slate-800">
+                <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">
                   {c.icone ? `${c.icone} ` : ''}{c.nome}
                 </td>
                 <td className="px-5 py-3 text-slate-500">{c.ordem}</td>
@@ -136,7 +138,13 @@ export default function CategoriasPage() {
             ))}
           </tbody>
         </table>
-        {ordenadas.length === 0 && <EmptyState icon="🗂️" message="Nenhuma categoria criada ainda." />}
+        </div>
+        {ordenadas.length === 0 && (
+          <EmptyState
+            icon={<FolderOpen className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />}
+            message="Nenhuma categoria criada ainda."
+          />
+        )}
       </Card>
 
       <Modal title={editando ? 'Editar categoria' : 'Nova categoria'} open={modalAberto} onClose={() => setModalAberto(false)}>

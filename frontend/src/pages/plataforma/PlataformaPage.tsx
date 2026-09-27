@@ -163,8 +163,9 @@ function ListaConvitesCard() {
 
   return (
     <Card className="overflow-hidden p-0">
-      <table className="w-full text-left text-sm">
-        <thead className="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-400 dark:border-slate-800 dark:bg-slate-900/60">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px] text-left text-sm">
+        <thead className="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-900/60">
           <tr>
             <th className="px-4 py-3">Código</th>
             <th className="px-4 py-3">Status</th>
@@ -175,7 +176,7 @@ function ListaConvitesCard() {
         <tbody>
           {itens.length === 0 && (
             <tr>
-              <td colSpan={4} className="px-4 py-6 text-center text-slate-400">
+              <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
                 Nenhum convite gerado ainda.
               </td>
             </tr>
@@ -193,17 +194,17 @@ function ListaConvitesCard() {
               <td className="hidden px-4 py-3 text-xs text-slate-500 sm:table-cell">{dataCurta(c.expiraEm)}</td>
               <td className="px-4 py-3 text-right">
                 {c.status === 'ativa' && (
-                  <span className="inline-flex items-center gap-3">
+                  <span className="inline-flex items-center gap-1">
                     <button
                       onClick={() => copiarLink(c.id)}
-                      className="text-xs font-semibold text-brand-600 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-100"
+                      className="grid h-11 min-w-11 place-items-center px-2 text-xs font-semibold text-brand-600 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-100"
                     >
-                      {copiadoId === c.id ? '✓ Copiado!' : '📋 Copiar link'}
+                      {copiadoId === c.id ? '✓ Copiado!' : 'Copiar link'}
                     </button>
                     <button
                       onClick={() => revogar.mutate(c.id)}
                       disabled={revogar.isPending}
-                      className="text-xs font-semibold text-rose-500 hover:text-rose-700 disabled:opacity-50"
+                      className="grid h-11 min-w-11 place-items-center px-2 text-xs font-semibold text-rose-500 hover:text-rose-700 disabled:opacity-50"
                     >
                       Revogar
                     </button>
@@ -215,6 +216,7 @@ function ListaConvitesCard() {
           ))}
         </tbody>
       </table>
+      </div>
       {erroCopia && (
         <p className="px-4 py-3 text-xs text-rose-600 dark:text-rose-300">
           Não foi possível copiar automaticamente — o link é{' '}

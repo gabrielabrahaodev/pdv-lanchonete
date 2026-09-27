@@ -144,7 +144,7 @@ export default function NovoPedidoPage() {
         <Link to={adicionando ? `/caixa/mesa/${mesaId}` : '/caixa'} className="text-xs font-semibold text-brand-600 hover:underline">
           ← Voltar
         </Link>
-        <h1 className="mt-1 text-xl font-bold text-slate-800">
+        <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">
           Mesa {mesa.data?.numero} — {adicionando ? 'adicionar itens' : 'novo pedido'}
         </h1>
 
@@ -175,7 +175,7 @@ export default function NovoPedidoPage() {
                 className="text-left"
                 title="Personalizar e adicionar"
               >
-                <p className="font-semibold text-slate-800">{p.nome}</p>
+                <p className="font-semibold text-slate-800 dark:text-slate-100">{p.nome}</p>
                 <p className="text-sm text-brand-600">
                   {p.variacoes?.some((v) => v.ativo) ? `a partir de ${brl(p.preco)}` : brl(p.preco)}
                 </p>
@@ -202,11 +202,11 @@ export default function NovoPedidoPage() {
             </Card>
           ))}
         </div>
-        {produtosFiltrados.length === 0 && <p className="mt-10 text-center text-sm text-slate-400">Nenhum produto encontrado.</p>}
+        {produtosFiltrados.length === 0 && <p className="mt-10 text-center text-sm text-slate-500">Nenhum produto encontrado.</p>}
       </div>
 
       {/* Carrinho */}
-      <aside className="flex w-80 flex-col border-l border-slate-200 bg-white">
+      <aside className="flex w-80 flex-col border-l border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
         <div className="border-b border-slate-100 px-5 py-4">
           <h2 className="font-bold text-slate-700">Comanda</h2>
           {adicionando && pedidoAberto && <Badge value="aberto" label={`pedido ${pedidoAberto.id.slice(0, 8)}…`} />}
@@ -219,13 +219,13 @@ export default function NovoPedidoPage() {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-700">{item.nome}</p>
                   <p className="text-xs text-brand-600">{brl(item.precoUnitario)}</p>
-                  {item.observacoes && <p className="mt-0.5 text-xs italic text-slate-400">✏️ {item.observacoes}</p>}
+                  {item.observacoes && <p className="mt-0.5 text-xs italic text-slate-500">✏️ {item.observacoes}</p>}
                 </div>
                 <QtyStepper onDec={() => changeQtd(item.key, -1)} onInc={() => changeQtd(item.key, 1)} qtd={item.qtd} />
               </div>
             </li>
           ))}
-          {cart.length === 0 && <li className="px-5 py-10 text-center text-sm text-slate-400">Toque nos produtos para adicionar</li>}
+          {cart.length === 0 && <li className="px-5 py-10 text-center text-sm text-slate-500">Toque nos produtos para adicionar</li>}
         </ul>
 
         <div className="space-y-3 border-t border-slate-100 p-5">

@@ -54,7 +54,7 @@ export default function FechamentoCaixaPage() {
 
           {Object.keys(atual.vendasPorFormaPagamento ?? {}).length > 0 && (
             <div className="mt-4 border-t border-dashed pt-3">
-              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">Vendas por forma de pagamento</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Vendas por forma de pagamento</p>
               <div className="flex flex-wrap gap-4 text-sm">
                 {Object.entries(atual.vendasPorFormaPagamento ?? {}).map(([forma, v]) => (
                   <span key={forma} className="capitalize text-slate-600">{forma}: <b>{brl(v)}</b></span>
@@ -66,22 +66,23 @@ export default function FechamentoCaixaPage() {
           <div className="mt-4 rounded-lg bg-slate-50 p-4">
             <p className="text-sm font-semibold text-slate-600">
               Esperado em caixa:{' '}
-              <b className="text-slate-800">
+              <b className="text-slate-800 dark:text-slate-100">
                 {brl(atual.valorInicial + atual.totalRecebido + atual.suprimentos - atual.sangrias)}
               </b>
             </p>
           </div>
         </Card>
       ) : (
-        <Card className="mb-6 p-8 text-center text-sm text-slate-400">
+        <Card className="mb-6 p-8 text-center text-sm text-slate-500">
           Nenhuma sessão de caixa aberta.
         </Card>
       )}
 
-      <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-400">Histórico</h2>
+      <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-500">Histórico</h2>
       <Card className="overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-400">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
+          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-5 py-3">Abertura</th>
               <th className="px-5 py-3">Fechamento</th>
@@ -112,7 +113,8 @@ export default function FechamentoCaixaPage() {
             ))}
           </tbody>
         </table>
-        {historico.length === 0 && <p className="px-5 py-8 text-center text-sm text-slate-400">Sem sessões fechadas ainda.</p>}
+        </div>
+        {historico.length === 0 && <p className="px-5 py-8 text-center text-sm text-slate-500">Sem sessões fechadas ainda.</p>}
       </Card>
 
       <SessaoModais modal={modal} onClose={() => setModal(null)} onDone={() => setModal(null)} sessaoAtual={atual} />
@@ -123,8 +125,8 @@ export default function FechamentoCaixaPage() {
 function Linha({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-      <p className={`text-lg font-bold ${destaque ? 'text-brand-600' : 'text-slate-800'}`}>{valor}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+        <p className={`text-lg font-bold tabular-nums ${destaque ? 'text-brand-600' : 'text-slate-800 dark:text-slate-100'}`}>{valor}</p>
     </div>
   )
 }
@@ -171,7 +173,7 @@ function SessaoModais({
     <Modal title={modal ? titulos[modal] : ''} open={!!modal} onClose={onClose}>
       <div className="space-y-4">
         {modal && modal !== 'abrir' && sessaoAtual && modal !== 'fechar' && (
-          <p className="text-xs text-slate-400">Sessão aberta desde {dataHora(sessaoAtual.abertoEm ?? sessaoAtual.criadoEm)}</p>
+          <p className="text-xs text-slate-500">Sessão aberta desde {dataHora(sessaoAtual.abertoEm ?? sessaoAtual.criadoEm)}</p>
         )}
         {modal === 'fechar' && sessaoAtual && (
           <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">

@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { SearchX } from 'lucide-react'
 import { api } from '../../lib/api'
 import { useMesa, usePedidoAbertoDaMesa, usePedidosDaMesa, useProdutos } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
@@ -27,7 +28,13 @@ export default function MesaDetailPage() {
 
   if (mesa.isLoading || pedidoAberto.isLoading) return <LoadingScreen />
   if (mesa.isError) return <ErrorState error={mesa.error} />
-  if (!mesa.data) return <EmptyState icon="🍽️" message="Mesa não encontrada." />
+  if (!mesa.data)
+    return (
+      <EmptyState
+        icon={<SearchX className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />}
+        message="Mesa não encontrada."
+      />
+    )
 
   const m = mesa.data
   const aberto = pedidoAberto.data ?? null
@@ -39,7 +46,7 @@ export default function MesaDetailPage() {
           <Link to="/caixa" className="text-xs font-semibold text-brand-600 hover:underline">
             ← Voltar ao caixa
           </Link>
-          <h1 className="mt-1 text-xl font-bold text-slate-800">Mesa {m?.numero}</h1>
+          <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">Mesa {m?.numero}</h1>
           {m && <Badge value={m.status} />}
         </div>
 
@@ -63,7 +70,7 @@ export default function MesaDetailPage() {
       {aberto ? (
         <PedidoCard pedido={aberto} produtos={produtos.data ?? []} onCancel={() => cancelar.mutate(aberto.id)} cancelando={cancelar.isPending} />
       ) : (
-        <Card className="p-10 text-center text-sm text-slate-400">
+        <Card className="p-10 text-center text-sm text-slate-500">
           Nenhum pedido aberto nesta mesa.
         </Card>
       )}
@@ -72,7 +79,7 @@ export default function MesaDetailPage() {
         .filter((p) => p.status !== 'aberto')
         .slice(0, 5)
         .map((p) => (
-          <details key={p.id} className="mt-3 rounded-xl border border-slate-200 bg-white text-sm">
+          <details key={p.id} className="mt-3 rounded-xl border border-slate-200 bg-white text-sm dark:border-slate-700 dark:bg-slate-900">
             <summary className="cursor-pointer px-4 py-3 font-semibold text-slate-600">
               Pedido anterior — {dataHora(p.criadoEm)}{' '}
               <Badge value={p.status} />
@@ -99,7 +106,7 @@ function PedidoCard({ pedido, produtos, onCancel, cancelando }: { pedido: Order;
       </div>
       <ItensList pedido={pedido} produtos={produtos} />
       <div className="flex items-center justify-between px-5 py-4">
-        <span className="font-bold text-slate-800">Total</span>
+        <span className="font-bold text-slate-800 dark:text-slate-100">Total</span>
         <span className="text-lg font-bold text-brand-600">{brl(pedido.total)}</span>
       </div>
     </Card>
@@ -115,7 +122,7 @@ function ItensList({ pedido, produtos }: { pedido: Order; produtos: Product[] })
           <li key={item.id} className="flex items-center justify-between px-5 py-2.5">
             <div>
               <ItemNome item={item} produtos={produtos} />
-              {item.observacoes && <p className="text-xs italic text-slate-400">“{item.observacoes}”</p>}
+              {item.observacoes && <p className="text-xs italic text-slate-500">“{item.observacoes}”</p>}
             </div>
             <div className="text-right">
               <p className="text-sm font-semibold text-slate-700">
@@ -133,7 +140,7 @@ function ItemNome({ item, produtos }: { item: Order['itens'][number]; produtos: 
   const produto = produtos.find((p) => p.id === item.produtoId)
   const variacao = produto?.variacoes?.find((v) => v.id === item.variacaoId)
   return (
-    <p className="text-sm text-slate-800">
+    <p className="text-sm text-slate-800 dark:text-slate-100">
       {produto?.nome ?? item.produtoId}
       {variacao ? ` · ${variacao.nome}` : ''}
     </p>
