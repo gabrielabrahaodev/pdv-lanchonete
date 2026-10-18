@@ -1,0 +1,173 @@
+<?xml version="1.0" ?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="ab" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 z" fill="#2563eb"/>
+    </marker>
+    <marker id="ag" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 z" fill="#16a34a"/>
+    </marker>
+    <marker id="ar" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 z" fill="#dc2626"/>
+    </marker>
+    <marker id="ad" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 z" fill="#475569"/>
+    </marker>
+    <marker id="ap" markerWidth="8" markerHeight="6" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1200" height="800" rx="0" fill="#f8fafc"/>
+  <text x="600" y="36" font-size="20" font-weight="700" fill="#0f172a" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">PDV Lanchonete v2 — Arquitetura Produção (Simplificado)</text>
+  <text x="600" y="58" font-size="12" font-weight="400" fill="#475569" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">Firebase Hosting + Render Free + Firestore Spark · R$ 0/mês</text>
+  <rect x="1000" y="16" width="180" height="28" rx="14" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="1090" y="35" font-size="12" font-weight="600" fill="#166534" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">✅ PRODUÇÃO</text>
+  <rect x="40" y="90" width="340" height="36" rx="8" fill="#2563eb"/>
+  <text x="56" y="114" font-size="14" font-weight="700" fill="#fff" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">CLIENTES</text>
+  <rect x="40" y="126" width="340" height="300" rx="8" fill="#eff6ff" stroke="#bfdbfe"/>
+  <rect x="52" y="142" width="316" height="84" rx="6" fill="#fff" stroke="#bfdbfe"/>
+  <text x="62" y="160" font-size="11" font-weight="600" fill="#2563eb" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">💻 Operação (PWA)</text>
+  <text x="62" y="176" font-size="11" font-weight="400" fill="#1d4ed8" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Tablets/PCs · Caixa·Garçom·KDS</text>
+  <text x="62" y="192" font-size="11" font-weight="400" fill="#1d4ed8" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">React-query + onSnapshot</text>
+  <rect x="52" y="238" width="316" height="84" rx="6" fill="#fff" stroke="#bfdbfe"/>
+  <text x="62" y="256" font-size="11" font-weight="600" fill="#2563eb" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">📱 Cliente QR</text>
+  <text x="62" y="272" font-size="11" font-weight="400" fill="#1d4ed8" text-anchor="start" font-family="Segoe UI, Arial, sans-serif" font="Consolas, monospace">/m/{rid}/{mesa} · Sem login</text>
+  <text x="62" y="288" font-size="11" font-weight="400" fill="#1d4ed8" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Cardápio + pedido</text>
+  <rect x="52" y="334" width="316" height="84" rx="6" fill="#fff" stroke="#bfdbfe"/>
+  <text x="62" y="352" font-size="11" font-weight="600" fill="#2563eb" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">🖨️ Impressora BT</text>
+  <text x="62" y="368" font-size="11" font-weight="400" fill="#1d4ed8" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">ESC/POS · Web Bluetooth 18f0</text>
+  <text x="62" y="384" font-size="11" font-weight="400" fill="#1d4ed8" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Fallback: print()</text>
+  <rect x="420" y="90" width="340" height="36" rx="8" fill="#ea580c"/>
+  <text x="436" y="114" font-size="14" font-weight="700" fill="#fff" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">NUVEM</text>
+  <rect x="420" y="126" width="340" height="300" rx="8" fill="#fff7ed" stroke="#fed7aa"/>
+  <rect x="432" y="142" width="316" height="84" rx="6" fill="#fff" stroke="#fed7aa"/>
+  <text x="442" y="160" font-size="11" font-weight="600" fill="#ea580c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">🌐 Firebase Hosting</text>
+  <text x="442" y="176" font-size="11" font-weight="400" fill="#c2410c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">pdv-lanchonete-1fa79.web.app</text>
+  <text x="442" y="192" font-size="11" font-weight="400" fill="#c2410c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">SPA + PWA + SW Workbox</text>
+  <rect x="432" y="238" width="316" height="84" rx="6" fill="#fff" stroke="#fed7aa"/>
+  <text x="442" y="256" font-size="11" font-weight="600" fill="#ea580c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">⚙️ Render API</text>
+  <text x="442" y="272" font-size="11" font-weight="400" fill="#c2410c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">pdv-lanchonete-dwiw.onrender.com</text>
+  <text x="442" y="288" font-size="11" font-weight="400" fill="#c2410c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">FastAPI · 18 routers · /health</text>
+  <rect x="432" y="334" width="316" height="84" rx="6" fill="#fff" stroke="#fed7aa"/>
+  <text x="442" y="352" font-size="11" font-weight="600" fill="#ea580c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">🔒 Auth + Guards</text>
+  <text x="442" y="368" font-size="11" font-weight="400" fill="#c2410c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">verify_id_token · roles</text>
+  <text x="442" y="384" font-size="11" font-weight="400" fill="#c2410c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">admin/gerente/caixa/cozinha</text>
+  <rect x="820" y="90" width="340" height="36" rx="8" fill="#d97706"/>
+  <text x="836" y="114" font-size="14" font-weight="700" fill="#fff" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">FIREBASE</text>
+  <rect x="820" y="126" width="340" height="300" rx="8" fill="#fffbeb" stroke="#fde68a"/>
+  <rect x="832" y="142" width="316" height="84" rx="6" fill="#fff" stroke="#fde68a"/>
+  <text x="842" y="160" font-size="11" font-weight="600" fill="#d97706" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">🔐 Firebase Auth</text>
+  <text x="842" y="176" font-size="11" font-weight="400" fill="#b45309" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Email/senha · Claims</text>
+  <text x="842" y="192" font-size="11" font-weight="400" fill="#b45309" text-anchor="start" font-family="Segoe UI, Arial, sans-serif" font="Consolas, monospace">{restaurantId, papel}</text>
+  <rect x="832" y="238" width="316" height="84" rx="6" fill="#fff" stroke="#fde68a"/>
+  <text x="842" y="256" font-size="11" font-weight="600" fill="#d97706" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">🔥 Firestore</text>
+  <text x="842" y="272" font-size="11" font-weight="400" fill="#b45309" text-anchor="start" font-family="Segoe UI, Arial, sans-serif" font="Consolas, monospace">restaurantes/{rid}/data/...</text>
+  <text x="842" y="288" font-size="11" font-weight="400" fill="#b45309" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">6 transações @transactional</text>
+  <rect x="832" y="334" width="316" height="84" rx="6" fill="#fff" stroke="#fde68a"/>
+  <text x="842" y="352" font-size="11" font-weight="600" fill="#d97706" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">📋 Rules publicadas</text>
+  <text x="842" y="368" font-size="11" font-weight="400" fill="#b45309" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Isolamento por claim</text>
+  <text x="842" y="384" font-size="11" font-weight="400" fill="#b45309" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">convites/ sistema/ deny-all</text>
+  <line x1="380" y1="130" x2="420" y2="130" stroke="#2563eb" stroke-width="2" marker-end="url(#ab)"/>
+  <circle cx="400" cy="120" r="9" fill="#0f172a"/>
+  <text x="400" y="124" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">1</text>
+  <text x="380" y="118" font-size="9" font-weight="600" fill="#2563eb" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">HTTPS GET</text>
+  <line x1="380" y1="230" x2="420" y2="230" stroke="#475569" stroke-width="2" marker-end="url(#ad)"/>
+  <circle cx="400" cy="220" r="9" fill="#0f172a"/>
+  <text x="400" y="224" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">2</text>
+  <text x="376" y="218" font-size="9" font-weight="600" fill="#475569" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">/api/* + Bearer</text>
+  <line x1="380" y1="330" x2="420" y2="350" stroke="#475569" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ad)"/>
+  <circle cx="400" cy="355" r="9" fill="#0f172a"/>
+  <text x="400" y="359" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">3</text>
+  <text x="370" y="368" font-size="9" font-weight="600" fill="#475569" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">público, sem token</text>
+  <line x1="760" y1="160" x2="820" y2="160" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
+  <circle cx="790" cy="150" r="9" fill="#0f172a"/>
+  <text x="790" y="154" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">4</text>
+  <text x="760" y="148" font-size="9" font-weight="600" fill="#15803d" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">verify_id_token</text>
+  <line x1="760" y1="330" x2="820" y2="330" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
+  <circle cx="790" cy="320" r="9" fill="#0f172a"/>
+  <text x="790" y="324" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">5</text>
+  <text x="756" y="318" font-size="9" font-weight="600" fill="#15803d" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Admin SDK gRPC</text>
+  <path d="M 200 90 L 200 50 L 1010 50 L 1010 146" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <circle cx="600" cy="50" r="9" fill="#0f172a"/>
+  <text x="600" y="54" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">L</text>
+  <text x="615" y="44" font-size="9" font-weight="600" fill="#dc2626" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">login SDK</text>
+  <path d="M 280 90 L 280 38 L 1100 38 L 1100 270" fill="none" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3 4" marker-end="url(#ar)"/>
+  <circle cx="900" cy="38" r="9" fill="#0f172a"/>
+  <text x="900" y="42" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">S</text>
+  <text x="915" y="32" font-size="9" font-weight="600" fill="#dc2626" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">onSnapshot</text>
+  <rect x="40" y="460" width="1120" height="32" rx="8" fill="#7c3aed"/>
+  <text x="56" y="482" font-size="13" font-weight="700" fill="#fff" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">OPERAÇÃO — CI/CD &amp; MONITORAMENTO</text>
+  <rect x="40" y="492" width="1120" height="120" rx="8" fill="#f5f3ff" stroke="#ddd6fe"/>
+  <rect x="56" y="508" width="340" height="92" rx="6" fill="#fff" stroke="#ddd6fe"/>
+  <text x="66" y="528" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">📦 GitHub Repo (privado)</text>
+  <text x="66" y="544" font-size="10.5" font-weight="400" fill="#6d28d9" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">push master → auto-deploy Render</text>
+  <text x="66" y="560" font-size="10.5" font-weight="400" fill="#6d28d9" text-anchor="start" font-family="Segoe UI, Arial, sans-serif" font="Consolas, monospace">pins exatos: firebase-admin==7.5.0</text>
+  <rect x="456" y="508" width="340" height="92" rx="6" fill="#fff" stroke="#ddd6fe"/>
+  <text x="466" y="528" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">⚙️ GitHub Actions ci.yml</text>
+  <text x="466" y="544" font-size="10.5" font-weight="400" fill="#6d28d9" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">pytest 23 + tsc + build · Push/PR</text>
+  <text x="466" y="560" font-size="10.5" font-weight="400" fill="#6d28d9" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Regra: validar LOCAL antes de deploy</text>
+  <rect x="856" y="508" width="240" height="92" rx="6" fill="#fff" stroke="#ddd6fe"/>
+  <text x="1066" y="528" font-size="10.5" font-weight="600" fill="#6d28d9" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">📊 UptimeRobot</text>
+  <text x="1066" y="544" font-size="10.5" font-weight="400" fill="#6d28d9" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">HEAD /health 10 min · Mitiga cold start</text>
+  <text x="1066" y="560" font-size="10.5" font-weight="400" fill="#6d28d9" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">⚠️ /health estático — sondar cardápio</text>
+  <line x1="210" y1="456" x2="210" y2="432" stroke="#dc2626" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="600" y1="432" x2="600" y2="456" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+  <line x1="990" y1="456" x2="990" y2="432" stroke="#dc2626" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="40" y="620" font-size="14" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">FLUXOS PRINCIPAIS</text>
+  <line x1="200" y1="615" x2="1160" y2="615" stroke="#cbd5e1" stroke-width="1"/>
+  <circle cx="62" cy="642" r="9" fill="#0f172a"/>
+  <text x="62" y="646" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">1</text>
+  <text x="78" y="640" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Navegador → Hosting</text>
+  <text x="78" y="656" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">HTTPS GET estáticos + PWA + SW</text>
+  <circle cx="632" cy="642" r="9" fill="#0f172a"/>
+  <text x="632" y="646" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">2</text>
+  <text x="648" y="640" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Navegador → API</text>
+  <text x="648" y="656" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">/api/* · Bearer token · JSON camelCase · bulk calls</text>
+  <circle cx="62" cy="670" r="9" fill="#0f172a"/>
+  <text x="62" y="674" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">3</text>
+  <text x="78" y="668" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Celular → API Público</text>
+  <text x="78" y="684" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">/api/publico/* · Sem auth · Rate-limit 12/min · Gate cardapioDigitalAtivo</text>
+  <circle cx="632" cy="670" r="9" fill="#0f172a"/>
+  <text x="632" y="674" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">4</text>
+  <text x="648" y="668" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">API → Auth (Admin)</text>
+  <text x="648" y="684" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">verify_id_token() em TODA req · set_custom_user_claims onboarding</text>
+  <circle cx="62" cy="698" r="9" fill="#0f172a"/>
+  <text x="62" y="702" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">5</text>
+  <text x="78" y="696" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">API → Firestore</text>
+  <text x="78" y="712" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Admin SDK gRPC · 6 @transactional · Read 100% before Write 100%</text>
+  <circle cx="632" cy="698" r="9" fill="#0f172a"/>
+  <text x="632" y="702" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">L</text>
+  <text x="648" y="696" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Login SDK → Auth</text>
+  <text x="648" y="712" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">signInWithEmailAndPassword → ID token JWT (~1h) · claims {rid, papel}</text>
+  <circle cx="62" cy="726" r="9" fill="#0f172a"/>
+  <text x="62" y="730" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">S</text>
+  <text x="78" y="724" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">onSnapshot → Firestore</text>
+  <text x="78" y="740" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Realtime sob rules · fallback polling · invalida react-query</text>
+  <circle cx="632" cy="726" r="9" fill="#0f172a"/>
+  <text x="632" y="730" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">6</text>
+  <text x="648" y="724" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Navegador ↔ Impressora</text>
+  <text x="648" y="740" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Web Bluetooth GATT 18f0/2af1 · ESC/POS chunks · local only</text>
+  <circle cx="62" cy="754" r="9" fill="#0f172a"/>
+  <text x="62" y="758" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">7</text>
+  <text x="78" y="752" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">GitHub → Render</text>
+  <text x="78" y="768" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Push master → build (pins) → deploy · Rollback = redeploy commit</text>
+  <circle cx="632" cy="754" r="9" fill="#0f172a"/>
+  <text x="632" y="758" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">8</text>
+  <text x="648" y="752" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">GitHub → Hosting</text>
+  <text x="648" y="768" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">firebase deploy --only hosting (após build com VITE_API_URL)</text>
+  <circle cx="62" cy="782" r="9" fill="#0f172a"/>
+  <text x="62" y="786" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">9</text>
+  <text x="78" y="780" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">CI/CD</text>
+  <text x="78" y="796" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">ci.yml: pytest+tsc+build</text>
+  <circle cx="632" cy="782" r="9" fill="#0f172a"/>
+  <text x="632" y="786" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">10</text>
+  <text x="648" y="780" font-size="11" font-weight="700" fill="#0f172a" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">UptimeRobot → API</text>
+  <text x="648" y="796" font-size="10" font-weight="400" fill="#64748b" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">HEAD /health 10min · mantém instância quente · /health estático não prova Firestore</text>
+  <rect x="50" y="818" width="1100" height="80" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="66" y="836" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">FLUXO VENDA:</text>
+  <text x="66" y="854" font-size="10.5" font-weight="400" fill="#1d4ed8" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Abrir caixa → Lançar itens (preço servidor) → Cozinha bulk (baixa agregada) → Pagamento quita → Recibo BT → Fechamento confere → DRE reflete</text>
+  <rect x="50" y="906" width="1100" height="48" rx="6" fill="#fffbeb" stroke="#fde68a"/>
+  <text x="66" y="922" font-size="11" font-weight="700" fill="#b91c1c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">SEGURANÇA:</text>
+  <text x="66" y="938" font-size="10" font-weight="400" fill="#b91c1c" text-anchor="start" font-family="Segoe UI, Arial, sans-serif">Isolamento claim restaurantId na API E nas rules · Segredo só env Render (nunca git) · Convites uso único provisionam restaurantes (/plataforma dono)</text>
+  <text x="600" y="784" font-size="10" font-weight="400" fill="#64748b" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif">docs/AGENTS.md · docs/DEPLOY.md · Estado ago/2026</text>
+</svg>

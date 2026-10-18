@@ -1,0 +1,272 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1390" viewBox="0 0 1700 1390" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="ahBlue" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 z" fill="#2563eb"/>
+    </marker>
+    <marker id="ahRed" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 z" fill="#dc2626"/>
+    </marker>
+    <marker id="ahGreen" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 z" fill="#16a34a"/>
+    </marker>
+    <marker id="ahDark" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 z" fill="#334155"/>
+    </marker>
+    <marker id="ahPurple" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1700" height="1390" fill="#f8fafc"/>
+
+  <!-- ===== Titulo ===== -->
+  <text x="850" y="42" text-anchor="middle" font-size="26" font-weight="700" fill="#0f172a">PDV Lanchonete v2 — Arquitetura de PRODUÇÃO</text>
+  <text x="850" y="68" text-anchor="middle" font-size="14" fill="#475569">App: pdv-lanchonete-1fa79.web.app · API: pdv-lanchonete-dwiw.onrender.com · no ar desde 23/08/2026 · R$ 0/mês</text>
+  <rect x="1440" y="22" width="230" height="30" rx="15" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="1555" y="42" text-anchor="middle" font-size="13" font-weight="600" fill="#166534">✅ PRODUÇÃO ATIVA</text>
+
+  <!-- ===================== COLUNA 1: CLIENTES ===================== -->
+  <rect x="50" y="100" width="400" height="38" rx="10" fill="#2563eb"/>
+  <text x="66" y="125" font-size="15" font-weight="700" fill="#ffffff">CLIENTES (loja)</text>
+  <rect x="50" y="138" width="400" height="380" rx="10" fill="#eff6ff" stroke="#bfdbfe"/>
+
+  <rect x="66" y="154" width="368" height="152" rx="8" fill="#ffffff" stroke="#93c5fd"/>
+  <text x="80" y="176" font-size="14" font-weight="700" fill="#1d4ed8">💻 Navegador da operação (PWA)</text>
+  <text x="80" y="197" font-size="12.5" fill="#334155">Caixa · garçom · cozinha (KDS) — Chrome/Edge</text>
+  <text x="80" y="217" font-size="12.5" fill="#334155">Instalado de pdv-lanchonete-1fa79.web.app</text>
+  <text x="80" y="237" font-size="12.5" fill="#334155">lib/api.ts injeta Bearer &lt;ID token&gt; em /api/*</text>
+  <text x="80" y="257" font-size="12.5" fill="#334155">react-query (polling 8–30s) + onSnapshot</text>
+  <text x="80" y="277" font-size="12.5" fill="#334155">tema por usuário · CSV · impressão Bluetooth</text>
+
+  <rect x="66" y="318" width="368" height="96" rx="8" fill="#ffffff" stroke="#93c5fd"/>
+  <text x="80" y="340" font-size="14" font-weight="700" fill="#1d4ed8">📱 Celular do cliente — cardápio QR</text>
+  <text x="80" y="361" font-size="12.5" fill="#334155">QR da mesa → rota pública /m/{rid}/{mesa}</text>
+  <text x="80" y="381" font-size="12.5" fill="#334155">Sem login: vê o cardápio (com fotos) e envia</text>
+  <text x="80" y="401" font-size="12.5" fill="#334155">pedidos; mesa ocupada adiciona itens ao ativo</text>
+
+  <rect x="66" y="426" width="368" height="76" rx="8" fill="#ffffff" stroke="#93c5fd"/>
+  <text x="80" y="448" font-size="14" font-weight="700" fill="#1d4ed8">🖨️ Impressora térmica ESC/POS</text>
+  <text x="80" y="469" font-size="12.5" fill="#334155">Bluetooth LE pareada no dispositivo que imprime</text>
+  <text x="80" y="489" font-size="12.5" fill="#334155">comanda no KDS · recibo ao quitar pagamento</text>
+
+  <!-- ===================== COLUNA 2: NUVEM APP ===================== -->
+  <rect x="520" y="100" width="450" height="38" rx="10" fill="#ea580c"/>
+  <text x="536" y="125" font-size="15" font-weight="700" fill="#ffffff">NUVEM — ENTREGA + API</text>
+  <rect x="520" y="138" width="450" height="380" rx="10" fill="#fff7ed" stroke="#fed7aa"/>
+
+  <rect x="536" y="154" width="418" height="118" rx="8" fill="#ffffff" stroke="#fdba74"/>
+  <text x="550" y="176" font-size="14" font-weight="700" fill="#c2410c">Firebase Hosting (Spark)</text>
+  <text x="550" y="197" font-size="12.5" fill="#334155">pdv-lanchonete-1fa79.web.app — SPA estática</text>
+  <text x="550" y="217" font-size="12.5" fill="#334155">chunks JS lazy (React.lazy) · manifest PWA · sw.js</text>
+  <text x="550" y="237" font-size="12.5" fill="#334155">SW workbox: NetworkFirst GET /api/* (24h)</text>
+  <text x="550" y="257" font-size="12.5" fill="#334155">SEM rewrite /api (exigiria Blaze) → URL direta</text>
+
+  <rect x="536" y="288" width="418" height="214" rx="8" fill="#ffffff" stroke="#fdba74"/>
+  <text x="550" y="310" font-size="14" font-weight="700" fill="#c2410c">Render free tier — API FastAPI</text>
+  <text x="550" y="330" font-size="12" fill="#334155" font-family="Consolas, monospace">https://pdv-lanchonete-dwiw.onrender.com</text>
+  <text x="550" y="351" font-size="12.5" fill="#334155">uvicorn app.main:app · 18 routers em /api · GET+HEAD /health</text>
+  <text x="550" y="371" font-size="12.5" fill="#334155">envs: FIREBASE_SERVICE_ACCOUNT_JSON · CORS_ORIGINS</text>
+  <text x="550" y="391" font-size="12.5" fill="#334155">verify_id_token + guards por papel (admin/gerente/…)</text>
+  <text x="550" y="411" font-size="12.5" fill="#334155">@transactional: mesa · caixa · estoque · onboarding</text>
+  <text x="550" y="431" font-size="12.5" fill="#334155">cozinha BULK (baixa agregada) · preços do servidor</text>
+  <text x="550" y="451" font-size="12.5" fill="#334155">público: rate limit 12/min/IP + gate cardápioDigitalAtivo</text>
+  <text x="550" y="478" font-size="11.5" font-weight="600" fill="#b45309">⚠️ free tier dorme após ~15 min — cold start 30–60s</text>
+
+  <!-- ===================== COLUNA 3: DADOS ===================== -->
+  <rect x="1040" y="100" width="430" height="38" rx="10" fill="#d97706"/>
+  <text x="1056" y="125" font-size="15" font-weight="700" fill="#ffffff">FIREBASE — projeto pdv-lanchonete-1fa79</text>
+  <rect x="1040" y="138" width="430" height="380" rx="10" fill="#fffbeb" stroke="#fde68a"/>
+
+  <rect x="1056" y="154" width="398" height="112" rx="8" fill="#ffffff" stroke="#fcd34d"/>
+  <text x="1070" y="176" font-size="14" font-weight="700" fill="#b45309">Firebase Auth</text>
+  <text x="1070" y="197" font-size="12.5" fill="#334155">Contas e-mail/senha · ID token ~1h com claims:</text>
+  <text x="1084" y="216" font-size="11.5" fill="#334155" font-family="Consolas, monospace">{restaurantId, papel}</text>
+  <text x="1070" y="237" font-size="12.5" fill="#334155">claims só valem no PRÓXIMO token (refresh forçado)</text>
+  <text x="1070" y="257" font-size="12.5" fill="#334155">Admin: set_custom_user_claims (onboarding/usuários)</text>
+
+  <rect x="1056" y="280" width="398" height="148" rx="8" fill="#ffffff" stroke="#fcd34d"/>
+  <text x="1070" y="302" font-size="14" font-weight="700" fill="#b45309">Firestore</text>
+  <text x="1070" y="322" font-size="11.5" fill="#334155" font-family="Consolas, monospace">restaurantes/{rid}/data/{colecao}/items/{id}</text>
+  <text x="1070" y="340" font-size="11.5" fill="#334155" font-family="Consolas, monospace">+ doc único data/configuracoes</text>
+  <text x="1070" y="361" font-size="12.5" fill="#334155">tenant: pedidos, produtos, mesas, caixa, estoque,</text>
+  <text x="1084" y="379" font-size="12.5" fill="#334155">financeiro, usuarios, imagens/items/{produtoId}</text>
+  <text x="1070" y="400" font-size="12.5" fill="#334155">top-level: onboarding/{uid} · sistema/global.donoUids</text>
+  <text x="1084" y="418" font-size="12.5" fill="#334155">convites/{token} — provisionamento por convite</text>
+
+  <rect x="1056" y="442" width="398" height="60" rx="8" fill="#fef2f2" stroke="#fca5a5"/>
+  <text x="1070" y="463" font-size="13" font-weight="700" fill="#b91c1c">firestore.rules (publicadas)</text>
+  <text x="1070" y="483" font-size="12" fill="#7f1d1d">cliente acessa SÓ o próprio tenant; sistema/ e convites/ deny-all</text>
+
+  <!-- ===== Setas horizontais col1 -> col2 ===== -->
+  <line x1="450" y1="195" x2="516" y2="195" stroke="#2563eb" stroke-width="2" marker-end="url(#ahBlue)"/>
+  <circle cx="483" cy="181" r="11" fill="#0f172a"/><text x="483" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">1</text>
+  <text x="456" y="168" font-size="11" font-weight="600" fill="#2563eb">HTTPS GET</text>
+
+  <line x1="450" y1="352" x2="516" y2="352" stroke="#334155" stroke-width="2.5" marker-end="url(#ahDark)"/>
+  <circle cx="483" cy="338" r="11" fill="#0f172a"/><text x="483" y="342" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">3</text>
+  <text x="452" y="326" font-size="11" font-weight="600" fill="#334155">/api/* + Bearer</text>
+
+  <line x1="450" y1="408" x2="516" y2="432" stroke="#334155" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#ahDark)"/>
+  <circle cx="483" cy="431" r="11" fill="#0f172a"/><text x="483" y="435" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">4</text>
+  <text x="448" y="462" font-size="11" font-weight="600" fill="#334155">públicas, sem token</text>
+
+  <!-- ===== Setas col2 -> col3 ===== -->
+  <line x1="970" y1="205" x2="1036" y2="205" stroke="#16a34a" stroke-width="2" marker-end="url(#ahGreen)"/>
+  <circle cx="1003" cy="191" r="11" fill="#0f172a"/><text x="1003" y="195" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">5</text>
+  <text x="972" y="178" font-size="11" font-weight="600" fill="#15803d">verify_id_token</text>
+
+  <line x1="970" y1="395" x2="1036" y2="395" stroke="#16a34a" stroke-width="2.5" marker-end="url(#ahGreen)"/>
+  <circle cx="1003" cy="381" r="11" fill="#0f172a"/><text x="1003" y="385" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">6</text>
+  <text x="968" y="364" font-size="11" font-weight="600" fill="#15803d">Admin SDK gRPC</text>
+
+  <!-- ===== Seta 2: navegador -> Auth (por cima) ===== -->
+  <path d="M 250 138 L 250 92 L 1254 92 L 1254 150" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#ahRed)"/>
+  <circle cx="300" cy="92" r="11" fill="#0f172a"/><text x="300" y="96" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">2</text>
+  <text x="318" y="86" font-size="11" font-weight="600" fill="#dc2626">login SDK direto → ID token</text>
+
+  <!-- ===== Seta 7: navegador -> Firestore (onSnapshot, por cima) ===== -->
+  <path d="M 330 138 L 330 78 L 1420 78 L 1420 276" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="3 4" marker-end="url(#ahRed)"/>
+  <circle cx="1210" cy="78" r="11" fill="#0f172a"/><text x="1210" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">7</text>
+  <text x="1228" y="72" font-size="11" font-weight="600" fill="#dc2626">onSnapshot sob rules (fallback: polling)</text>
+
+  <!-- ===================== FAIXA DEVOPS ===================== -->
+  <rect x="50" y="560" width="1600" height="38" rx="10" fill="#7c3aed"/>
+  <text x="66" y="585" font-size="15" font-weight="700" fill="#ffffff">OPERAÇÃO — CI/CD E MONITORAMENTO</text>
+  <rect x="50" y="598" width="1600" height="158" rx="10" fill="#f5f3ff" stroke="#ddd6fe"/>
+
+  <rect x="66" y="614" width="496" height="128" rx="8" fill="#ffffff" stroke="#c4b5fd"/>
+  <circle cx="90" cy="636" r="11" fill="#0f172a"/><text x="90" y="640" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">9</text>
+  <text x="110" y="640" font-size="14" font-weight="700" fill="#6d28d9">GitHub repo (privado)</text>
+  <text x="82" y="663" font-size="12" fill="#334155" font-family="Consolas, monospace">github.com/gabrielabrahaodev/pdv-lanchonete</text>
+  <text x="82" y="684" font-size="12.5" fill="#334155">push em master → auto-deploy da Render</text>
+  <text x="82" y="704" font-size="12.5" fill="#334155">requirements.txt com PIN EXATO do stack GCP</text>
+  <text x="82" y="724" font-size="12.5" fill="#334155">(bug 12: drift derrubou a produção uma vez)</text>
+
+  <rect x="578" y="614" width="500" height="128" rx="8" fill="#ffffff" stroke="#c4b5fd"/>
+  <circle cx="602" cy="636" r="11" fill="#0f172a"/><text x="602" y="640" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">10</text>
+  <text x="622" y="640" font-size="14" font-weight="700" fill="#6d28d9">GitHub Actions — ci.yml</text>
+  <text x="594" y="663" font-size="12.5" fill="#334155">todo push/PR: pytest 23 + tsc + build frontend</text>
+  <text x="594" y="684" font-size="12.5" fill="#334155">Regra de fluxo: validar LOCALHOST antes de</text>
+  <text x="594" y="704" font-size="12.5" fill="#334155">qualquer deploy (suíte E2E 52+13 passos)</text>
+  
+
+  <rect x="1094" y="614" width="540" height="128" rx="8" fill="#ffffff" stroke="#c4b5fd"/>
+  <circle cx="1118" cy="636" r="11" fill="#0f172a"/><text x="1118" y="640" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">12</text>
+  <text x="1138" y="640" font-size="14" font-weight="700" fill="#6d28d9">UptimeRobot (grátis)</text>
+  <text x="1110" y="663" font-size="12.5" fill="#334155">HEAD /health a cada 10 min — mantém a</text>
+  <text x="1110" y="684" font-size="12.5" fill="#334155">instância da Render aquecida (mitiga o sleep).</text>
+  <text x="1110" y="704" font-size="12.5" fill="#334155">⚠️ /health é estático: smoke pós-deploy deve</text>
+  <text x="1110" y="724" font-size="12.5" fill="#334155">sondar endpoint que LEIA Firestore (cardápio).</text>
+
+  <!-- ===== Stubs verticais faixa devops ===== -->
+  <line x1="314" y1="556" x2="314" y2="522" stroke="#7c3aed" stroke-width="2" marker-end="url(#ahPurple)"/>
+  <line x1="828" y1="522" x2="828" y2="556" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ahPurple)"/>
+  <line x1="1364" y1="556" x2="1364" y2="522" stroke="#7c3aed" stroke-width="2" marker-end="url(#ahPurple)"/>
+
+  <!-- ===================== LEGENDA ===================== -->
+  <text x="50" y="812" font-size="17" font-weight="700" fill="#0f172a">INTEGRAÇÕES — O QUE TRAFEGA ENTRE CADA PARTE</text>
+  <line x1="430" y1="807" x2="1650" y2="807" stroke="#cbd5e1" stroke-width="1"/>
+
+  <!-- coluna 1 -->
+  <circle cx="61" cy="851" r="11" fill="#0f172a"/><text x="61" y="855" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">1</text>
+  <text x="80" y="848" font-size="13" font-weight="700" fill="#0f172a">Navegador → Firebase Hosting</text>
+  <text x="80" y="868" font-size="12" fill="#334155">HTTPS GET dos estáticos: index.html, chunks JS</text>
+  <text x="80" y="886" font-size="12" fill="#334155">(code-splitting), CSS, ícones e manifest PWA, sw.js.</text>
+  <text x="80" y="904" font-size="12" fill="#334155">Depois o Service Worker serve do cache e busca</text>
+  <text x="80" y="922" font-size="12" fill="#334155">atualizações em background (autoUpdate).</text>
+
+  <circle cx="61" cy="969" r="11" fill="#0f172a"/><text x="61" y="973" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">2</text>
+  <text x="80" y="966" font-size="13" font-weight="700" fill="#0f172a">Navegador ↔ Firebase Auth</text>
+  <text x="80" y="986" font-size="12" fill="#334155">signInWithEmailAndPassword → ID token JWT (~1h)</text>
+  <text x="80" y="1004" font-size="12" fill="#334155">com claims {restaurantId, papel}. SDK renova</text>
+  <text x="80" y="1022" font-size="12" fill="#334155">sozinho; após onboarding/troca de papel o app</text>
+  <text x="80" y="1040" font-size="12" fill="#334155">força getIdToken(true) — claims valem no próximo.</text>
+
+  <circle cx="61" cy="1087" r="11" fill="#0f172a"/><text x="61" y="1091" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">3</text>
+  <text x="80" y="1084" font-size="13" font-weight="700" fill="#0f172a">Navegador → API (Render)</text>
+  <text x="80" y="1104" font-size="12" fill="#334155">REST /api/* por HTTPS: Authorization: Bearer</text>
+  <text x="80" y="1122" font-size="12" fill="#334155">&lt;ID token&gt;; JSON camelCase nos dois sentidos;</text>
+  <text x="80" y="1140" font-size="12" fill="#334155">URL base = VITE_API_URL embutida NO BUILD +</text>
+  <text x="80" y="1158" font-size="12" fill="#334155">CORS whitelist na API. Fluxos críticos usam 1</text>
+  <text x="80" y="1176" font-size="12" fill="#334155">chamada bulk (nunca N mutações paralelas).</text>
+
+  <circle cx="61" cy="1213" r="11" fill="#0f172a"/><text x="61" y="1217" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">5</text>
+  <text x="80" y="1210" font-size="13" font-weight="700" fill="#0f172a">API → Firebase Auth (Admin)</text>
+  <text x="80" y="1230" font-size="12" fill="#334155">verify_id_token em TODA requisição autenticada</text>
+  <text x="80" y="1248" font-size="12" fill="#334155">(extrai uid + claims); set_custom_user_claims no</text>
+  <text x="80" y="1266" font-size="12" fill="#334155">onboarding e no CRUD de usuários. Credencial =</text>
+  <text x="80" y="1284" font-size="12" fill="#334155">env FIREBASE_SERVICE_ACCOUNT_JSON (segredo).</text>
+
+  <circle cx="61" cy="1321" r="11" fill="#0f172a"/><text x="61" y="1325" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">7</text>
+  <text x="80" y="1318" font-size="13" font-weight="700" fill="#0f172a">Navegador → Firestore (leitura direta)</text>
+  <text x="80" y="1338" font-size="12" fill="#334155">onSnapshot sob firestore.rules (claim restaurantId</text>
+  <text x="80" y="1356" font-size="12" fill="#334155">== rid): invalida caches react-query em tempo real.</text>
+  <text x="80" y="1374" font-size="12" fill="#334155">Offline/regra ausente = só warning; polling assume.</text>
+
+  <!-- coluna 2 -->
+  <circle cx="611" cy="851" r="11" fill="#0f172a"/><text x="611" y="855" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">4</text>
+  <text x="630" y="848" font-size="13" font-weight="700" fill="#0f172a">Celular do cliente → API (público)</text>
+  <text x="630" y="868" font-size="12" fill="#334155">SEM token: GET cardápio (categorias+produtos</text>
+  <text x="630" y="886" font-size="12" fill="#334155">ativos, payload enxuto) · GET imagens/{id} (bytes</text>
+  <text x="630" y="904" font-size="12" fill="#334155">JPEG/PNG, cache 1h, FORA do rate limit de propósito)</text>
+  <text x="630" y="922" font-size="12" fill="#334155">· POST pedido na mesa (1–30 itens, obs ≤200 chars,</text>
+  <text x="630" y="940" font-size="12" fill="#334155">preço resolvido no servidor; rate limit 12/min/IP → 429).</text>
+
+  <circle cx="611" cy="977" r="11" fill="#0f172a"/><text x="611" y="981" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">6</text>
+  <text x="630" y="974" font-size="13" font-weight="700" fill="#0f172a">API → Firestore (Admin SDK gRPC)</text>
+  <text x="630" y="994" font-size="12" fill="#334155">Todo dado do tenant trafega aqui: CRUD + transações</text>
+  <text x="630" y="1012" font-size="12" fill="#334155">(@transactional) em mesa, caixa, estoque, onboarding</text>
+  <text x="630" y="1030" font-size="12" fill="#334155">e consumo de convite. Regra de ouro: leitura 100%</text>
+  <text x="630" y="1048" font-size="12" fill="#334155">antes de escrita 100% (ReadAfterWriteError). Baixa de</text>
+  <text x="630" y="1066" font-size="12" fill="#334155">ingredientes agregada numa única transação por cartão.</text>
+
+  <circle cx="611" cy="1103" r="11" fill="#0f172a"/><text x="611" y="1107" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">8</text>
+  <text x="630" y="1100" font-size="13" font-weight="700" fill="#0f172a">Navegador ↔ Impressora (local)</text>
+  <text x="630" y="1120" font-size="12" fill="#334155">Web Bluetooth GATT: payload ESC/POS (init, negrito,</text>
+  <text x="630" y="1138" font-size="12" fill="#334155">fonte grande, corte) em chunks de 180 bytes — comanda</text>
+  <text x="630" y="1156" font-size="12" fill="#334155">no KDS e recibo na quitação. Fallback janela print().</text>
+  <text x="630" y="1174" font-size="12" fill="#334155">Exige HTTPS; NÃO passa pela nuvem nem pela API.</text>
+
+  <circle cx="611" cy="1211" r="11" fill="#0f172a"/><text x="611" y="1215" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">9</text>
+  <text x="630" y="1208" font-size="13" font-weight="700" fill="#0f172a">GitHub master → Render (deploy)</text>
+  <text x="630" y="1228" font-size="12" fill="#334155">Push dispara build: pip install -r requirements.txt</text>
+  <text x="630" y="1246" font-size="12" fill="#334155">(pins exatos) + uvicorn app.main:app --port $PORT.</text>
+  <text x="630" y="1264" font-size="12" fill="#334155">Env vars injetadas no serviço (credencial + CORS).</text>
+  <text x="630" y="1282" font-size="12" fill="#334155">Rollback = redeploy do commit/tag anterior.</text>
+
+  
+
+  <!-- coluna 3 -->
+  <circle cx="1161" cy="851" r="11" fill="#0f172a"/><text x="1161" y="855" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">10</text>
+  <text x="1180" y="848" font-size="13" font-weight="700" fill="#0f172a">GitHub Actions — CI (ci.yml)</text>
+  <text x="1180" y="868" font-size="12" fill="#334155">Em todo push/PR roda pytest (23 testes de lógica</text>
+  <text x="1180" y="886" font-size="12" fill="#334155">pura) + tsc --noEmit + vite build. Gate de qualidade</text>
+  <text x="1180" y="904" font-size="12" fill="#334155">antes do merge; complementa (não substitui) a suíte</text>
+  <text x="1180" y="922" font-size="12" fill="#334155">E2E contra localhost antes de qualquer deploy.</text>
+
+  <circle cx="1161" cy="969" r="11" fill="#0f172a"/><text x="1161" y="973" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">12</text>
+  <text x="1180" y="966" font-size="13" font-weight="700" fill="#0f172a">UptimeRobot → API</text>
+  <text x="1180" y="986" font-size="12" fill="#334155">HEAD /health a cada 10 min (aceita GET e HEAD).</text>
+  <text x="1180" y="1004" font-size="12" fill="#334155">Objetivo: manter a instância free tier desperta para o</text>
+  <text x="1180" y="1022" font-size="12" fill="#334155">primeiro atendimento do dia não esperar cold start.</text>
+  <text x="1180" y="1040" font-size="12" fill="#334155">Limitação: /health é estático — não prova que o</text>
+  <text x="1180" y="1058" font-size="12" fill="#334155">Firestore responde (bugs 7 e 12 tiveram health ok).</text>
+
+  <rect x="1161" y="1090" width="500" height="180" rx="8" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="1177" y="1114" font-size="13" font-weight="700" fill="#1d4ed8">Fluxo completo de uma venda (ordem real):</text>
+  <text x="1177" y="1136" font-size="12" fill="#334155">1. Caixa abre o caixa (POST /caixa/abrir → ⑥ grava sessão)</text>
+  <text x="1177" y="1156" font-size="12" fill="#334155">2. Garçom lança itens (③ → preço resolvido no servidor)</text>
+  <text x="1177" y="1176" font-size="12" fill="#334155">3. Cozinha avança o cartão (③ bulk → ⑥ baixa agregada)</text>
+  <text x="1177" y="1196" font-size="12" fill="#334155">4. Cliente acompanha pelo QR (④ cria/adiciona itens)</text>
+  <text x="1177" y="1216" font-size="12" fill="#334155">5. Pagamento quita (③ → ⑥ credita sessão + libera mesa)</text>
+  <text x="1177" y="1236" font-size="12" fill="#334155">6. Recibo sai na impressora (⑧) · 7. Fechamento confere</text>
+  <text x="1177" y="1256" font-size="12" fill="#334155">totais · 8. Relatório/DRE refletem a venda (⑥ leitura)</text>
+
+  <rect x="1161" y="1286" width="500" height="88" rx="8" fill="#fffbeb" stroke="#fcd34d"/>
+  <text x="1177" y="1308" font-size="12.5" font-weight="700" fill="#92400e">Segurança transversal</text>
+  <text x="1177" y="1328" font-size="12" fill="#92400e">Isolamento por claim restaurantId na API E nas rules; segredo</text>
+  <text x="1177" y="1346" font-size="12" fill="#92400e">somente em env da Render (nunca no git); convites de uso único</text>
+  <text x="1177" y="1364" font-size="12" fill="#92400e">provisionam novos restaurantes (console /plataforma do dono).</text>
+
+  <text x="850" y="1384" text-anchor="middle" font-size="11.5" fill="#94a3b8">Estado em ago/2026 · detalhes operacionais em DEPLOY.md · modelo conceitual em docs/02-modelagem/diagrama-componentes.md</text>
+</svg>

@@ -38,3 +38,6 @@ server.pid
 session-*.md
 scripts/e2e/token-owner.txt
 frontend/dev.pid
+
+# Tooling local do agente (node_modules 52MB + state)
+.opencode/
