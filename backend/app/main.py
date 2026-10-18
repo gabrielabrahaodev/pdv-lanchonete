@@ -113,4 +113,34 @@ for router in (
 
 @app.api_route("/health", methods=["GET", "HEAD"], tags=["meta"])
 def health() -> dict:
+    """LIVENESS — nunca toca o Firestore (não derruba o serviço em queda
+    temporária da dependência). Verificação de dependência: use /ready."""
     return {"status": "ok", "project": settings.project_id}
+
+
+@app.api_route("/ready", methods=["GET", "HEAD"], tags=["meta"])
+def ready() -> JSONResponse:
+    """READINESS — ping curto no Firestore com timeout baixo (P1-M).
+
+    Falha → 503 genérico (sem exposar credenciais/projeto). O Load Balancer
+    deve usar /health p/ reinício e /ready p/ roteamento de tráfego.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    _TIMEOUT_S = 1.5
+
+    def _ping() -> None:
+        from app.core.firebase import get_db
+
+        # Leitura mínima (doc do tenant é pequeno; evita ficar dependente de
+        # um tenant específico no healthcheck).
+        get_db().collection("_healthcheck").document("ping").get()
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        fut = pool.submit(_ping)
+        try:
+            fut.result(timeout=_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 — qualquer falha = indisponível
+            logging.getLogger("uvicorn.error").warning("ready: Firestore indisponível")
+            return JSONResponse(status_code=503, content={"status": "unavailable"})
+    return JSONResponse(status_code=200, content={"status": "ready"})
