@@ -30,7 +30,8 @@ export default function RelatoriosPage() {
   if (resumo.isError) return <ErrorState error={resumo.error} />
 
   const r = resumo.data!
-  const maxHora = Math.max(...Object.values(r.vendasPorHora), 1)
+  const horas = Object.entries(r.vendasPorHora ?? {}).sort(([a], [b]) => a.localeCompare(b))
+  const maxHora = Math.max(0, ...horas.map(([, valor]) => Number(valor) || 0))
 
   return (
     <div className="p-6">
@@ -61,26 +62,41 @@ export default function RelatoriosPage() {
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card className="p-5">
-          <h3 className="mb-4 text-sm font-bold text-slate-700">Vendas por hora</h3>
-          <div className="flex h-40 items-end gap-1">
-            {Object.entries(r.vendasPorHora).map(([hora, valor]) => (
-          <div key={hora} className="group flex flex-1 flex-col items-center justify-end" title={`${hora}h — ${brl(valor)}`}>
-              <span className="mb-0.5 block text-[9px] font-bold tabular-nums text-brand-600">
-                {valor > 0 ? brl(valor).replace('R$', '').trim() : ''}
-              </span>
-                <div
-                  className="w-full rounded-t bg-brand-500 transition group-hover:bg-brand-600"
-                  style={{ height: `${Math.max(2, (valor / maxHora) * 100)}%`, opacity: valor > 0 ? 1 : 0.15 }}
-                />
-                <span className="mt-1 text-[9px] text-slate-500">{hora}</span>
-              </div>
-            ))}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h3 className="text-sm font-bold text-slate-700">Vendas por hora</h3>
+            <span className="text-xs text-slate-500">Passe o mouse nas barras para ver o valor</span>
           </div>
+          {maxHora <= 0 ? (
+            <div className="flex h-40 items-center justify-center text-sm text-slate-500">Sem vendas no período.</div>
+          ) : (
+            <div className="flex h-40 items-end gap-1 overflow-x-auto pb-1">
+              {horas.map(([hora, rawValor]) => {
+                const valor = Number(rawValor) || 0
+                const alturaPx = valor > 0 ? Math.max(4, (valor / maxHora) * 108) : 2
+                return (
+                  <div
+                    key={hora}
+                    className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end"
+                    title={`${hora}h — ${brl(valor)}`}
+                    aria-label={`${hora} horas: ${brl(valor)}`}
+                  >
+                    <div className="flex min-h-0 w-full flex-1 items-end">
+                      <div
+                        className="w-full rounded-t bg-brand-500 transition-colors group-hover:bg-brand-600"
+                        style={{ height: `${alturaPx}px`, opacity: valor > 0 ? 1 : 0.12 }}
+                      />
+                    </div>
+                    <span className="mt-1 text-[9px] leading-3 text-slate-500">{hora}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </Card>
 
         <Card className="p-5">
           <h3 className="mb-4 text-sm font-bold text-slate-700">Por forma de pagamento</h3>
-          {Object.keys(r.vendasPorFormaPagamento).length === 0 ? (
+          {Object.keys(r.vendasPorFormaPagamento ?? {}).length === 0 ? (
             <p className="text-sm text-slate-500">Sem vendas no período.</p>
           ) : (
             <ul className="space-y-3">
@@ -161,14 +177,14 @@ function KpiCard({ icon, label, value, highlight }: { icon: ReactNode; label: st
 }
 
 function RankingList({ data }: { data: Record<string, number> }) {
-  const entries = Object.entries(data)
+  const entries = Object.entries(data ?? {})
   if (entries.length === 0) return <p className="text-sm text-slate-500">Sem dados.</p>
-  const max = entries[0][1] || 1
+  const max = Math.max(1, ...entries.map(([, value]) => Number(value) || 0))
   return (
     <ul className="space-y-2">
       {entries.map(([nome, qtd]) => (
         <li key={nome} className="flex items-center gap-2 text-sm">
-          <span className="w-32 truncate font-semibold text-slate-700">{nome}</span>
+          <span className="w-32 truncate font-semibold text-slate-700" title={nome}>{nome}</span>
           <div className="h-2 flex-1 rounded-full bg-slate-100">
             <div className="h-full rounded-full bg-sky-500" style={{ width: `${(qtd / max) * 100}%` }} />
           </div>

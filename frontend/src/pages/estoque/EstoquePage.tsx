@@ -19,6 +19,10 @@ export default function EstoquePage() {
   const estoqueQ = useEstoque(me?.restaurantId)
   const movimentacoes = useMovimentacoes(me?.restaurantId)
 
+  // Índice local para exibir o nome do insumo em cada movimentação.
+  // Movimentos antigos guardam apenas itemId; assim também são legíveis.
+  const itemPorId = new Map((estoqueQ.data ?? []).map((item) => [item.id, item]))
+
   const itens = {
     isLoading: estoqueQ.isLoading,
     isError: estoqueQ.isError,
@@ -52,37 +56,37 @@ export default function EstoquePage() {
         <Card className="lg:col-span-2 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-5 py-3">Item</th>
-                <th className="px-5 py-3">Saldo</th>
-                <th className="px-5 py-3">Mínimo</th>
-                <th className="px-5 py-3">Custo médio</th>
-                <th className="px-5 py-3 text-right">Movimentar</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(itens.data ?? []).map((item) => {
-                const alerta = item.quantidadeAtual <= item.minimo
-                return (
-                  <tr key={item.id} className={alerta ? 'bg-amber-50/60' : ''}>
-                    <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{item.nome}</td>
-                    <td className={`px-5 py-3 font-bold ${alerta ? 'text-rose-600' : 'text-emerald-600'}`}>
-                      {item.quantidadeAtual} {item.unidade}
-                      {alerta && ' ⚠️'}
-                    </td>
-                    <td className="px-5 py-3 text-slate-500">{item.minimo}</td>
-                    <td className="px-5 py-3">{brl(item.custoMedio)}</td>
-                    <td className="px-5 py-3 text-right">
-                      <Button variant="secondary" className="!px-3 !py-1 !text-xs" onClick={() => setMovItem(item)}>
-                        Movimentar
-                      </Button>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-5 py-3">Item</th>
+                  <th className="px-5 py-3">Saldo</th>
+                  <th className="px-5 py-3">Mínimo</th>
+                  <th className="px-5 py-3">Custo médio</th>
+                  <th className="px-5 py-3 text-right">Movimentar</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {(itens.data ?? []).map((item) => {
+                  const alerta = item.quantidadeAtual <= item.minimo
+                  return (
+                    <tr key={item.id} className={alerta ? 'bg-amber-50/60' : ''}>
+                      <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{item.nome}</td>
+                      <td className={`px-5 py-3 font-bold ${alerta ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        {item.quantidadeAtual} {item.unidade}
+                        {alerta && ' ⚠️'}
+                      </td>
+                      <td className="px-5 py-3 text-slate-500">{item.minimo}</td>
+                      <td className="px-5 py-3">{brl(item.custoMedio)}</td>
+                      <td className="px-5 py-3 text-right">
+                        <Button variant="secondary" className="!px-3 !py-1 !text-xs" onClick={() => setMovItem(item)}>
+                          Movimentar
+                        </Button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
           {(itens.data ?? []).length === 0 && (
             <EmptyState
@@ -95,17 +99,27 @@ export default function EstoquePage() {
         <Card className="overflow-hidden">
           <p className="border-b border-slate-100 px-5 py-3 text-sm font-bold text-slate-700">Últimas movimentações</p>
           <ul className="max-h-[60vh] divide-y divide-slate-50 overflow-y-auto">
-            {(movimentacoes.data ?? []).map((m) => (
-              <li key={m.id} className="flex items-center justify-between px-5 py-2.5 text-sm">
-                <div>
-                  <Badge value={m.tipo} />
-                  <span className="ml-2 text-xs text-slate-500">{dataHora(m.criadoEm)}</span>
-                </div>
-                <span className={`font-bold ${m.tipo === 'entrada' ? 'text-emerald-600' : m.tipo === 'saida' ? 'text-rose-500' : 'text-sky-600'}`}>
-                  {m.tipo === 'ajuste' ? '=' : m.tipo === 'entrada' ? '+' : '−'}{m.qtd}
-                </span>
-              </li>
-            ))}
+            {(movimentacoes.data ?? []).map((m) => {
+              const itemMovimentado = itemPorId.get(m.itemId)
+              const nomeItem = itemMovimentado?.nome ?? m.itemId ?? 'Item sem identificação'
+              const unidadeItem = itemMovimentado?.unidade
+              return (
+                <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Badge value={m.tipo} />
+                      <span className="truncate text-xs text-slate-500">{dataHora(m.criadoEm)}</span>
+                    </div>
+                    <p className="mt-1 truncate text-xs font-semibold text-slate-700 dark:text-slate-200" title={nomeItem}>
+                      {nomeItem}
+                    </p>
+                  </div>
+                  <span className={`shrink-0 whitespace-nowrap font-bold ${m.tipo === 'entrada' ? 'text-emerald-600' : m.tipo === 'saida' ? 'text-rose-500' : 'text-sky-600'}`}>
+                    {m.tipo === 'ajuste' ? '=' : m.tipo === 'entrada' ? '+' : '−'}{m.qtd}{unidadeItem ? ` ${unidadeItem}` : ''}
+                  </span>
+                </li>
+              )
+            })}
             {(movimentacoes.data ?? []).length === 0 && (
               <li className="px-5 py-8 text-center text-xs text-slate-500">Sem movimentações.</li>
             )}

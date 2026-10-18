@@ -41,3 +41,6 @@ frontend/dev.pid
 
 # Tooling local do agente (node_modules 52MB + state)
 .opencode/
+
+# Copias manuais de seguranca (backup local do usuario)
+frontend/src/pages/*/* - Copia.tsx
