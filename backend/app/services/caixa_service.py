@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from google.cloud.firestore import transactional
 
 from app.core.firebase import get_db
+from app.services import calculos
 from app.services.base import (
     doc_to_dict,
     ensure_parent,
@@ -49,7 +50,7 @@ def abrir(restaurant_id: str, usuario_id: str, valor_inicial: float) -> dict:
     ensure_parent(restaurant_id, "sessoes_caixa")
     data: dict[str, Any] = {
         "usuarioId": usuario_id,
-        "valorInicial": round(valor_inicial, 2),
+        "valorInicial": calculos.round_money(valor_inicial),
         "abertoEm": now_utc(),
         "totalVendas": 0.0,
         "totalRecebido": 0.0,
@@ -85,10 +86,10 @@ def movimentacao_caixa(restaurant_id: str, usuario_id: str, tipo: str, valor: fl
     if tipo not in {"suprimento", "sangria"}:
         raise HTTPException(422, "Tipo deve ser 'suprimento' ou 'sangria'")
     campo = "suprimentos" if tipo == "suprimento" else "sangrias"
-    novo_total = round(float(sessao.get(campo, 0)) + valor, 2)
+    novo_total = calculos.round_money(float(sessao.get(campo, 0)) + valor)
     lancamentos = list(sessao.get("movimentacoesCaixa", []))
     lancamentos.append(
-        {"id": new_id("mv_"), "tipo": tipo, "valor": round(valor, 2), "observacao": observacao,
+        {"id": new_id("mv_"), "tipo": tipo, "valor": calculos.round_money(valor), "observacao": observacao,
          "usuarioId": usuario_id, "criadoEm": now_utc().isoformat()}
     )
     item_doc(restaurant_id, "sessoes_caixa", sessao["id"]).update(
@@ -101,20 +102,19 @@ def fechar(restaurant_id: str, valor_contado: float | None) -> dict:
     sessao = sessao_atual(restaurant_id)
     if not sessao:
         raise HTTPException(409, "Não há sessão de caixa aberta")
-    esperado = round(
+    esperado = calculos.round_money(
         float(sessao.get("valorInicial", 0))
         + float(sessao.get("totalRecebido", 0))
         + float(sessao.get("suprimentos", 0))
-        - float(sessao.get("sangrias", 0)),
-        2,
+        - float(sessao.get("sangrias", 0))
     )
     updates: dict[str, Any] = {
         "status": "fechado",
         "fechadoEm": now_utc(),
         "resumoFechamento": {
             "esperadoEmCaixa": esperado,
-            "valorContado": round(valor_contado, 2) if valor_contado is not None else None,
-            "diferenca": round((valor_contado or 0) - esperado, 2) if valor_contado is not None else None,
+            "valorContado": calculos.round_money(valor_contado) if valor_contado is not None else None,
+            "diferenca": calculos.round_money((valor_contado or 0) - esperado) if valor_contado is not None else None,
         },
     }
     item_doc(restaurant_id, "sessoes_caixa", sessao["id"]).update(stamp_update(updates))
@@ -181,9 +181,9 @@ def registrar_pagamento(
                     409, "Pagamento já registrado para esta chave de idempotência"
                 )
 
-        ja_pago = sum(float(p.get("valor", 0)) for p in pedido.get("pagamentos", []))
-        total = float(pedido.get("total", 0))
-        restante = round(total - ja_pago, 2)
+        ja_pago = float(calculos.soma_monet(p.get("valor", 0) for p in pedido.get("pagamentos", [])))
+        total = float(calculos.monet(pedido.get("total", 0)))
+        restante = calculos.round_money(total - ja_pago)
         if float(valor) > restante + TOLERANCIA:
             raise HTTPException(422, f"Valor excede o saldo do pedido (restante: R$ {restante:.2f})")
 
@@ -194,14 +194,14 @@ def registrar_pagamento(
         mesa_ref = item_doc(restaurant_id, "mesas", mesa_id) if mesa_id else None
         mesa_snap = next(iter(t.get(mesa_ref)), None) if mesa_ref else None
 
-        quitado = (ja_pago + float(valor)) >= total - TOLERANCIA
+        quitado = calculos.round_money(ja_pago + float(valor)) >= calculos.round_money(total) - TOLERANCIA
 
         # ---------- fase 2: TODAS as escritas ----------
         pagamento = {
             "id": new_id("pag_"),
             "tipo": tipo,
-            "valor": round(float(valor), 2),
-            "troco": round(float(troco), 2) if troco is not None else None,
+            "valor": calculos.round_money(valor),
+            "troco": calculos.round_money(troco) if troco is not None else None,
             "referencia": referencia,
             "criadoEm": fechado_em,
         }
@@ -233,13 +233,14 @@ def registrar_pagamento(
         if quitado:
             if sessao_snap and sessao_snap.exists:
                 sessao = dict(sessao_snap.to_dict() or {})
-                total_vendas = round(float(sessao.get("totalVendas", 0)) + total, 2)
-                total_recebido = round(
-                    float(sessao.get("totalRecebido", 0)) + sum(float(p["valor"]) for p in pagamentos), 2
+                total_vendas = calculos.round_money(float(sessao.get("totalVendas", 0)) + total)
+                total_recebido = calculos.round_money(
+                    calculos.monet(sessao.get("totalRecebido", 0))
+                    + calculos.soma_monet(float(p["valor"]) for p in pagamentos)
                 )
                 por_forma = dict(sessao.get("vendasPorFormaPagamento") or {})
                 for p in pagamentos:
-                    por_forma[p["tipo"]] = round(por_forma.get(p["tipo"], 0.0) + float(p["valor"]), 2)
+                    por_forma[p["tipo"]] = calculos.round_money(por_forma.get(p["tipo"], 0.0) + float(p["valor"]))
                 por_produto = dict(sessao.get("quantidadePorProduto") or {})
                 for item in pedido.get("itens", []):
                     pid = item.get("produtoId")
