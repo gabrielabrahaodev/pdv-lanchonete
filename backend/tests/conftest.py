@@ -9,6 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tests.fs_stub import patch_firestore_store  # noqa: E402
 
 # Módulos cujo `get_db` deve apontar para o stub (import por nome → patch por módulo)
+# REGRA: todo service novo que importar get_db ENTRA aqui — a barreira anti-leak
+# de fs_stub faz o suite falhar estrondoso se algum módulo ficar de fora.
 MODULES = [
     "app.services.base",
     "app.services.pedidos_service",
@@ -21,6 +23,7 @@ MODULES = [
     "app.services.relatorios_service",
     "app.services.fornecedores_service",
     "app.services.delivery_service",
+    "app.services.backfill_service",
 ]
 
 RID = "r1"

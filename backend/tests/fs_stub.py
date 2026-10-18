@@ -299,8 +299,28 @@ def patch_firestore_store(monkeypatch, modules, store: FakeStore | None = None):
     `modules` deve incluir "app.services.base" + cada módulo que fez
     `from app.core.firebase import get_db` (import por nome pega o próprio
     atributo do módulo). Retorna o fake (para asserts).
+
+    BARREIRA ANTI-LEAK: bloqueia `firebase_admin.initialize_app`/`get_app` —
+    se algum módulo esquecido tentar o Firestore REAL dentro de um teste,
+    o erro estoura aqui com a instrução certa em vez de escrever na produção.
     """
     import importlib
+
+    import firebase_admin
+
+    def _deny(*_a, **_kw):  # noqa: ANN002, ANN003
+        raise RuntimeError(
+            "Firebase REAL chamado dentro de teste: módulo novo de serviço não "
+            "está em tests/conftest.py:MODULES (ou o import de get_db saiu do "
+            "padrão `from app.core.firebase import get_db`)."
+        )
+
+    monkeypatch.setattr(firebase_admin, "initialize_app", _deny)
+
+    def _deny_get_app(*_a, **_kw):  # noqa: ANN002, ANN003
+        raise _deny()
+
+    monkeypatch.setattr(firebase_admin, "get_app", _deny_get_app)
 
     fake = FakeClient(store or FakeStore())
     for mod_name in modules:
