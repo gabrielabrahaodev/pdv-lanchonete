@@ -9,7 +9,7 @@ Sequências de execução ponta a ponta combinando os casos de teste (`casos-tes
 
 | # | Ação | Resultado esperado | Evidência |
 |---|---|---|---|
-| 1 | Login admin@restaurante.com | vai a /caixa | screenshot |
+| 1 | Login com usuário de teste local | vai a /caixa | screenshot |
 | 2 | Abrir caixa (fundo R$ 200) | card "Caixa aberto" aparece | — |
 | 3 | Mesa 1 → Novo pedido: 2× X-Burger (obs "sem cebola") + 2× bebida | total = soma correta; mesa fica 🟡 ocupada | print pedido |
 | 4 | Conferir Firestore/API: itens `pendente` | presentes na fila do KDS | API GET /cozinha/fila |

@@ -62,7 +62,9 @@ npm install
 npm run dev
 ```
 
-Acesse http://localhost:5173 e faça login com `admin@restaurante.com` / `SenhaForte123!`.
+Acesse http://localhost:5173 e entre com o usuário de teste criado pela inicialização
+local (`npm run init` em `scripts/` lê `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` do
+ambiente — crie um usuário próprio; credenciais compartilhadas nunca vão em docs).
 
 ### Scripts Firebase (Admin)
 

@@ -6,7 +6,7 @@
 > ✅ **EXECUTADO em 2026-08-23.** URLs reais:
 > - Frontend: `https://pdv-lanchonete-1fa79.web.app`
 > - API: `https://pdv-lanchonete-dwiw.onrender.com` (o slug `-dwiw` existe porque nomes `.onrender.com` são globais — `pdv-lanchonete.onrender.com` é de OUTRA conta)
-> - Repo: `https://github.com/gabrielabrahaodev/pdv-lanchonete` (privado; push em `master` → auto-deploy na Render)
+> - Repo: `https://github.com/gabrielabrahaodev/pdv-lanchonete` (push em `master` → auto-deploy na Render; visibilidade no GitHub é decisão do dono — confirme as Settings antes de assumir público/privado)
 
 ## Arquitetura
 

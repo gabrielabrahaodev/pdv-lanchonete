@@ -1,9 +1,11 @@
 // Gera um ID token do Firebase para testar a API FastAPI.
 // Requer `npm install` em ../scripts (pacote firebase client).
 //
+// Credenciais NUNCA hardcoded: passe por argumento ou env.
+//
 // Uso:
-//   node get-token.js                                  -> admin@restaurante.com em token.txt
-//   node get-token.js <email> <senha> [arquivo-saida]  -> credenciais customizadas
+//   node get-token.js <email> <senha> [arquivo-saida]
+//   (ou) $env:E2E_EMAIL='...'; $env:E2E_SENHA='...'; node get-token.js [arquivo-saida]
 const { initializeApp } = require('firebase/app');
 const { getAuth, signInWithEmailAndPassword } = require('firebase/auth');
 const fs = require('fs');
@@ -16,9 +18,13 @@ const firebaseConfig = {
 
 async function main() {
   const [, , emailArg, senhaArg, arquivoArg] = process.argv;
-  const email = emailArg || 'admin@restaurante.com';
-  const senha = senhaArg || 'SenhaForte123!';
+  const email = emailArg || process.env.E2E_EMAIL;
+  const senha = senhaArg || process.env.E2E_SENHA;
   const arquivo = arquivoArg || 'token.txt';
+  if (!email || !senha) {
+    console.error('Informe: node get-token.js <email> <senha> [saida] — ou env E2E_EMAIL/E2E_SENHA.');
+    process.exit(1);
+  }
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);

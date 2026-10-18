@@ -42,9 +42,16 @@ async function main() {
   const db = getFirestore(app);
   const rid = 'restaurante_001';
 
+  const email = process.env.E2E_EMAIL;
+  const senha = process.env.E2E_SENHA;
+  if (!email || !senha) {
+    console.error('Defina env E2E_EMAIL/E2E_SENHA (usuário de teste criado localmente).');
+    process.exit(1);
+  }
+
   // 1. LOGIN
-  await step('Login admin@restaurante.com', () =>
-    signInWithEmailAndPassword(auth, 'admin@restaurante.com', 'SenhaForte123!')
+  await step(`Login ${email}`, () =>
+    signInWithEmailAndPassword(auth, email, senha)
   );
 
   // 2. READS

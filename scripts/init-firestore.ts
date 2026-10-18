@@ -12,10 +12,10 @@ const CONFIG = {
   restaurantName: 'Minha Lanchonete',
   currency: 'BRL',
   timezone: 'America/Sao_Paulo',
-  adminEmail: 'admin@restaurante.com',  // Corrigido para o email que o usuário usa
-  adminPassword: 'SenhaForte123!',
+  // Credencial do admin local via env — NUNCA hardcode.
+  adminEmail: process.env.SEED_ADMIN_EMAIL ?? '',
+  adminPassword: process.env.SEED_ADMIN_PASSWORD ?? '',
   adminName: 'Admin',
-  adminUid: '0O29i5gABJTtS5JrAFgB7yskIwC3',  // UID fixo do usuário admin
   serviceAccountPath: './service-account.json',
 };
 
@@ -45,72 +45,26 @@ function initializeFirebase() {
 // ============================================================================
 // HELPERS
 // ============================================================================
-async function getOrCreateAdminUser(auth: any, email: string, password: string, displayName: string, fixedUid: string) {
-  try {
-    // Tenta buscar por UID primeiro
-    let user;
-    try {
-      user = await auth.getUser(fixedUid);
-      console.log(`👤 Usuário encontrado por UID: ${user.uid} (email atual: ${user.email})`);
-      
-      // Se o email mudou, atualiza
-      if (user.email !== email) {
-        user = await auth.updateUser(fixedUid, { email, password, displayName, emailVerified: true });
-        console.log(`🔄 Email do usuário atualizado para: ${email}`);
-      } else if (password) {
-        // Atualiza senha se fornecida
-        user = await auth.updateUser(fixedUid, { password, displayName });
-        console.log(`🔄 Senha do usuário atualizada`);
-      }
-      return user;
-    } catch (uidError: any) {
-      if (uidError.code === 'auth/user-not-found') {
-        // Usuário não existe por UID, tenta buscar por email
-        try {
-          user = await auth.getUserByEmail(email);
-          console.log(`👤 Usuário encontrado por email: ${user.uid}`);
-          
-          // Se o UID não bate, atualiza o UID (não dá pra mudar UID, então recria)
-          if (user.uid !== fixedUid) {
-            await auth.deleteUser(user.uid);
-            throw new Error('UID mismatch'); // Vai pro catch abaixo para criar com UID fixo
-          }
-          
-          await auth.updateUser(user.uid, { password, displayName, emailVerified: true });
-          return user;
-        } catch (emailError: any) {
-          if (emailError.code === 'auth/user-not-found') {
-            // Não existe nem por UID nem por email - cria novo
-            user = await auth.createUser({ 
-              uid: fixedUid,  
-              email, 
-              password, 
-              displayName, 
-              emailVerified: true 
-            });
-            console.log(`👤 Usuário admin criado com UID fixo: ${user.uid}`);
-            return user;
-          }
-          throw emailError;
-        }
-      }
-      throw uidError;
-    }
-  } catch (error: any) {
-    if (error.code === 'auth/user-not-found' || error.message === 'UID mismatch') {
-      // Cria novo com UID fixo
-      const user = await auth.createUser({ 
-        uid: fixedUid,  
-        email, 
-        password, 
-        displayName, 
-        emailVerified: true 
-      });
-      console.log(`👤 Usuário admin criado com UID fixo: ${user.uid}`);
-      return user;
-    }
-    throw error;
+async function getOrCreateAdminUser(auth: any, email: string, password: string, displayName: string) {
+  if (!email || !password) {
+    throw new Error('Defina SEED_ADMIN_EMAIL e SEED_ADMIN_PASSWORD no ambiente antes de rodar o seed.');
   }
+  // Cria/atualiza por EMAIL (sem UID fixo hardcoded no código).
+  const user = await (async () => {
+    try {
+      const found = await auth.getUserByEmail(email);
+      console.log(`👤 Usuário encontrado por email: ${found.uid}`);
+      return found;
+    } catch (e: any) {
+      if (e.code === 'auth/user-not-found') {
+        const created = await auth.createUser({ email, password, displayName, emailVerified: true });
+        console.log(`👤 Usuário admin criado (uid gerado: ${created.uid})`);
+        return created;
+      }
+      throw e;
+    }
+  })();
+  return await auth.updateUser(user.uid, { password, displayName, emailVerified: true });
 }
 
 async function setCustomClaims(auth: any, uid: string, claims: Record<string, any>) {
@@ -142,7 +96,7 @@ async function main() {
   console.log('🚀 Iniciando setup do Firestore para PDV Lanchonete...\n');
   
   const { db, auth } = initializeFirebase();
-  const { restaurantId, restaurantName, currency, timezone, adminEmail, adminPassword, adminName, adminUid } = CONFIG;
+  const { restaurantId, restaurantName, currency, timezone, adminEmail, adminPassword, adminName } = CONFIG;
   
   const batch: WriteBatch = db.batch();
   let operationsCount = 0;
@@ -434,9 +388,10 @@ async function main() {
   // -------------------------------------------------------------------------
   // 3. USUÁRIO ADMIN + CUSTOM CLAIMS
   // -------------------------------------------------------------------------
-  const adminUser = await getOrCreateAdminUser(auth, adminEmail, adminPassword, adminName, adminUid);
-  
-  await setCustomClaims(auth, adminUid, {
+  const adminUser = await getOrCreateAdminUser(auth, adminEmail, adminPassword, adminName);
+  const adminUidFinal = adminUser.uid;
+
+  await setCustomClaims(auth, adminUidFinal, {
     restaurantId,
     papel: 'admin',
   });
@@ -451,7 +406,7 @@ async function main() {
     criadoEm: Timestamp.now(),
     atualizadoEm: Timestamp.now(),
   });
-  console.log(`👤 Documento do admin criado em: restaurantes/${restaurantId}/data/usuarios/items/${adminUid}`);
+  console.log(`👤 Documento do admin criado em: restaurantes/${restaurantId}/data/usuarios/items/${adminUidFinal}`);
   
   // -------------------------------------------------------------------------
   // RESUMO
@@ -460,7 +415,7 @@ async function main() {
   console.log('✅ SETUP CONCLUÍDO COM SUCESSO!');
   console.log('='.repeat(60));
   console.log(`🏪 Restaurante: ${restaurantName} (${restaurantId})`);
-  console.log(`👤 Admin: ${adminEmail} (UID: ${adminUid})`);
+  console.log(`👤 Admin: ${adminEmail} (UID: ${adminUidFinal})`);
   console.log(`🔐 Custom Claims: restaurantId=${restaurantId}, papel=admin`);
   console.log(`\n📋 Próximos passos:`);
   console.log(`   1. Login no app com: ${adminEmail} / ${adminPassword}`);

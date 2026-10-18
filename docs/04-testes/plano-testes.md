@@ -26,7 +26,7 @@ Definir escopo, estratégia, níveis, critérios e responsabilidades de teste do
 | Backend | `.venv` Python 3.12 + requirements.txt (tzdata obrigatório); uvicorn :8000 |
 | Frontend | `npm run dev` :5173 (proxy /api); PWA validado com `npm run build && npm run preview` |
 | Banco | Projeto real `pdv-lanchonete-1fa79`, tenant de teste `restaurante_001`; seeds via `scripts/` |
-| Credenciais | admin@restaurante.com / SenhaForte123! (+ usuários por papel criados no seed) |
+| Credenciais | usuário de teste local via env no seed (`SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`) + usuários por papel criados no seed |
 | Token | `get-token.js` grava `token.txt` (~1h de validade) |
 | Impressora | térmica ESC/POS Bluetooth (service 18f0); fallback janela print sem hardware |
 

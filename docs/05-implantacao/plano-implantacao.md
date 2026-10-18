@@ -21,7 +21,7 @@ Regra permanente (2026-08-24): **toda mudança é validada em localhost antes de
 ### 2.2 Dados iniciais
 - [ ] Executar `npm run init` (estrutura + admin) e `npm run seed` (usuários, insumos, caixa) OU provisionar um novo restaurante pelo app — hoje isso **exige convite do dono da plataforma** (link `?t=CÓDIGO`; sem convite a criação retorna 403).
 - [ ] Cadastrar categorias, produtos com receitas, mesas e usuários por papel.
-- [ ] Trocar senha padrão do admin (`SenhaForte123!`).
+- [ ] Trocar/rotacionar a senha demo do admin no Firebase Console (a credencial já circulou no histórico público do repo).
 
 ### 2.3 Dispositivos
 - [ ] Tablet/PC do caixa: Chrome/Edge atualizado; atalho para o app; instalar como PWA.

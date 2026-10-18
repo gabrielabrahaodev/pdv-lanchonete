@@ -1,6 +1,6 @@
 # Testes E2E da API FastAPI do PDV.
 # Alvo padrao: PRODUCAO (Render). Para testar local: -Base http://127.0.0.1:8000
-param([string]$Base = 'https://pdv-lanchonete-dwiw.onrender.com')
+param([string]$Base = 'https://pdv-lanchonete-dwiw.onrender.com', [string]$SenhaTeste = $(if ($env:E2E_SENHA) { $env:E2E_SENHA } else { throw 'Defina E2E_SENHA (usuario de teste local). Nada hardcoded aqui.' }))
 
 $ErrorActionPreference = 'Stop'
 $Token = (Get-Content "$PSScriptRoot\token.txt" -Raw).Trim()
@@ -565,7 +565,7 @@ Step 'DELETE /despesas/{id} + DELETE /fornecedores/{id}' {
 Write-Host "`n=== 12d. Usuarios ===" -ForegroundColor Cyan
 $qaUserEmail = "qa-e2e-$(Get-Date -Format 'yyyyMMddHHmmss')@teste.local"
 Step 'POST /usuarios QA caixa' {
-  $u = Invoke-Api POST '/api/usuarios' @{ email = $qaUserEmail; senha = 'SenhaForte123!'; nome = 'QA E2E'; papel = 'caixa' }
+  $u = Invoke-Api POST '/api/usuarios' @{ email = $qaUserEmail; senha = $SenhaTeste; nome = 'QA E2E'; papel = 'caixa' }
   $script:qaUid = $u.id
   if (-not $u.id) { throw 'sem id' }
   return "id=$($u.id)"
@@ -582,7 +582,7 @@ Step 'PATCH /usuarios/{id} papel=garcom' {
   return "papel=$($u.papel)"
 }
 Step 'POST /usuarios papel=admin -> 422' {
-  try { Invoke-Api POST '/api/usuarios' @{ email = "qa-adm-$(Get-Date -Format 'yyyyMMddHHmmss')@teste.local"; senha = 'SenhaForte123!'; nome = 'QA Adm'; papel = 'admin' } | Out-Null; throw 'deveria falhar' }
+  try { Invoke-Api POST '/api/usuarios' @{ email = "qa-adm-$(Get-Date -Format 'yyyyMMddHHmmss')@teste.local"; senha = $SenhaTeste; nome = 'QA Adm'; papel = 'admin' } | Out-Null; throw 'deveria falhar' }
   catch {
     $code = 0
     if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
@@ -647,7 +647,7 @@ if (-not (Test-Path "$PSScriptRoot\token-owner.txt")) {
   Step 'signUp conta descartavel #1 (Identity Toolkit)' {
     $script:su = Invoke-RestMethod -Method Post `
       -Uri "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$fbKey" `
-      -Body (@{ email = $qaEmail; password = 'SenhaForte123!'; returnSecureToken = $true } | ConvertTo-Json) `
+      -Body (@{ email = $qaEmail; password = $SenhaTeste; returnSecureToken = $true } | ConvertTo-Json) `
       -ContentType 'application/json' -TimeoutSec 120
     if (-not $su.idToken) { throw 'sem idToken no signUp' }
     return "uid=$($su.localId)"
@@ -708,7 +708,7 @@ if (-not (Test-Path "$PSScriptRoot\token-owner.txt")) {
   Step 'signUp conta descartavel #2' {
     $script:su2 = Invoke-RestMethod -Method Post `
       -Uri "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$fbKey" `
-      -Body (@{ email = $qaEmail2; password = 'SenhaForte123!'; returnSecureToken = $true } | ConvertTo-Json) `
+      -Body (@{ email = $qaEmail2; password = $SenhaTeste; returnSecureToken = $true } | ConvertTo-Json) `
       -ContentType 'application/json' -TimeoutSec 120
     if (-not $su2.idToken) { throw 'sem idToken no signUp #2' }
     return "uid=$($su2.localId)"

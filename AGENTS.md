@@ -22,7 +22,7 @@ cd backend
 
 O servidor costuma rodar em background com saída redirecionada para `backend/uv-test.out.log` e `backend/srv.err.log`; o PID fica em `backend/server.pid`. **Não roda com --reload**: após alterar código Python, reinicie o processo (Stop-Process no PID do server.pid → Start-Process de novo). O log pode mostrar `--- Logging error --- OSError [Errno 22]`: é ruído do access logger do uvicorn no Windows quando a saída é pipe, não afeta requisições.
 
-Frontend: `cd frontend && npm run dev`. Credenciais de teste: `admin@restaurante.com` / `SenhaForte123!` (uid `0O29i5gABJTtS5JrAFgB7yskIwC3`, claims `restaurantId=restaurante_001`, `papel=admin`).
+Frontend: `cd frontend && npm run dev`. Login: use o usuário de teste do seed local (`SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` no ambiente ao rodar `npm run init`). Nunca documente credenciais compartilhadas neste arquivo.
 
 ## REGRA DE FLUXO: validar em localhost ANTES de qualquer deploy
 

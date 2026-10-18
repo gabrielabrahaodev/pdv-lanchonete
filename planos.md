@@ -169,3 +169,29 @@ Impacto imediato na operação diária do caixa.
 - `scripts\limpar-sessoes-opencode.ps1` / `scripts\mesclar-sessoes-opencode.ps1`
 - `opencode -c` recupera a última sessão após qualquer queda (dados em `opencode.db`,
   sem expiração)
+
+---
+
+## 🧊 ADIADO — Espelho analítico no Supabase (relatórios pesados)
+
+Decisão 2026-10-18: relatórios continuam no Firestore (agregados dia/mês + P1-I).
+Virar para Supabase (Postgres) só quando os gatilhos abaixo ficarem reais.
+
+**Desenho se virar:**
+1. Backend além do Firestore escreve tabela espelho analítica no Supabase
+   (pg). Dual-write SÓ no caminho de agregados (sincronos), nunca nas telas.
+2. Tabelas: endas_dia(dia, faturamento, contagem, hora_distribuicao jsonb) +
+    consumo_dia(item_id, qtd_curto, custo) + despesas(id, categoria, data, valor, status).
+3. Relatórios longos (12 meses+) consultam Supabase; janela curta mantém Firestore.
+4. Backfill idempotente reutiliza lógica do ackfill_service.py.
+5. Reversível como ferramenta (feature flag ANALYTICS_BACKEND=firestore|supabase).
+
+**Gatilhos para reabrir:**
+- Relatório anual customizado hiperútil para o dono (consulta > 30 leituras;
+  hoje o limite é 1 leitura via agregados — FIQUE;
+- Relatórios de 12+ meses com latência < 1s.
+- CRM/marketing desejar agrupamentos SQL real (cohort, recência).
+
+**Riscos conhecidos (por isso ADIADO):**
+- Duas fontes de verdade → drift silencioso. Mitigaria com auditoria diária comparando agregados Firestore vs Supabase.
+- Free tier do Supabase pausa após 7 dias de inatividade → cron ping necessário.

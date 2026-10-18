@@ -42,7 +42,7 @@ cd frontend
 npm run dev
 
 # Login de teste
-admin@restaurante.com / SenhaForte123!
+# usuário criado no seed local (env SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD)
 ```
 
 > Diagramas de arquitetura em imagem: `arquitetura-producao.svg` (produção ativa — Hosting + Render + Actions + UptimeRobot, com as 12 integrações numeradas) e `arquitetura-atual.svg`/`.png` (histórico do ambiente local).
