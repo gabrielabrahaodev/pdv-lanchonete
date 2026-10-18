@@ -17,9 +17,15 @@ service cloud.firestore {
     }
 
     // Tenant: coleções do restaurante (inclui subcoleção items e doc configuracoes).
+    // LEITURA direta somente para membros do tenant (listeners onSnapshot).
+    // ESCRITA DIRETA: SEMPRE NEGADA — toda criação/edição/exclusão passa pela
+    // API FastAPI (Admin SDK não depende destas regras). Isso fecha a porta
+    // para qualquer usuário autenticado forjar pedidos, pagamentos, sessão de
+    // caixa, estoque, agregados ou despesas direto pelo SDK cliente.
     match /restaurantes/{restaurantId}/{document=**} {
-      allow read, write: if request.auth != null
+      allow read: if request.auth != null
         && request.auth.token.restaurantId == restaurantId;
+      allow write: if false;
     }
 
     // Negado por padrão — qualquer outro caminho não tem regra explícita.
