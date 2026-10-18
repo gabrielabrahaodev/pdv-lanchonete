@@ -1,5 +1,5 @@
 """Estoque: itens e movimentações."""
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 
 from app.core.security import CurrentAuth, require_restaurant, require_roles
 from app.models.models import InventoryItemCreate, InventoryItemUpdate, MovementCreate
@@ -51,8 +51,15 @@ def registrar_movimentacao(
 
 @router.get("/movimentacoes")
 def listar_movimentacoes(
+    response: Response,
     item_id: str | None = Query(default=None),
-    limit: int = Query(default=100, le=500),
+    limit: int | None = Query(default=None, ge=1, le=500, description="Sem limit → lista completa (compat)"),
+    cursor: str | None = Query(default=None),
     restaurant_id: str = Depends(require_restaurant),
 ) -> list[dict]:
-    return estoque_service.listar_movimentacoes(restaurant_id.restaurant_id, item_id=item_id, limit=limit)
+    docs, next_cursor = estoque_service.listar_movimentacoes_paginado(
+        restaurant_id.restaurant_id, item_id=item_id, limit=limit, cursor_id=cursor
+    )
+    if next_cursor:
+        response.headers["X-Next-Cursor"] = next_cursor
+    return docs

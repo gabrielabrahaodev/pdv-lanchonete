@@ -1,5 +1,5 @@
 """Sessões de caixa."""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Response
 
 from app.core.security import CurrentAuth, require_restaurant, require_roles
 from app.models.models import CashMovement, SessionClose, SessionOpen
@@ -11,8 +11,18 @@ CAIXA = require_roles("admin", "gerente", "caixa")
 
 
 @router.get("/sessoes")
-def listar(restaurant_id: str = Depends(require_restaurant)) -> list[dict]:
-    return caixa_service.listar_sessoes(restaurant_id.restaurant_id)
+def listar(
+    response: Response,
+    limit: int | None = Query(default=None, ge=1, le=200, description="Sem limit → lista completa (compat)"),
+    cursor: str | None = Query(default=None),
+    restaurant_id: str = Depends(require_restaurant),
+) -> list[dict]:
+    docs, next_cursor = caixa_service.listar_sessoes_paginado(
+        restaurant_id.restaurant_id, limit=limit, cursor_id=cursor
+    )
+    if next_cursor:
+        response.headers["X-Next-Cursor"] = next_cursor
+    return docs
 
 
 @router.get("/sessao-atual")

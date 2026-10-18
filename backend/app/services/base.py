@@ -13,6 +13,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from google.cloud.firestore import Query
 from google.cloud.firestore_v1 import DocumentSnapshot
 
 from app.core.firebase import get_db
@@ -132,6 +133,49 @@ def list_items_window(
     if fim is not None:
         col = col.where(field, "<=", _ensure_utc(fim))
     return [doc_to_dict(s) for s in col.stream()]
+
+
+def list_items_paginado(
+    restaurant_id: str,
+    kind: str,
+    *,
+    limit: int,
+    cursor_id: str | None = None,
+    field: str = "createdAt",
+    desc: bool = True,
+    inicio: datetime | None = None,
+    fim: datetime | None = None,
+) -> tuple[list[dict[str, Any]], str | None]:
+    """Paginação server-side com cursor (P1-L) — nunca scan integral.
+
+    Campo único `field` (o nome GRAVADO — `createdAt` via stamp_create,
+    `data` em despesas) + índice automático. `inicio`/`fim` aplicam range no
+    MESMO campo (range+order no mesmo campo = índice automático; filtro em
+    campo diferente aqui quebraria isso). Empate no timestamp é resolvido
+    de forma determinística pelo id do documento. `limit` é o tamanho da
+    página; `next_cursor` = id do último item SEMPRE que a página veio
+    completa (None na última).
+
+    Levanta HTTPException(404) se o cursor não existir.
+    """
+    from fastapi import HTTPException
+
+    col = items_col(restaurant_id, kind)
+    snap_cursor = None
+    if cursor_id:
+        snap_cursor = item_doc(restaurant_id, kind, cursor_id).get()
+        if not snap_cursor.exists:
+            raise HTTPException(404, "Cursor de paginação inválido (documento não encontrado)")
+    if inicio is not None:
+        col = col.where(field, ">=", inicio if inicio.tzinfo else _ensure_utc(inicio))
+    if fim is not None:
+        col = col.where(field, "<=", fim if fim.tzinfo else _ensure_utc(fim))
+    q = col.order_by(field, Query.DESCENDING if desc else Query.ASCENDING)
+    if snap_cursor is not None:
+        q = q.start_after(snap_cursor)
+    docs = [doc_to_dict(s) for s in q.limit(limit).stream()]
+    next_cursor = docs[-1]["id"] if len(docs) == limit else None
+    return docs, next_cursor
 
 
 def _ensure_utc(value: datetime) -> datetime:

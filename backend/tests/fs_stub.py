@@ -90,6 +90,13 @@ class FakeQuery:
         self._limit = n
         return self
 
+    def start_after(self, snapshot) -> "FakeQuery":
+        """Análogo ao Admin SDK: recebe snapshot do doc-cursor; RETIRA docs
+        até ele (na ordem vigente, incluindo o próprio cursor)."""
+        self._after_id = snapshot.id
+        self._after_val = _dig(snapshot.to_dict() or {}, self._order[0]) if self._order else None
+        return self
+
     def _docs(self) -> list[tuple[str, dict[str, Any]]]:
         out: list[tuple[str, dict[str, Any]]] = []
         for path, dat in self.store.data.items():
@@ -128,12 +135,23 @@ class FakeQuery:
             field, desc = self._order
 
             def key(pair):
-                return _cancel(pair[1], field)
+                return (_dig(pair[1], field), pair[0])  # id do doc desempata
 
             docs = sorted(docs, key=key, reverse=desc)
+            if getattr(self, "_after_id", None) is not None:
+                docs = [p for p in docs if self._pos(p, field, desc)]
         if self._limit is not None:
             docs = docs[: self._limit]
         return [FakeSnapshot(FakeDocRef(self.store, p), d) for p, d in docs]
+
+    def _pos(self, pair, field, desc) -> bool:
+        """True = vem depois do cursor na ordem vigente (paginação segue)."""
+        path, dat = pair
+        val, did = _dig(dat, field), path.split("/")[-1]
+        cval, cid = self._after_val, self._after_id
+        if desc:
+            return (val, did) < (cval, cid)
+        return (val, did) > (cval, cid)
 
     def get(self) -> list[FakeSnapshot]:
         return self.stream()
@@ -228,6 +246,9 @@ class FakeCollection:
 
     def order_by(self, field: str, direction: Any = None) -> FakeQuery:
         return FakeQuery(self.store, self.path).order_by(field, direction)
+
+    def start_after(self, snapshot) -> FakeQuery:
+        return FakeQuery(self.store, self.path).start_after(snapshot)
 
     def limit(self, n: int) -> FakeQuery:
         return FakeQuery(self.store, self.path).limit(n)

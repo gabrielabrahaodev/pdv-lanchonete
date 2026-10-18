@@ -13,6 +13,7 @@ from app.services.base import (
     item_doc,
     items_col,
     list_items,
+    list_items_paginado,
     new_id,
     now_utc,
     stamp_create,
@@ -120,6 +121,30 @@ def listar(restaurant_id: str, *, status: str | None = None, mesa_id: str | None
     if mesa_id:
         docs = [d for d in docs if d.get("mesaId") == mesa_id]
     return docs
+
+
+def listar_paginado(
+    restaurant_id: str,
+    *,
+    limit: int | None = None,
+    cursor_id: str | None = None,
+    status: str | None = None,
+    mesa_id: str | None = None,
+) -> tuple[list[dict], str | None]:
+    """Histórico paginado por cursor (P1-L).
+
+    Sem `limit`: comportamento antigo integral — next_cursor None.
+    `limit` sem filtros: consulta server-side (order createdAt DESC —
+    índice automático). Com filtros status/mesa: comportamento integral
+    antigo em memória (não paginado) para não exigir índice composto
+    (status ASC, createdAt DESC) em produção.
+    """
+    if limit is not None:
+        if limit <= 0:
+            raise HTTPException(422, "limit deve ser maior que zero")
+        if not status and not mesa_id:
+            return list_items_paginado(restaurant_id, "pedidos", limit=limit, cursor_id=cursor_id)
+    return listar(restaurant_id, status=status, mesa_id=mesa_id), None
 
 
 def adicionar_item(restaurant_id: str, usuario_id: str, pedido_id: str, payload: OrderItemAdd) -> dict:

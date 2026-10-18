@@ -12,6 +12,7 @@ from app.services.base import (
     item_doc,
     items_col,
     list_items,
+    list_items_paginado,
     stamp_create,
     stamp_update,
 )
@@ -107,3 +108,23 @@ def listar_movimentacoes(restaurant_id: str, *, item_id: str | None = None, limi
     if item_id:
         docs = [d for d in docs if d.get("itemId") == item_id]
     return docs[:limit]
+
+
+def listar_movimentacoes_paginado(
+    restaurant_id: str,
+    *,
+    limit: int | None = None,
+    cursor_id: str | None = None,
+    item_id: str | None = None,
+) -> tuple[list[dict], str | None]:
+    """Histórico de movimentações paginado (P1-L).
+
+    Sem `item_id`: consulta server-side (createdAt DESC — índice automático).
+    Com `item_id`: caminho integral antigo (filtro em outra coleção-campo
+    exigiria índice composto) — next_cursor None.
+    """
+    if limit is None or item_id:
+        return listar_movimentacoes(restaurant_id, item_id=item_id), None
+    if limit <= 0:
+        raise HTTPException(422, "limit deve ser maior que zero")
+    return list_items_paginado(restaurant_id, "movimentacoes_estoque", limit=limit, cursor_id=cursor_id)

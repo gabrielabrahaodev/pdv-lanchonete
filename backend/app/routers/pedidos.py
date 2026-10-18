@@ -1,5 +1,5 @@
 """Pedidos e itens."""
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 
 from app.core.security import CurrentAuth, require_restaurant, require_roles
 from app.models.models import OrderItemAdd
@@ -14,11 +14,23 @@ STATUS = require_roles("admin", "gerente", "caixa", "cozinha")
 
 @router.get("")
 def listar(
+    response: Response,
     status: str | None = Query(default=None),
     mesa_id: str | None = Query(default=None),
+    limit: int | None = Query(default=None, ge=1, le=200, description="Sem limit → lista completa (compat)"),
+    cursor: str | None = Query(default=None),
     restaurant_id: str = Depends(require_restaurant),
 ) -> list[dict]:
-    return pedidos_service.listar(restaurant_id.restaurant_id, status=status, mesa_id=mesa_id)
+    docs, next_cursor = pedidos_service.listar_paginado(
+        restaurant_id.restaurant_id,
+        limit=limit,
+        cursor_id=cursor,
+        status=status,
+        mesa_id=mesa_id,
+    )
+    if next_cursor:
+        response.headers["X-Next-Cursor"] = next_cursor
+    return docs
 
 
 @router.get("/{pedido_id}")

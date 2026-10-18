@@ -13,6 +13,7 @@ from app.services.base import (
     get_item,
     item_doc,
     items_col,
+    list_items_paginado,
     new_id,
     now_utc,
     stamp_create,
@@ -37,6 +38,25 @@ def listar_sessoes(restaurant_id: str, *, limit: int = 30) -> list[dict]:
         .stream()
     )
     return [doc_to_dict(s) for s in snaps]
+
+
+def listar_sessoes_paginado(
+    restaurant_id: str,
+    *,
+    limit: int | None = None,
+    cursor_id: str | None = None,
+) -> tuple[list[dict], str | None]:
+    """Histórico de sessões paginado por cursor (P1-L).
+
+    Sem `limit`: lista completa integral — next_cursor None.
+    Com `limit`: consulta server-side (createdAt DESC — índice automático);
+    cursor = id do último doc da página.
+    """
+    if limit is None:
+        return listar_sessoes(restaurant_id, limit=10_000), None
+    if limit <= 0:
+        raise HTTPException(422, "limit deve ser maior que zero")
+    return list_items_paginado(restaurant_id, "sessoes_caixa", limit=limit, cursor_id=cursor_id)
 
 
 def sessao_atual(restaurant_id: str) -> dict | None:

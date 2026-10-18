@@ -20,6 +20,7 @@ from app.services.base import (
     item_doc,
     items_col,
     list_items,
+    list_items_paginado,
     now_utc,
     stamp_create,
     stamp_update,
@@ -69,6 +70,55 @@ def listar(
     for d in docs:
         d.pop("_dtComp", None)
     return docs
+
+
+def listar_paginado(
+    restaurant_id: str,
+    *,
+    limit: int | None = None,
+    cursor_id: str | None = None,
+    inicio: datetime | None = None,
+    fim: datetime | None = None,
+    status: str | None = None,
+    categoria: str | None = None,
+    fornecedor_id: str | None = None,
+    usuario_id: str | None = None,
+) -> tuple[list[dict], str | None]:
+    """Despesas paginadas por competência (`data` DESC — P1-L).
+
+    Sem `limit`: comportamento antigo integral (`listar`) — next_cursor None.
+    Com `limit` e sem filtros além da janela de datas: consulta server-side
+    (range + order no MESMO campo `data` = índice automático). Qualquer
+    outro filtro cai no caminho integral (não paginado) para evitar índice
+    composto em produção.
+    """
+    if categoria and categoria not in CATEGORIAS:
+        raise HTTPException(422, f"Categoria deve ser uma de: {', '.join(sorted(CATEGORIAS))}")
+    outros_filtros = any((status, categoria, fornecedor_id, usuario_id))
+    if limit is not None and not outros_filtros:
+        if limit <= 0:
+            raise HTTPException(422, "limit deve ser maior que zero")
+        return list_items_paginado(
+            restaurant_id,
+            "despesas",
+            limit=limit,
+            cursor_id=cursor_id,
+            field="data",
+            inicio=inicio,
+            fim=fim,
+        )
+    return (
+        listar(
+            restaurant_id,
+            inicio=inicio,
+            fim=fim,
+            status=status,
+            categoria=categoria,
+            fornecedor_id=fornecedor_id,
+            usuario_id=usuario_id,
+        ),
+        None,
+    )
 
 
 def obter(restaurant_id: str, despesa_id: str) -> dict:
