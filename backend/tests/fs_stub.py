@@ -67,7 +67,7 @@ class FakeDocRef:
 
     def delete(self) -> None:
         self.store.data.pop(self.path, None)
-        self.store.collections.pop(self.path, None)  # subcoleção morre junto
+        self.store.collections.discard(self.path)  # subcoleção morre junto
 
 
 class FakeQuery:

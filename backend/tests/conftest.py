@@ -28,8 +28,12 @@ RID = "r1"
 
 @pytest.fixture
 def db(monkeypatch):
-    """Client fake; pedidos/caixa/mesas/agregados/despesas/relatorios/estoqueroteados p/ ele."""
-    fake = patch_firestore_store(monkeypatch, MOZ吉他 := MODULES)  # noqa: F841
+    """Client fake; pedidos/caixa/mesas/agregados/despesas/relatorios/estoque roteados p/ ele.
+    Relógio fixo (fake_dtt) para que fechadoEm/competências sejam determinísticas."""
+    fake = patch_firestore_store(monkeypatch, MOZ吉他 := MODULES)
+    from tests.fs_stub import fake_dtt  # noqa: F401
+
+    monkeypatch.setattr("app.services.caixa_service.now_utc", lambda: fake_dtt())
     return fake
 
 

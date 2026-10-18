@@ -122,6 +122,13 @@ def fechar(restaurant_id: str, valor_contado: float | None) -> dict:
 
 
 # ------------------------------------------------------------------ pagamentos
+def _evento_ref(restaurant_id: str, pedido_id: str, idempotency_key: str):
+    """Marcador de idempotência: `data/eventos_pagamento/items/{pedido}:{key}`."""
+    return get_db().document(
+        f"restaurantes/{restaurant_id}/data/eventos_pagamento/items/{pedido_id}:{idempotency_key}"
+    )
+
+
 def registrar_pagamento(
     restaurant_id: str,
     usuario_id: str,
@@ -131,82 +138,128 @@ def registrar_pagamento(
     valor: float,
     troco: float | None = None,
     referencia: str | None = None,
+    idempotency_key: str | None = None,
 ) -> dict:
-    from app.services.pedidos_service import _total, obter as pedido_obter
+    """Registra pagamento em UMA transação (leituras antes de escritas):
+
+    - saldo recalcado do estado lido na transação → concorrentes não carimbam
+      saldo (o 2º vê o saldo zerado e recebe 422);
+    - quitação única: status/fechadoEm, sessão de caixa, mesa e agregado
+      diário/mensal na MESMA transação (falha no meio não diverge estado);
+    - agregado vai com evento determinístico `venda:{pedidoId}` (no-replay);
+    - idempotência por chave opcional (header `X-Idempotency-Key`): replay
+      rejeitado com 409 e nenhum dado duplicado.
+    """
+    from app.services import agregados_service, mesas_service
 
     if tipo not in {"dinheiro", "pix", "credito", "debito"}:
         raise HTTPException(422, "Tipo de pagamento inválido (dinheiro, pix, credito, debito)")
-    pedido = pedido_obter(restaurant_id, pedido_id)
-    if pedido.get("status") != "aberto":
-        raise HTTPException(409, "Pedido não está aberto para pagamentos")
+    if float(valor) <= 0:
+        raise HTTPException(422, "Valor do pagamento deve ser maior que zero")
 
-    ja_pago = sum(float(p.get("valor", 0)) for p in pedido.get("pagamentos", []))
-    restante = round(float(pedido.get("total", 0)) - ja_pago, 2)
-    if valor > restante + TOLERANCIA:
-        raise HTTPException(422, f"Valor excede o saldo do pedido (restante: R$ {restante:.2f})")
+    db = get_db()
+    pedido_ref = item_doc(restaurant_id, "pedidos", pedido_id)
+    evento_ref = (
+        _evento_ref(restaurant_id, pedido_id, idempotency_key) if idempotency_key else None
+    )
+    fechado_em = now_utc()  # competência fixada ANTES da transação (chaves do agregado)
 
-    pagamento = {
-        "id": new_id("pag_"),
-        "tipo": tipo,
-        "valor": round(valor, 2),
-        "troco": round(troco, 2) if troco is not None else None,
-        "referencia": referencia,
-        "criadoEm": now_utc(),
-    }
-    pagamentos = [*pedido.get("pagamentos", []), pagamento]
-    quitado = (ja_pago + valor) >= float(pedido.get("total", 0)) - TOLERANCIA
-
-    updates: dict[str, Any] = {"pagamentos": pagamentos}
-    if quitado:
-        updates |= {"status": "pago", "fechadoEm": now_utc()}
-    item_doc(restaurant_id, "pedidos", pedido_id).update(stamp_update(updates))
-
-    if quitado:
-        _credit_sessao(restaurant_id, usuario_id, pedido, pagamentos)
-        from app.services import agregados_service, mesas_service
-
-        agregados_service.registrar_venda(restaurant_id, pedido, pagamentos, now_utc())
-        mesas_service.liberar(restaurant_id, pedido["mesaId"])
-
-    return pedido_obter(restaurant_id, pedido_id)
-
-
-def _credit_sessao(restaurant_id: str, usuario_id: str, pedido: dict, pagamentos: list[dict]) -> None:
-    """Soma a venda na sessão de caixa aberta (se houver).
-
-    Transação: evita perda de update com dois pagamentos simultâneos.
-    """
     @transactional
     def _exec(t) -> None:
-        col = items_col(restaurant_id, "sessoes_caixa")
-        snaps = list(t.get(col.where("status", "==", "aberto")))
-        if not snaps:
-            return
-        sessao = snaps[0].to_dict() or {}
+        # ---------- fase 1: TODAS as leituras ----------
+        pedido_snap = next(iter(t.get(pedido_ref)), None)
+        if not pedido_snap or not pedido_snap.exists:
+            raise HTTPException(404, "Pedido não encontrado")
+        pedido = dict(pedido_snap.to_dict() or {})
+        if pedido.get("status") != "aberto":
+            raise HTTPException(409, "Pedido não está aberto para pagamentos")
 
-        total_vendas = round(float(sessao.get("totalVendas", 0)) + float(pedido.get("total", 0)), 2)
-        total_recebido = round(float(sessao.get("totalRecebido", 0)) + sum(float(p["valor"]) for p in pagamentos), 2)
+        if evento_ref is not None:
+            ev_snap = next(iter(t.get(evento_ref)), None)
+            if ev_snap and ev_snap.exists:
+                raise HTTPException(
+                    409, "Pagamento já registrado para esta chave de idempotência"
+                )
 
-        por_forma = dict(sessao.get("vendasPorFormaPagamento") or {})
-        for p in pagamentos:
-            por_forma[p["tipo"]] = round(por_forma.get(p["tipo"], 0.0) + float(p["valor"]), 2)
+        ja_pago = sum(float(p.get("valor", 0)) for p in pedido.get("pagamentos", []))
+        total = float(pedido.get("total", 0))
+        restante = round(total - ja_pago, 2)
+        if float(valor) > restante + TOLERANCIA:
+            raise HTTPException(422, f"Valor excede o saldo do pedido (restante: R$ {restante:.2f})")
 
-        por_produto = dict(sessao.get("quantidadePorProduto") or {})
-        for item in pedido.get("itens", []):
-            pid = item.get("produtoId")
-            if pid and item.get("status") != "cancelado":
-                por_produto[pid] = int(por_produto.get(pid, 0)) + int(item.get("qtd", 1))
+        sessao_snap = next(iter(
+            t.get(items_col(restaurant_id, "sessoes_caixa").where("status", "==", "aberto"))
+        ), None)
+        mesa_id = pedido.get("mesaId")
+        mesa_ref = item_doc(restaurant_id, "mesas", mesa_id) if mesa_id else None
+        mesa_snap = next(iter(t.get(mesa_ref)), None) if mesa_ref else None
 
-        t.update(
-            snaps[0].reference,
-            stamp_update(
-                {
-                    "totalVendas": total_vendas,
-                    "totalRecebido": total_recebido,
-                    "vendasPorFormaPagamento": por_forma,
-                    "quantidadePorProduto": por_produto,
-                }
-            ),
-        )
+        quitado = (ja_pago + float(valor)) >= total - TOLERANCIA
 
-    _exec(get_db().transaction())
+        # ---------- fase 2: TODAS as escritas ----------
+        pagamento = {
+            "id": new_id("pag_"),
+            "tipo": tipo,
+            "valor": round(float(valor), 2),
+            "troco": round(float(troco), 2) if troco is not None else None,
+            "referencia": referencia,
+            "criadoEm": fechado_em,
+        }
+        pagamentos = [*pedido.get("pagamentos", []), pagamento]
+        updates: dict[str, Any] = {"pagamentos": pagamentos}
+        if quitado:
+            updates |= {"status": "pago", "fechadoEm": fechado_em}
+
+        # Agregado PRIMEIRO (faz leituras prórias — Firestore proíbe leitura
+        # após escrita na transação); pedido/evento/sessão/mesa vêm depois.
+        if quitado:
+            agregados_service.registrar_venda_tx(
+                t, restaurant_id, pedido, pagamentos, fechado_em, evento_id=f"venda:{pedido_id}"
+            )
+        t.update(pedido_ref, stamp_update(updates))
+        if evento_ref is not None:
+            t.set(
+                evento_ref,
+                stamp_create(
+                    {
+                        "pedidoId": pedido_id,
+                        "tipo": "pagamento",
+                        "idempotencyKey": idempotency_key,
+                        "restaurantId": restaurant_id,
+                    }
+                ),
+            )
+
+        if quitado:
+            if sessao_snap and sessao_snap.exists:
+                sessao = dict(sessao_snap.to_dict() or {})
+                total_vendas = round(float(sessao.get("totalVendas", 0)) + total, 2)
+                total_recebido = round(
+                    float(sessao.get("totalRecebido", 0)) + sum(float(p["valor"]) for p in pagamentos), 2
+                )
+                por_forma = dict(sessao.get("vendasPorFormaPagamento") or {})
+                for p in pagamentos:
+                    por_forma[p["tipo"]] = round(por_forma.get(p["tipo"], 0.0) + float(p["valor"]), 2)
+                por_produto = dict(sessao.get("quantidadePorProduto") or {})
+                for item in pedido.get("itens", []):
+                    pid = item.get("produtoId")
+                    if pid and item.get("status") != "cancelado":
+                        por_produto[pid] = int(por_produto.get(pid, 0)) + int(item.get("qtd", 1))
+                t.update(
+                    sessao_snap.reference,
+                    stamp_update(
+                        {
+                            "totalVendas": total_vendas,
+                            "totalRecebido": total_recebido,
+                            "vendasPorFormaPagamento": por_forma,
+                            "quantidadePorProduto": por_produto,
+                        }
+                    ),
+                )
+            if mesa_snap and mesa_snap.exists:
+                mesa = mesa_snap.to_dict() or {}
+                if mesa.get("pedidoAtivoId") == pedido_id:  # condicional
+                    mesas_service.liberar_transacional(t, restaurant_id, mesa_id)
+
+    _exec(db.transaction())
+    return get_item(restaurant_id, "pedidos", pedido_id)  # type: ignore[return-value]
