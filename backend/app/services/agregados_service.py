@@ -19,9 +19,173 @@ from zoneinfo import ZoneInfo
 from google.cloud.firestore_v1.transforms import Increment
 
 from app.core.config import settings
-from app.services.base import get_db, now_utc
+from app.services.base import get_db, now_utc, stamp_create
 
 _TZ = ZoneInfo(settings.timezone)
+
+_kind_doc_por_evento = {
+    "venda": "venda", "saidas": "saidas", "despesa": "despesa",
+}
+
+
+# =====================================================================
+# Versões TRANSACIONAIS (levadas dentro da transação do caller):
+#   - leituras SEMPRE antes de escritas (ReadAfterWrite do Firestore);
+#   - doc ausente → base criada + incremento na MESMA transação
+#     (elimina a corrida update→NotFound→set do _gravar pós-commit);
+#   - marcador determinístico `data/eventos_agregados/items/{evento_id}`
+#     (venda:{pedidoId}, mov:{movId}, despesa:{id}:{fase}) — evento já
+#     aplicado encerra sem incrementar de novo.
+# =====================================================================
+def _event_ref(restaurant_id: str, evento_id: str):
+    return get_db().document(
+        f"restaurantes/{restaurant_id}/data/eventos_agregados/items/{evento_id}"
+    )
+
+
+def _evento_aplicado(t, restaurant_id: str, evento_id: str) -> bool:
+    snap = next(iter(t.get(_event_ref(restaurant_id, evento_id))), None)
+    return bool(snap and snap.exists)
+
+
+def _marcar_evento(t, restaurant_id: str, evento_id: str, tipo: str) -> None:
+    t.set(
+        _event_ref(restaurant_id, evento_id),
+        stamp_create(
+            {"eventoId": evento_id, "tipo": tipo, "restaurantId": restaurant_id}
+        ),
+    )
+
+
+def _aplicar_tx_multi(t, ops: list[tuple[Any, dict[str, Any]]], restaurant_id: str) -> None:
+    """Aplica vários (ref, inc) na MESMA transação com UM bloco de leituras.
+
+    Old/new de despesa podem disputar o MESMO doc dia/mês (mesma competência)
+    — ler cada ref apenas uma vez, depois escrever. Doc ausente → base+inc.
+    """
+    lidas: list[tuple[Any, Any, dict[str, Any]]] = []
+    for ref, inc in ops:
+        snap = next(iter(t.get(ref)), None)
+        lidas.append((ref, snap, inc))
+    for ref, snap, inc in lidas:
+        if not (snap and snap.exists):
+            t.set(ref, _base_doc(restaurant_id))
+        t.update(ref, inc)
+
+
+def _aplicar_tx(t, restaurant_id: str, dia: str, mes: str, inc: dict[str, Any]) -> None:
+    """Agregado dia+mes na transação do caller: lê AMBOS os docs ANTES de
+    escrever (Firestore proíbe leitura pós-escrita), cria base se ausente e
+    aplica Increment via update (chaves pontilhadas só funcionam em update)."""
+    dia_ref, mes_ref = _refs(restaurant_id, dia, mes)
+    _aplicar_tx_multi(t, [(dia_ref, inc), (mes_ref, inc)], restaurant_id)
+
+
+def registrar_venda_tx(
+    t,
+    restaurant_id: str,
+    pedido: dict[str, Any],
+    pagamentos: list[dict[str, Any]],
+    fechado_em: datetime | None = None,
+    evento_id: str | None = None,
+) -> None:
+    """Versão transacional do registrar_venda. evento_id determinístico
+    (ex.: `venda:{pedidoId}`) garantindo no-replay; None = sem guard (pode
+    duplicar) — só use quando o caller já tiver proteção própria."""
+    if evento_id and _evento_aplicado(t, restaurant_id, evento_id):
+        return
+    ref_time = fechado_em or now_utc()
+    if ref_time.tzinfo is None:
+        ref_time = ref_time.replace(tzinfo=timezone.utc)
+    dia, mes, hora = _chaves(ref_time)
+    total = round(float(pedido.get("total", 0)), 2)
+
+    inc: dict[str, Any] = {
+        "faturamento": Increment(total),
+        "totalPedidos": Increment(1),
+        f"vendasPorHora.{hora}": Increment(total),
+        "restaurantId": restaurant_id,
+    }
+    for pag in pagamentos:
+        tipo = pag.get("tipo", "outros")
+        inc[f"vendasPorFormaPagamento.{tipo}"] = Increment(round(float(pag.get("valor", 0)), 2))
+    for item in pedido.get("itens", []):
+        pid = item.get("produtoId")
+        if pid and item.get("status") != "cancelado":
+            inc[f"topProdutos.{pid}"] = Increment(int(item.get("qtd", 1)))
+    _aplicar_tx(t, restaurant_id, dia, mes, inc)
+    if evento_id:
+        _marcar_evento(t, restaurant_id, evento_id, "venda")
+
+
+def registrar_saidas_tx(
+    t,
+    restaurant_id: str,
+    consumo: dict[str, float],
+    ref_time: datetime | None = None,
+    evento_id: str | None = None,
+) -> None:
+    """Versão transacional do registrar_saidas (CMV futuro). Idempotente
+    quando evento_id é fornecido (ex.: `mov:{movId}`)."""
+    if not consumo:
+        return
+    if evento_id and _evento_aplicado(t, restaurant_id, evento_id):
+        return
+    ref_time = ref_time or now_utc()
+    if ref_time.tzinfo is None:
+        ref_time = ref_time.replace(tzinfo=timezone.utc)
+    dia, mes, _ = _chaves(ref_time)
+    inc: dict[str, Any] = {"restaurantId": restaurant_id}
+    for iid, qtd in sorted(consumo.items()):
+        qtd = round(float(qtd), 3)
+        if qtd > 0:
+            inc[f"saidasPorItem.{iid}"] = Increment(qtd)
+    if len(inc) > 1:
+        _aplicar_tx(t, restaurant_id, dia, mes, inc)
+        if evento_id:
+            _marcar_evento(t, restaurant_id, evento_id, "saidas")
+
+
+def ajustar_despesa_tx(
+    t,
+    restaurant_id: str,
+    old: dict[str, Any] | None,
+    new: dict[str, Any] | None,
+    evento_id: str | None = None,
+) -> None:
+    """Versão transacional do ajustar_despesa (por competência de `data`).
+
+    Todas as leituras (old+new) acontecem ANTES das escritas: quando old e
+    new caem na MESMA competência, o doc é lido uma únicoa vez — Firestore
+    proíbe leitura após escrita dentro da transação.
+    """
+    if evento_id and _evento_aplicado(t, restaurant_id, evento_id):
+        return
+    ops: list[tuple[Any, dict[str, Any]]] = []
+    for doc, sinal in ((old, -1), (new, 1)):
+        if not doc:
+            continue
+        chaves = _chaves_competencia(doc.get("data"))
+        if chaves is None:
+            continue
+        dia, mes = chaves
+        valor = round(float(doc.get("valor", 0)), 2)
+        cat = doc.get("categoria", "outra")
+        for ref in _refs(restaurant_id, dia, mes):
+            ops.append(
+                (
+                    ref,
+                    {
+                        f"despesasPorCategoria.{cat}": Increment(sinal * valor),
+                        "totalDespesas": Increment(sinal * valor),
+                        "restaurantId": restaurant_id,
+                    },
+                )
+            )
+    if ops:
+        _aplicar_tx_multi(t, ops, restaurant_id)
+    if evento_id:
+        _marcar_evento(t, restaurant_id, evento_id, "despesa")
 
 
 def _chaves(ref_time: datetime) -> tuple[str, str, str]:
