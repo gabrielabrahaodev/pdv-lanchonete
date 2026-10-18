@@ -136,18 +136,25 @@ Frontend: deixar para depois (custo de bundle vs benefício — prioridade foi o
 > Backend local + suíte E2E com `-Base http://127.0.0.1:8000` → só depois commit/deploy.
 
 ```powershell
-cd backend && .venv\Scripts\python -m pytest tests -q          # 35 passed
-cd scripts\e2e && node get-token.js                            # token vale 1h
+cd backend && .venv\Scripts\python -m pytest tests -q           # contagem honesta: veja no rodapé do pytest (117+ unitários com stub)
+
+# token para E2E — credenciais NUNCA embutidas: args ou env
+cd scripts\e2e && node get-token.js <email> <senha>             # token vale 1h
+# equivalente por env: $env:E2E_EMAIL; $env:E2E_SENHA; node get-token.js
 
 # Opcional (seção 13 onboarding): token do DONO da plataforma
 # node get-token.js gabriel@pdv.com '<senha>' token-owner.txt   # sem o arquivo, seção 13 é pulada com aviso
 
-powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1               # padrão: produção
+powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1               # padrão: produção (exige E2E_SENHA)
 powershell -NoProfile -ExecutionPolicy Bypass -File api_test.ps1 -Base http://127.0.0.1:8000  # local
 cd frontend && npx tsc --noEmit                                 # exit 0
+cd frontend && npx firebase emulators:exec --only firestore --project demo-p0a "node tests/firestore_rules.test.mjs"
 ```
 
-Contagem atual: **80 passos** na base + **13 passos** de onboarding (condicionais ao `token-owner.txt`) = 93 no máximo.
+**Liveness x readiness (P1-M):**
+- `GET /health` — liveness puro (nunca toca Firestore). UptimeRobot/cron-job devem usar ESTE para não derrubar o serviço.
+- `GET /ready` — readiness: ping curto no Firestore (timeout 1.5s); 503 = Firestore indisponível. Monitores que decidem tráfego usam ESTE.
+- Contagem de unitários no rodapé do pytest (nada hardcode — o numero cresce conforme suítes novas).
 Último baseline completo validado em produção: 2026-08-24 (51/51 antes da seção onboarding); fix do caixa `abertoEm` revalidado em produção em 2026-08-25.
 
 CI (GitHub Actions) roda pytest + tsc + build em todo push/PR.
