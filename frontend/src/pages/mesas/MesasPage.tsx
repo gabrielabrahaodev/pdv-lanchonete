@@ -38,21 +38,21 @@ export default function MesasPage() {
   const lista = [...(mesas.data ?? [])].sort((a, b) => a.numero - b.numero)
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       <PageHeader
         title="Mesas"
         subtitle={`${lista.filter((m) => m.status === 'ocupada').length} ocupada(s)`}
         actions={<Button onClick={() => setNovaAberta(true)}>+ Nova mesa</Button>}
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+      <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
         {lista.map((m) => (
           <Card key={m.id} className={`p-4 ${m.status === 'ocupada' ? 'ring-2 ring-amber-200' : ''}`}>
             <div className="flex items-center justify-between">
               <span className="text-lg font-bold text-slate-800 dark:text-slate-100">Mesa {m.numero}</span>
               <Badge value={m.status} />
             </div>
-            <div className="mt-3 flex items-center justify-between gap-1 text-xs font-semibold">
+            <div className="mt-3 flex flex-col items-stretch justify-between gap-1 text-xs font-semibold min-[420px]:flex-row min-[420px]:items-center">
               <button
                 onClick={() => {
                   setQrMesa(m)

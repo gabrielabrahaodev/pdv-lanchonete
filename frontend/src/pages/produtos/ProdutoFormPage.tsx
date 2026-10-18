@@ -152,12 +152,12 @@ export default function ProdutoFormPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
+    <div className="mx-auto w-full max-w-3xl p-3 sm:p-6">
       <Link to="/produtos" className="text-xs font-semibold text-brand-600 hover:underline">← Voltar</Link>
       <h1 className="mt-1 mb-6 text-xl font-bold text-slate-800 dark:text-slate-100">{editando ? 'Editar' : 'Novo'} produto</h1>
 
-      <Card className="space-y-4 p-6">
-        <div className="grid grid-cols-2 gap-4">
+      <Card className="space-y-4 p-4 sm:p-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Nome">
             <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required />
           </Field>

@@ -18,6 +18,7 @@ export default function EstoquePage() {
 
   const estoqueQ = useEstoque(me?.restaurantId)
   const movimentacoes = useMovimentacoes(me?.restaurantId)
+  const nomesEstoque = new Map<string, string>((estoqueQ.data ?? []).map((item) => [item.id, `${item.nome} (${item.unidade})`] as const))
 
   // Índice local para exibir o nome do insumo em cada movimentação.
   // Movimentos antigos guardam apenas itemId; assim também são legíveis.
@@ -36,7 +37,7 @@ export default function EstoquePage() {
   if (itens.isError) return <ErrorState error={itens.error} />
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       <PageHeader
         title="Estoque"
         subtitle={`${itens.data?.length ?? 0} item(ns)`}
@@ -54,7 +55,7 @@ export default function EstoquePage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="hidden overflow-x-auto sm:block">
             <table className="w-full min-w-[560px] text-sm">
               <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                 <tr>
@@ -88,6 +89,30 @@ export default function EstoquePage() {
               </tbody>
             </table>
           </div>
+          <div className="space-y-3 p-3 sm:hidden">
+            {(itens.data ?? []).map((item) => {
+              const alerta = item.quantidadeAtual <= item.minimo
+              return (
+                <div key={item.id} className={`rounded-lg border p-3 ${alerta ? 'border-amber-300 bg-amber-50/60 dark:bg-amber-500/5' : 'border-slate-200 dark:border-slate-700'}`}>
+                  <div className="flex min-w-0 items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="break-words font-semibold text-slate-800 dark:text-slate-100">{item.nome}</p>
+                      <p className={`mt-1 text-sm font-bold ${alerta ? 'text-rose-600' : 'text-emerald-600'}`}>
+                        Saldo: {item.quantidadeAtual} {item.unidade}{alerta && ' ⚠️'}
+                      </p>
+                    </div>
+                    <Button variant="secondary" className="shrink-0 !px-3 !text-xs" onClick={() => setMovItem(item)}>
+                      Movimentar
+                    </Button>
+                  </div>
+                  <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-slate-500">
+                    <span>Mínimo: {item.minimo} {item.unidade}</span>
+                    <span>Custo médio: {brl(item.custoMedio)}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
           {(itens.data ?? []).length === 0 && (
             <EmptyState
               icon={<Package className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />}
@@ -104,7 +129,7 @@ export default function EstoquePage() {
               const nomeItem = itemMovimentado?.nome ?? m.itemId ?? 'Item sem identificação'
               const unidadeItem = itemMovimentado?.unidade
               return (
-                <li key={m.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                <li key={m.id} className="flex min-w-0 items-start justify-between gap-2 px-3 py-2.5 text-sm sm:items-center sm:px-5">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <Badge value={m.tipo} />

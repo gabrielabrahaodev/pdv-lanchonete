@@ -67,11 +67,11 @@ export default function CozinhaPage() {
     criadoEm ? Math.max(0, Math.floor((Date.now() - new Date(criadoEm).getTime()) / 60000)) : 0
 
   return (
-    <div className="h-full overflow-y-auto bg-slate-900 p-5">
+    <div className="h-full overflow-y-auto bg-slate-900 p-3 sm:p-5">
       <div aria-live="polite" role="status" className="sr-only">
         {anuncio}
       </div>
-      <header className="mb-5 flex items-center justify-between">
+      <header className="mb-5 flex flex-col gap-3 pl-14 sm:flex-row sm:items-center sm:justify-between sm:pl-0">
         <div>
           <h1 className="text-xl font-bold text-white">👨‍🍳 Cozinha — KDS</h1>
           <p className="text-xs text-slate-500">Um cartão por mesa · tempo real</p>

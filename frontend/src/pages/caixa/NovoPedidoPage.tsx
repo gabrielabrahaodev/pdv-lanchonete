@@ -140,7 +140,7 @@ export default function NovoPedidoPage() {
   return (
     <div className="flex h-full">
       {/* Catálogo */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="min-w-0 flex-1 overflow-y-auto p-3 sm:p-6">
         <Link to={adicionando ? `/caixa/mesa/${mesaId}` : '/caixa'} className="text-xs font-semibold text-brand-600 hover:underline">
           ← Voltar
         </Link>
@@ -166,7 +166,7 @@ export default function NovoPedidoPage() {
           </Select>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-4 grid grid-cols-1 min-[420px]:grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {produtosFiltrados.map((p) => (
             <Card key={p.id} className="flex flex-col p-4 transition hover:shadow-md">
               <button

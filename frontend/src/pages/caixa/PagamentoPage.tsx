@@ -85,7 +85,7 @@ export default function PagamentoPage() {
       : null
 
   return (
-    <div className="mx-auto max-w-2xl p-6">
+    <div className="mx-auto w-full max-w-2xl p-3 sm:p-6">
       <Link to="/caixa" className="text-xs font-semibold text-brand-600 hover:underline">
         ← Voltar ao caixa
       </Link>
@@ -126,7 +126,7 @@ export default function PagamentoPage() {
         <Card className="mt-4 bg-emerald-50 p-8 text-center">
           <p className="text-3xl">✅</p>
           <p className="mt-2 font-bold text-emerald-700">Pedido quitado!</p>
-          <div className="mt-4 flex justify-center gap-2">
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
             <Button variant="secondary" onClick={() => imprimirRecibo()}>
               🖨 Recibo
             </Button>
@@ -152,7 +152,7 @@ export default function PagamentoPage() {
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3">
               <Field label={`Valor (${restante > 0 ? `restante ${brl(restante)}` : ''})`}>
                 <Input
                   inputMode="decimal"
@@ -179,7 +179,7 @@ export default function PagamentoPage() {
               </p>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="secondary" onClick={() => setValor(restante.toFixed(2))}>
                 Valor exato ({brl(restante)})
               </Button>

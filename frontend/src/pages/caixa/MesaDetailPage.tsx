@@ -40,8 +40,8 @@ export default function MesaDetailPage() {
   const aberto = pedidoAberto.data ?? null
 
   return (
-    <div className="mx-auto max-w-3xl p-6">
-      <div className="mb-6 flex items-start justify-between">
+    <div className="mx-auto w-full max-w-3xl p-3 sm:p-6">
+      <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Link to="/caixa" className="text-xs font-semibold text-brand-600 hover:underline">
             ← Voltar ao caixa
@@ -50,7 +50,7 @@ export default function MesaDetailPage() {
           {m && <Badge value={m.status} />}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {!aberto && (
             <Button onClick={() => navigate(`/caixa/novo-pedido/${mesaId}`)}>+ Novo pedido</Button>
           )}

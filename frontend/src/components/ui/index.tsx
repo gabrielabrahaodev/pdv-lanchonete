@@ -33,7 +33,7 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; loading?: boolean }) {
   return (
     <button
-      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed dark:focus-visible:ring-offset-slate-900 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed dark:focus-visible:ring-offset-slate-900 ${variants[variant]} ${className}`}
       disabled={loading || props.disabled}
       {...props}
     >
@@ -228,7 +228,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-xl bg-white p-4 shadow-xl sm:p-6 dark:bg-slate-900"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id={tituloId} className="mb-4 text-lg font-bold text-slate-800 dark:text-slate-100">

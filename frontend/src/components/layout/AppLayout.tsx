@@ -69,7 +69,7 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="relative flex h-full">
+    <div className="relative flex h-full min-h-0">
       <a
         href="#conteudo"
         className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[70] focus:rounded-lg focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-white"
@@ -218,7 +218,7 @@ export default function AppLayout() {
         <Menu className="h-5 w-5" aria-hidden="true" />
       </button>
 
-      <main id="conteudo" className="h-full min-w-0 flex-1 overflow-y-auto">
+      <main id="conteudo" className="h-full min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
         <Outlet />
       </main>
     </div>
@@ -227,12 +227,12 @@ export default function AppLayout() {
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: React.ReactNode }) {
   return (
-    <div className="mb-6 flex items-start justify-between gap-4">
-      <div>
-        <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">{title}</h1>
+    <div className="mb-4 flex min-w-0 flex-col gap-3 sm:mb-6 md:flex-row md:items-start md:justify-between">
+      <div className="min-w-0 pl-14 md:pl-0">
+        <h1 className="break-words text-xl font-bold text-slate-800 dark:text-slate-100">{title}</h1>
         {subtitle && <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>}
       </div>
-      {actions && <div className="flex shrink-0 gap-2">{actions}</div>}
+      {actions && <div className="flex w-full min-w-0 flex-wrap items-center gap-2 md:w-auto md:shrink-0">{actions}</div>}
     </div>
   )
 }

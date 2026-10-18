@@ -50,7 +50,7 @@ export default function DeliveryPage() {
   const historico = lista.filter((p) => ['delivered', 'cancelled'].includes(p.status))
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       <PageHeader
         title="Delivery"
         subtitle={`${ativos.length} pedido(s) em andamento`}
@@ -75,7 +75,7 @@ export default function DeliveryPage() {
               ))}
             </ul>
             {p.clienteEndereco && <p className="mb-2 text-xs text-slate-500">📍 {p.clienteEndereco}</p>}
-              <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+              <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="font-bold tabular-nums text-brand-600">{brl(p.total)}</span>
                 <div className="flex items-center gap-1">
                   <button
@@ -174,7 +174,7 @@ function NovoDeliveryModal({ open, onClose }: { open: boolean; onClose: () => vo
         <Field label="Cliente">
           <Input value={form.clienteNome} onChange={(e) => setForm({ ...form, clienteNome: e.target.value })} />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
           <Field label="Telefone"><Input value={form.clienteTelefone} onChange={(e) => setForm({ ...form, clienteTelefone: e.target.value })} /></Field>
           <Field label="Endereço"><Input value={form.clienteEndereco} onChange={(e) => setForm({ ...form, clienteEndereco: e.target.value })} /></Field>
         </div>

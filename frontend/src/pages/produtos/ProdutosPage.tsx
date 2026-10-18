@@ -39,7 +39,7 @@ export default function ProdutosPage() {
   if (produtos.isError) return <ErrorState error={produtos.error} />
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       <PageHeader
         title="Produtos"
         subtitle={`${lista.length} produto(s)`}
@@ -51,8 +51,8 @@ export default function ProdutosPage() {
       />
 
       <div className="mb-4 flex flex-wrap gap-2">
-        <Input placeholder="Buscar…" value={busca} onChange={(e) => setBusca(e.target.value)} className="w-64" />
-        <Select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)} className="w-56">
+        <Input placeholder="Buscar…" value={busca} onChange={(e) => setBusca(e.target.value)} className="w-full sm:w-64" />
+        <Select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)} className="w-full sm:w-56">
           <option value="">Todas as categorias</option>
           {(categorias.data ?? []).map((c) => (
             <option key={c.id} value={c.id}>{c.nome}</option>
@@ -61,7 +61,7 @@ export default function ProdutosPage() {
       </div>
 
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto sm:block">
           <table className="w-full min-w-[640px] text-sm">
           <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             <tr>
@@ -129,6 +129,37 @@ export default function ProdutosPage() {
             ))}
           </tbody>
         </table>
+        </div>
+        <div className="space-y-3 p-3 sm:hidden">
+          {lista.map((p) => (
+            <article key={p.id} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+              <div className="flex min-w-0 items-start gap-3">
+                {p.temImagem ? (
+                  <img src={urlImagemProduto(me?.restaurantId ?? '', p.id)} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" loading="lazy" />
+                ) : (
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-slate-100 text-sm dark:bg-slate-800">🍽️</span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="break-words font-semibold text-slate-800 dark:text-slate-100">{p.nome}</p>
+                    <p className="shrink-0 font-bold text-brand-600">{brl(p.preco)}</p>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">{(categorias.data ?? []).find((c) => c.id === p.categoriaId)?.nome ?? '—'}</p>
+                  {p.variacoes?.length > 0 && <p className="mt-1 break-words text-xs text-slate-500">Variações: {p.variacoes.map((v) => v.nome).join(', ')}</p>}
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <button onClick={() => toggleAtivo.mutate(p)} disabled={toggleAtivo.isPending} className={`min-h-11 rounded-full px-3 py-1 text-xs font-bold ${p.ativo ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
+                      {p.ativo ? 'Ativo' : 'Inativo'}
+                    </button>
+                    {p.precisaPreparar === false && <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-bold text-sky-700">Sem preparo</span>}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Link to={`/produtos/editar/${p.id}`} className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg bg-slate-100 px-3 text-sm font-semibold text-brand-700 dark:bg-slate-800 dark:text-brand-300">Editar</Link>
+                    <button onClick={() => window.confirm(`Excluir "${p.nome}"?`) && remover.mutate(p.id)} className="min-h-11 rounded-lg px-3 text-sm font-semibold text-rose-500 hover:bg-rose-50">Excluir</button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
         {lista.length === 0 && (
           <EmptyState

@@ -21,7 +21,7 @@ export default function FechamentoCaixaPage() {
   const historico = (sessoes.data ?? []).filter((s) => s.status === 'fechado')
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       <PageHeader
         title="Fechamento de caixa"
         subtitle="Sessões de caixa do restaurante"
@@ -39,8 +39,8 @@ export default function FechamentoCaixaPage() {
       />
 
       {atual ? (
-        <Card className="mb-6 p-6">
-          <div className="mb-4 flex items-center justify-between">
+        <Card className="mb-4 p-4 sm:mb-6 sm:p-6">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="font-bold text-slate-700">Sessão aberta · {dataHora(atual.abertoEm ?? atual.criadoEm)}</h3>
             <Badge value="aberto" />
           </div>

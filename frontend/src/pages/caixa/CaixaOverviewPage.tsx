@@ -34,7 +34,7 @@ export default function CaixaOverviewPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       <PageHeader
         title="Caixa"
         subtitle={`${ocupadas} mesa(s) ocupada(s) de ${lista.length}`}
@@ -62,7 +62,7 @@ export default function CaixaOverviewPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+      <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
         {lista.map((m) => (
           <MesaCard key={m.id} mesa={m} />
         ))}
@@ -102,7 +102,7 @@ function MesaCard({ mesa }: { mesa: Mesa }) {
           ocupada ? 'border-amber-300 bg-gradient-to-br from-amber-50 to-white dark:border-amber-500/30 dark:from-amber-500/10 dark:to-slate-900' : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
       }`}
     >
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <span className="text-sm font-bold text-slate-800 dark:text-slate-100">Mesa {mesa.numero}</span>
         <Badge value={mesa.status} />
       </div>

@@ -34,7 +34,7 @@ export default function RelatoriosPage() {
   const maxHora = Math.max(0, ...horas.map(([, valor]) => Number(valor) || 0))
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       <PageHeader
         title="Relatórios"
         subtitle="Vendas do período (pedidos pagos)"

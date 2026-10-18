@@ -89,7 +89,7 @@ export default function CategoriasPage() {
   const ordenadas = [...(categorias.data ?? [])].sort((a, b) => a.ordem - b.ordem)
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       <PageHeader
         title="Categorias"
         subtitle={`${ordenadas.length} categoria(s)`}
