@@ -208,6 +208,10 @@ class FakeClient:
     def transaction(self) -> "FakeTx":
         return FakeTx(self.store)
 
+    def get_all(self, *refs) -> list[FakeSnapshot]:
+        """Batch get (equivalente Admin SDK): devolve snapshots das refs existentes."""
+        return [r.get() for r in refs if r.path in self.store.data]
+
 
 class FakeCollection:
     def __init__(self, store: FakeStore, col_path: str):
