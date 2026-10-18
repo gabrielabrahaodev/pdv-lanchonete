@@ -1,5 +1,45 @@
-"""Testes de lógica pura (sem Firestore)."""
+"""Fixtures compartilhadas dos testes unitários (Firestore stub, sem Firebase real)."""
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from tests.fs_stub import patch_firestore_store  # noqa: E402
+
+# Módulos cujo `get_db` deve apontar para o stub (import por nome → patch por módulo)
+MODULES = [
+    "app.services.base",
+    "app.services.pedidos_service",
+    "app.services.caixa_service",
+    "app.services.mesas_service",
+    "app.services.estoque_service",
+    "app.services.agregados_service",
+    "app.services.produtos_service",
+    "app.services.despesas_service",
+    "app.services.relatorios_service",
+    "app.services.fornecedores_service",
+    "app.services.delivery_service",
+]
+
+RID = "r1"
+
+
+@pytest.fixture
+def db(monkeypatch):
+    """Client fake; pedidos/caixa/mesas/agregados/despesas/relatorios/estoqueroteados p/ ele."""
+    fake = patch_firestore_store(monkeypatch, MOZ吉他 := MODULES)  # noqa: F841
+    return fake
+
+
+def doc_path(rid: str, kind: str, item_id: str | None = None) -> str:
+    base = f"restaurantes/{rid}/data/{kind}/items"
+    return f"{base}/{item_id}" if item_id else base
+
+
+def seed(db, rid: str, kind: str, item_id: str, data: dict) -> str:
+    """Grava um documento direto no store fake."""
+    path = doc_path(rid, kind, item_id)
+    db.store.data[path] = {**data}
+    return path

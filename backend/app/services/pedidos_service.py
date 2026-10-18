@@ -275,10 +275,11 @@ def _aplicar_consumo(
     pedido_id: str,
     consumo: dict[str, float],
     usuario_id: str | None,
-) -> bool:
+) -> tuple[bool, dict[str, float]]:
     """Escreve as saídas de estoque do consumo já agregado. Respeita o flag
     `baixaEstoqueAutomatica`; saldo pode ficar negativo (não trava preparo).
-    Retorna True se houve qualquer escrita.
+    Contrato ÚNICO: sempre `(escreveu, {itemId: qtd aplicada})` — quando a
+    baixa está desligada devolve `(False, {})` (nunca um bool solto).
 
     ⚠️ Firestore proíbe LEITURA após ESCRITA dentro da transação
     (ReadAfterWriteError): por isso TODOS os docs são lidos primeiro e as
@@ -288,7 +289,7 @@ def _aplicar_consumo(
     cfg_snap = next(iter(transaction.get(config_doc(restaurant_id))), None)
     if cfg_snap and cfg_snap.exists:
         if not (cfg_snap.to_dict() or {}).get("baixaEstoqueAutomatica", True):
-            return False  # controle desativado pelo admin
+            return False, {}  # controle desativado pelo admin
 
     pendentes: list[tuple[str, object, float, float]] = []  # (itemId, doc_ref, qtd_consumida, novo_saldo)
     for iid, total in sorted(consumo.items()):
@@ -329,15 +330,39 @@ def _aplicar_consumo(
 
 
 def cancelar(restaurant_id: str, pedido_id: str) -> dict:
-    pedido = obter(restaurant_id, pedido_id)
-    if pedido.get("status") != "aberto":
-        raise HTTPException(409, "Só pedidos abertos podem ser cancelados")
-    if pedido.get("pagamentos"):
-        raise HTTPException(409, "Pedido com pagamentos registrados — estorne-os antes")
-    item_doc(restaurant_id, "pedidos", pedido_id).update(
-        stamp_update({"status": "cancelado", "fechadoEm": now_utc()})
-    )
-    mesas_service.liberar(restaurant_id, pedido["mesaId"])
+    """Cancela pedido + libera mesa em UMA transação (leituras antes de escritas).
+
+    Condicional: só limpa a mesa se ela ainda apontar para ESTE pedido
+    (mesa reassociada a outro pedido fica intacta). Mesa ausente não impede.
+    """
+    db = get_db()
+    pedido_ref = item_doc(restaurant_id, "pedidos", pedido_id)
+
+    @transactional
+    def _exec(t) -> None:
+        # ---------- fase 1: leituras ----------
+        snap = next(iter(t.get(pedido_ref)), None)
+        if not snap or not snap.exists:
+            raise HTTPException(404, "Pedido não encontrado")
+        pedido = doc_to_dict_local(snap)
+        if pedido.get("status") != "aberto":
+            raise HTTPException(409, "Só pedidos abertos podem ser cancelados")
+        if pedido.get("pagamentos"):
+            raise HTTPException(409, "Pedido com pagamentos registrados — estorne-os antes")
+
+        mesa_id = pedido.get("mesaId")
+        mesa_ref = item_doc(restaurant_id, "mesas", mesa_id) if mesa_id else None
+        mesa_snap = next(iter(t.get(mesa_ref)), None) if mesa_ref else None
+        mesa = (mesa_snap.to_dict() or {}) if (mesa_snap and mesa_snap.exists) else {}
+
+        # ---------- fase 2: escritas ----------
+        t.update(pedido_ref, stamp_update({"status": "cancelado", "fechadoEm": now_utc()}))
+        if mesa and mesa.get("pedidoAtivoId") == pedido_id:
+            mesas_service.liberar_transacional(
+                t, restaurant_id, pedido.get("mesaId")
+            )
+
+    _exec(db.transaction())
     return obter(restaurant_id, pedido_id)
 
 

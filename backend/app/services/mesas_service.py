@@ -74,6 +74,20 @@ def liberar(restaurant_id: str, mesa_id: str) -> None:
     )
 
 
+def liberar_transacional(transaction, restaurant_id: str, mesa_id: str) -> None:
+    """ mesmo merge de `liberar`, executado DENTRO da transação do caller
+    (cancelar/registrar_pagamento) — DELETE_FIELD explícito nos dois campos."""
+    transaction.update(
+        item_doc(restaurant_id, "mesas", mesa_id),
+        {
+            "status": "livre",
+            "pedidoAtivoId": DELETE_FIELD,
+            "garcomId": DELETE_FIELD,
+            "updatedAt": now_utc(),
+        },
+    )
+
+
 def remover(restaurant_id: str, mesa_id: str) -> None:
     mesa = obter(restaurant_id, mesa_id)
     if mesa.get("status") == "ocupada":
