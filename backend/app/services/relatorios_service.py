@@ -58,18 +58,30 @@ def _dias_entre(d0: date, d1: date) -> list[str]:
     return out
 
 
-def _resumo_por_agregados(restaurant_id: str, inicio: datetime, fim: datetime) -> dict:
-    """Soma os docs diários (batch get_all) do intervalo local. ~N+3 leituras."""
+def _resumo_por_agregados(
+    restaurant_id: str, inicio: datetime, fim: datetime
+) -> dict:
+    """Soma documentos diários do intervalo local por consulta em lote."""
     db = get_db()
     dias = _dias_entre(_local_date(inicio), _local_date(fim))
     refs = [
-        db.document(f"restaurantes/{restaurant_id}/data/agregados_diarios/items/{d}")
-        for d in dias
+        db.document(
+            f"restaurantes/{restaurant_id}/data/agregados_diarios/items/{dia}"
+        )
+        for dia in dias
     ]
-    snaps = db.get_all(*refs) if refs else []
 
-    faturamento_dec = calculos.soma_monet([s.to_dict().get("faturamento", 0) for s in snaps])
-    total_pedidos = sum(int((s.to_dict() or {}).get("totalPedidos", 0)) for s in snaps)
+    # Firestore Client.get_all recebe uma coleção de referências,
+    # não uma referência como argumento posicional para cada documento.
+    snaps = list(db.get_all(refs)) if refs else []
+
+    # Documentos ausentes podem retornar to_dict() == None.
+    faturamento_dec = calculos.soma_monet(
+        [(s.to_dict() or {}).get("faturamento", 0) for s in snaps]
+    )
+    total_pedidos = sum(
+        int((s.to_dict() or {}).get("totalPedidos", 0)) for s in snaps
+    )
 
     por_hora: dict[str, float] = {f"{h:02d}": 0.0 for h in range(24)}
     por_forma: dict[str, float] = {}
@@ -77,44 +89,85 @@ def _resumo_por_agregados(restaurant_id: str, inicio: datetime, fim: datetime) -
     saidas: dict[str, float] = {}
     desp_por_cat: dict[str, float] = {}
     total_despesas = 0.0
+
     for s in snaps:
         d = s.to_dict() or {}
+
         for hora, valor in (d.get("vendasPorHora") or {}).items():
             chave = str(hora).zfill(2)
-            por_hora[chave] = calculos.round_money(por_hora.get(chave, 0.0) + float(valor))
-        for forma, valor in (d.get("vendasPorFormaPagamento") or {}).items():
-            por_forma[forma] = calculos.round_money(por_forma.get(forma, 0.0) + float(valor))
+            por_hora[chave] = calculos.round_money(
+                por_hora.get(chave, 0.0) + float(valor)
+            )
+
+        for forma, valor in (
+            d.get("vendasPorFormaPagamento") or {}
+        ).items():
+            por_forma[forma] = calculos.round_money(
+                por_forma.get(forma, 0.0) + float(valor)
+            )
+
         for pid, qtd in (d.get("topProdutos") or {}).items():
             top_qtd[pid] = top_qtd.get(pid, 0) + int(qtd)
+
         for iid, qtd in (d.get("saidasPorItem") or {}).items():
             saidas[iid] = saidas.get(iid, 0.0) + float(qtd)
-        for cat, valor in (d.get("despesasPorCategoria") or {}).items():
-            desp_por_cat[cat] = calculos.round_money(desp_por_cat.get(cat, 0.0) + float(valor))
-        total_despesas = calculos.round_money(total_despesas + float(d.get("totalDespesas", 0)))
+
+        for cat, valor in (
+            d.get("despesasPorCategoria") or {}
+        ).items():
+            desp_por_cat[cat] = calculos.round_money(
+                desp_por_cat.get(cat, 0.0) + float(valor)
+            )
+
+        total_despesas = calculos.round_money(
+            total_despesas + float(d.get("totalDespesas", 0))
+        )
 
     faturamento = calculos.round_money(faturamento_dec)
 
-    # nomes/categorias reais (coleções pequenas, leitura fixa)
+    # Nomes e categorias reais dos produtos.
     produtos = produtos_service.listar(restaurant_id)
-    nomes_produtos = {d["id"]: d.get("nome", d["id"]) for d in produtos}
-    categorias_por_produto = {d["id"]: d.get("categoriaId") for d in produtos}
-    nomes_categorias = {c["id"]: c.get("nome", c["id"]) for c in list_items(restaurant_id, "categorias")}
+    nomes_produtos = {
+        d["id"]: d.get("nome", d["id"]) for d in produtos
+    }
+    categorias_por_produto = {
+        d["id"]: d.get("categoriaId") for d in produtos
+    }
+    nomes_categorias = {
+        c["id"]: c.get("nome", c["id"])
+        for c in list_items(restaurant_id, "categorias")
+    }
 
     top_produtos: dict[str, int] = {}
     top_categorias: dict[str, int] = {}
-    for pid, qtd in sorted(top_qtd.items(), key=lambda kv: kv[1], reverse=True)[:10]:
+
+    for pid, qtd in sorted(
+        top_qtd.items(), key=lambda kv: kv[1], reverse=True
+    )[:10]:
         nome = nomes_produtos.get(pid, pid)
         top_produtos[nome] = qtd
+
         cat_id = categorias_por_produto.get(pid)
         if cat_id:
             cat_nome = nomes_categorias.get(cat_id, cat_id)
-            top_categorias[cat_nome] = top_categorias.get(cat_nome, 0) + qtd
+            top_categorias[cat_nome] = (
+                top_categorias.get(cat_nome, 0) + qtd
+            )
 
-    despesas_periodo = [{"categoria": cat, "valor": v} for cat, v in desp_por_cat.items()]
-    saidas_com_pedido = [
-        {"tipo": "saida", "itemId": iid, "qtd": q} for iid, q in saidas.items()
+    despesas_periodo = [
+        {"categoria": cat, "valor": valor}
+        for cat, valor in desp_por_cat.items()
     ]
-    custo_medio = {d["id"]: float(d.get("custoMedio") or 0) for d in list_items(restaurant_id, "estoque")}
+    saidas_com_pedido = [
+        {"tipo": "saida", "itemId": iid, "qtd": qtd}
+        for iid, qtd in saidas.items()
+    ]
+
+    custo_medio = {
+        d["id"]: float(d.get("custoMedio") or 0)
+        for d in list_items(restaurant_id, "estoque")
+    }
+
     financeiro = calculos.resumo_financeiro(
         despesas_periodo=despesas_periodo,
         saidas_com_pedido_periodo=saidas_com_pedido,
@@ -123,29 +176,48 @@ def _resumo_por_agregados(restaurant_id: str, inicio: datetime, fim: datetime) -
     )
     financeiro["totalDespesas"] = total_despesas
     financeiro["despesasPorCategoria"] = dict(
-        sorted(desp_por_cat.items(), key=lambda kv: kv[1], reverse=True)
+        sorted(
+            desp_por_cat.items(),
+            key=lambda kv: kv[1],
+            reverse=True,
+        )
     )
-    financeiro["resultadoGerencial"] = calculos.round_money(faturamento - total_despesas)
+    financeiro["resultadoGerencial"] = calculos.round_money(
+        faturamento - total_despesas
+    )
 
     return {
         "periodoInicio": inicio,
         "periodoFim": fim,
         "totalPedidos": total_pedidos,
         "faturamentoBruto": faturamento,
-        "faturamentoLiquido": calculos.faturamento_liquido(faturamento, financeiro),
-        "ticketMedio": calculos.round_money(faturamento / total_pedidos) if total_pedidos else 0.0,
+        "faturamentoLiquido": calculos.faturamento_liquido(
+            faturamento, financeiro
+        ),
+        "ticketMedio": calculos.round_money(
+            faturamento / total_pedidos
+        ) if total_pedidos else 0.0,
         "vendasPorHora": por_hora,
         "vendasPorFormaPagamento": por_forma,
         "topProdutos": top_produtos,
-        "topCategorias": dict(sorted(top_categorias.items(), key=lambda kv: kv[1], reverse=True)[:10]),
+        "topCategorias": dict(
+            sorted(
+                top_categorias.items(),
+                key=lambda kv: kv[1],
+                reverse=True,
+            )[:10]
+        ),
         "financeiro": financeiro,
     }
 
 
-def _resumo_historico(restaurant_id: str, inicio: datetime, fim: datetime) -> dict:
-    # Janela server-side (campo único, índice automático), COMPETÊNCIA = fechadoEm:
-    # pedido pago criado antes do início e quitado DENTRO do intervalo CONTA.
-    pedidos = list_items_window(restaurant_id, "pedidos", "fechadoEm", inicio, fim)
+def _resumo_historico(
+    restaurant_id: str, inicio: datetime, fim: datetime
+) -> dict:
+    # A competência de venda é a data de quitação: fechadoEm.
+    pedidos = list_items_window(
+        restaurant_id, "pedidos", "fechadoEm", inicio, fim
+    )
     pagos = [p for p in pedidos if p.get("status") == "pago"]
 
     total_pedidos = len(pagos)
@@ -156,48 +228,84 @@ def _resumo_historico(restaurant_id: str, inicio: datetime, fim: datetime) -> di
     por_hora: dict[str, float] = {f"{h:02d}": 0.0 for h in range(24)}
     por_forma: dict[str, float] = {}
     top_produtos: dict[str, int] = {}
+
     for p in pagos:
         dt = _dt(p.get("fechadoEm") or p.get("criadoEm"))
         if dt:
-            chave = dt.astimezone(_TZ_EXIBICAO).strftime("%H")  # fuso configurável (settings.timezone)
-            por_hora[chave] = calculos.round_money(por_hora[chave] + float(p.get("total", 0)))
+            chave = dt.astimezone(_TZ_EXIBICAO).strftime("%H")
+            por_hora[chave] = calculos.round_money(
+                por_hora[chave] + float(p.get("total", 0))
+            )
+
         for pag in p.get("pagamentos", []):
-            t = pag.get("tipo", "outros")
-            por_forma[t] = calculos.round_money(por_forma.get(t, 0.0) + float(pag.get("valor", 0)))
+            tipo = pag.get("tipo", "outros")
+            por_forma[tipo] = calculos.round_money(
+                por_forma.get(tipo, 0.0) + float(pag.get("valor", 0))
+            )
+
         for item in p.get("itens", []):
             pid = item.get("produtoId")
             if pid and item.get("status") != "cancelado":
-                top_produtos[pid] = top_produtos.get(pid, 0) + int(item.get("qtd", 1))
+                top_produtos[pid] = (
+                    top_produtos.get(pid, 0) + int(item.get("qtd", 1))
+                )
 
-    nomes_produtos = {d["id"]: d.get("nome", d["id"]) for d in produtos_service.listar(restaurant_id)}
-    categorias_por_produto = {
-        d["id"]: d.get("categoriaId") for d in produtos_service.listar(restaurant_id)
+    produtos = produtos_service.listar(restaurant_id)
+    nomes_produtos = {
+        d["id"]: d.get("nome", d["id"]) for d in produtos
     }
-    nomes_categorias = {c["id"]: c.get("nome", c["id"]) for c in list_items(restaurant_id, "categorias")}
+    categorias_por_produto = {
+        d["id"]: d.get("categoriaId") for d in produtos
+    }
+    nomes_categorias = {
+        c["id"]: c.get("nome", c["id"])
+        for c in list_items(restaurant_id, "categorias")
+    }
 
     top_produtos_nomeados: dict[str, int] = {}
     top_categorias: dict[str, int] = {}
-    for pid, qtd in sorted(top_produtos.items(), key=lambda kv: kv[1], reverse=True)[:10]:
+
+    for pid, qtd in sorted(
+        top_produtos.items(), key=lambda kv: kv[1], reverse=True
+    )[:10]:
         nome = nomes_produtos.get(pid, pid)
         top_produtos_nomeados[nome] = qtd
+
         cat_id = categorias_por_produto.get(pid)
         if cat_id:
             cat_nome = nomes_categorias.get(cat_id, cat_id)
-            top_categorias[cat_nome] = top_categorias.get(cat_nome, 0) + qtd
+            top_categorias[cat_nome] = (
+                top_categorias.get(cat_nome, 0) + qtd
+            )
 
-    # ---------------------------------------------------------- financeiro/DRE
-    # Despesas por COMPETÊNCIA (campo `data`), qualquer status.
+    # Despesas por competência (campo data), independentemente do status.
     despesas_periodo = [
         d
-        for d in list_items_window(restaurant_id, "despesas", "data", inicio, fim)
-        if _dt(d.get("data")) is not None and inicio <= _dt(d["data"]) <= fim
+        for d in list_items_window(
+            restaurant_id, "despesas", "data", inicio, fim
+        )
+        if _dt(d.get("data")) is not None
+        and inicio <= _dt(d["data"]) <= fim
     ]
+
     saidas_com_pedido: list[dict] = []
-    for m in list_items_window(restaurant_id, "movimentacoes_estoque", "createdAt", inicio, fim):
+    for m in list_items_window(
+        restaurant_id, "movimentacoes_estoque", "createdAt", inicio, fim
+    ):
         criado = _dt(m.get("criadoEm") or m.get("createdAt"))
-        if m.get("tipo") == "saida" and m.get("pedidoId") and criado and inicio <= criado <= fim:
+        if (
+            m.get("tipo") == "saida"
+            and m.get("pedidoId")
+            and criado
+            and inicio <= criado <= fim
+        ):
             saidas_com_pedido.append(m)
-    custo_medio = {d["id"]: float(d.get("custoMedio") or 0) for d in list_items(restaurant_id, "estoque")}
+
+    custo_medio = {
+        d["id"]: float(d.get("custoMedio") or 0)
+        for d in list_items(restaurant_id, "estoque")
+    }
+
     financeiro = calculos.resumo_financeiro(
         despesas_periodo=despesas_periodo,
         saidas_com_pedido_periodo=saidas_com_pedido,
@@ -210,13 +318,21 @@ def _resumo_historico(restaurant_id: str, inicio: datetime, fim: datetime) -> di
         "periodoFim": fim,
         "totalPedidos": total_pedidos,
         "faturamentoBruto": faturamento,
-        "faturamentoLiquido": calculos.faturamento_liquido(faturamento, financeiro),
-        "ticketMedio": calculos.round_money(faturamento / total_pedidos) if total_pedidos else 0.0,
+        "faturamentoLiquido": calculos.faturamento_liquido(
+            faturamento, financeiro
+        ),
+        "ticketMedio": calculos.round_money(
+            faturamento / total_pedidos
+        ) if total_pedidos else 0.0,
         "vendasPorHora": por_hora,
         "vendasPorFormaPagamento": por_forma,
         "topProdutos": top_produtos_nomeados,
         "topCategorias": dict(
-            sorted(top_categorias.items(), key=lambda kv: kv[1], reverse=True)[:10]
+            sorted(
+                top_categorias.items(),
+                key=lambda kv: kv[1],
+                reverse=True,
+            )[:10]
         ),
         "financeiro": financeiro,
     }

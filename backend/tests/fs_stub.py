@@ -4,10 +4,11 @@ Caminhos suportados (multi-tenant do projeto):
     restaurantes/{rid}/data/{kind}              -> documento pai (ancora)
     restaurantes/{rid}/data/{kind}/items        -> coleção
     restaurantes/{rid}/data/{kind}/items/{id}   -> documento
-    restaurantes/{rid}/data/configuracoes       -> documento
+    restaurantes/{rid}/data/configuracoes      -> documento
+
 Total de segmentos PAR = documento, ÍMPAR = coleção (regra do Firestore).
 
-Query suportadas: where(==, >=, <=, >, <), order_by, limit, stream.
+Queries suportadas: where(==, >=, <=, >, <), order_by, limit, stream.
 Transação: leituras antes de escritas (get após write levanta RuntimeError,
 espelhando o ReadAfterWriteError do Firestore real).
 """
@@ -83,7 +84,10 @@ class FakeQuery:
         return self
 
     def order_by(self, field: str, direction: Any = None) -> "FakeQuery":
-        self._order = (field, bool(direction and str(direction).endswith("DESCENDING")))
+        self._order = (
+            field,
+            bool(direction and str(direction).endswith("DESCENDING")),
+        )
         return self
 
     def limit(self, n: int) -> "FakeQuery":
@@ -94,64 +98,89 @@ class FakeQuery:
         """Análogo ao Admin SDK: recebe snapshot do doc-cursor; RETIRA docs
         até ele (na ordem vigente, incluindo o próprio cursor)."""
         self._after_id = snapshot.id
-        self._after_val = _dig(snapshot.to_dict() or {}, self._order[0]) if self._order else None
+        self._after_val = (
+            _dig(snapshot.to_dict() or {}, self._order[0])
+            if self._order
+            else None
+        )
         return self
 
     def _docs(self) -> list[tuple[str, dict[str, Any]]]:
         out: list[tuple[str, dict[str, Any]]] = []
+
         for path, dat in self.store.data.items():
             if path == self.col_path or not path.startswith(self.col_path + "/"):
                 continue
-            uploaded = path[len(self.col_path) + 1 :].split("/")
+
+            uploaded = path[len(self.col_path) + 1:].split("/")
             if len(uploaded) != 1:
                 continue  # subcoleção não faz parte da query flat
+
             ok = True
-            for f, op, v in self.filters:
-                actual = _dig(dat, f)
+            for field, op, value in self.filters:
+                actual = _dig(dat, field)
                 if actual is None:
                     ok = False
                     break
+
                 if op == "==":
-                    ok = actual == v
+                    ok = actual == value
                 elif op == ">=":
-                    ok = actual >= v
+                    ok = actual >= value
                 elif op == "<=":
-                    ok = actual <= v
+                    ok = actual <= value
                 elif op == ">":
-                    ok = actual > v
+                    ok = actual > value
                 elif op == "<":
-                    ok = actual < v
+                    ok = actual < value
                 else:
-                    raise ValueError(f"operador não suportado no stub: {op}")
+                    raise ValueError(
+                        f"operador não suportado no stub: {op}"
+                    )
+
                 if not ok:
                     break
+
             if ok:
                 out.append((path, dat))
+
         return out
 
     def stream(self) -> list[FakeSnapshot]:
         docs = self._docs()
+
         if self._order:
             field, desc = self._order
 
             def key(pair):
-                return (_dig(pair[1], field), pair[0])  # id do doc desempata
+                return (_dig(pair[1], field), pair[0])  # id desempata
 
             docs = sorted(docs, key=key, reverse=desc)
+
             if getattr(self, "_after_id", None) is not None:
-                docs = [p for p in docs if self._pos(p, field, desc)]
+                docs = [
+                    pair for pair in docs
+                    if self._pos(pair, field, desc)
+                ]
+
         if self._limit is not None:
-            docs = docs[: self._limit]
-        return [FakeSnapshot(FakeDocRef(self.store, p), d) for p, d in docs]
+            docs = docs[:self._limit]
+
+        return [
+            FakeSnapshot(FakeDocRef(self.store, path), data)
+            for path, data in docs
+        ]
 
     def _pos(self, pair, field, desc) -> bool:
-        """True = vem depois do cursor na ordem vigente (paginação segue)."""
-        path, dat = pair
-        val, did = _dig(dat, field), path.split("/")[-1]
-        cval, cid = self._after_val, self._after_id
+        """True = vem depois do cursor na ordem vigente."""
+        path, data = pair
+        val, doc_id = _dig(data, field), path.split("/")[-1]
+        cursor_val, cursor_id = self._after_val, self._after_id
+
         if desc:
-            return (val, did) < (cval, cid)
-        return (val, did) > (cval, cid)
+            return (val, doc_id) < (cursor_val, cursor_id)
+
+        return (val, doc_id) > (cursor_val, cursor_id)
 
     def get(self) -> list[FakeSnapshot]:
         return self.stream()
@@ -168,8 +197,8 @@ def _dig(data: dict[str, Any], field: str) -> Any:
 
 
 def _cancel(data: dict[str, Any], field: str) -> Any:
-    v = _dig(data, field)
-    return v if v is not None else 0
+    value = _dig(data, field)
+    return value if value is not None else 0
 
 
 class FakeStore:
@@ -178,33 +207,38 @@ class FakeStore:
         self.collections: set[str] = set()
 
     def apply_update(self, path: str, data: dict[str, Any]) -> None:
-        dat: dict[str, Any] = self.data.setdefault(path, {})
+        target: dict[str, Any] = self.data.setdefault(path, {})
         delete_cls = type(DELETE_FIELD)
+
         for key, value in data.items():
             if isinstance(value, Increment):
-                old = _dig(dat, key) or 0
-                nested_set(dat, key, old + value.value)
-            elif isinstance(value, delete_cls):  # DELETE_FIELD / sentinelas
-                nested_pop(dat, key)
+                old = _dig(target, key) or 0
+                nested_set(target, key, old + value.value)
+            elif isinstance(value, delete_cls):
+                nested_pop(target, key)
             else:
-                nested_set(dat, key, value)
+                nested_set(target, key, value)
 
 
 def nested_set(dat: dict[str, Any], dotted: str, value: Any) -> None:
     parts = dotted.split(".")
     cur = dat
-    for p in parts[:-1]:
-        cur = cur.setdefault(p, {})
+
+    for part in parts[:-1]:
+        cur = cur.setdefault(part, {})
+
     cur[parts[-1]] = value
 
 
 def nested_pop(dat: dict[str, Any], dotted: str) -> None:
     parts = dotted.split(".")
     cur = dat
-    for p in parts[:-1]:
-        cur = cur.get(p)
+
+    for part in parts[:-1]:
+        cur = cur.get(part)
         if cur is None:
             return
+
     cur.pop(parts[-1], None)
 
 
@@ -212,23 +246,40 @@ class FakeClient:
     def __init__(self, store: FakeStore):
         self.store = store
 
-    def __call__(self) -> "FakeClient":  # get_db() retorna chamável? não — devolve self
+    def __call__(self) -> "FakeClient":
+        # get_db() devolve o cliente diretamente.
         return self
 
     def document(self, path: str) -> FakeDocRef:
-        assert _path_typo(path) == "doc", f"esperado DOC, got: {path}"
+        assert _path_typo(path) == "doc", (
+            f"esperado DOC, got: {path}"
+        )
         return FakeDocRef(self.store, path)
 
-    def collection(self, path: str) -> FakeCollection:
-        assert _path_typo(path) == "col", f"esperado COLEÇÃO, got: {path}"
+    def collection(self, path: str) -> "FakeCollection":
+        assert _path_typo(path) == "col", (
+            f"esperado COLEÇÃO, got: {path}"
+        )
         return FakeCollection(self.store, path)
 
     def transaction(self) -> "FakeTx":
         return FakeTx(self.store)
 
-    def get_all(self, *refs) -> list[FakeSnapshot]:
-        """Batch get (equivalente Admin SDK): devolve snapshots das refs existentes."""
-        return [r.get() for r in refs if r.path in self.store.data]
+    def get_all(self, refs, *additional_refs) -> list[FakeSnapshot]:
+        """Simula Client.get_all do Firestore.
+
+        Aceita o formato oficial get_all(lista_de_referencias) e também
+        chamadas antigas com referências posicionais. Retorna um snapshot
+        para cada referência, inclusive quando o documento não existe.
+        """
+        if additional_refs:
+            references = (refs, *additional_refs)
+        elif isinstance(refs, (list, tuple)):
+            references = refs
+        else:
+            references = (refs,)
+
+        return [ref.get() for ref in references]
 
 
 class FakeCollection:
@@ -263,7 +314,7 @@ class FakeCollection:
 class FakeTx:
     """Transação serial: leitura após escrita é proibida (como no Firestore)."""
 
-    # Necessário ao decorador @transactional do google (caminho feliz só lê isto)
+    # Necessário ao decorador @transactional.
     _read_only = False
     _max_attempts = 2
     _id = None
@@ -273,9 +324,9 @@ class FakeTx:
         self._wrote = 0
 
     def _rollback(self) -> None:
-        self._wrote = 0  # no-op: stub é serial, escritas revertidas pelos próprios testes
+        self._wrote = 0  # no-op: stub serial
 
-    # Interface adicional exigida pelo decorador @transactional (no-ops)
+    # Interface adicional exigida pelo decorador @transactional.
     def _clean_up(self) -> None:
         self._wrote = 0
 
@@ -293,12 +344,16 @@ class FakeTx:
 
     def get(self, ref_or_query):  # noqa: ANN001
         if self._wrote:
-            raise RuntimeError("ReadAfterWriteError: leitura após escrita na transação")
+            raise RuntimeError(
+                "ReadAfterWriteError: leitura após escrita na transação"
+            )
+
         if isinstance(ref_or_query, FakeDocRef):
-            snap = ref_or_query.get()
-            return [snap]
+            return [ref_or_query.get()]
+
         if hasattr(ref_or_query, "stream"):
             return list(ref_or_query.stream())
+
         raise TypeError("tx.get espera doc ref ou query")
 
     def set(self, ref: FakeDocRef, data: dict[str, Any]) -> None:
@@ -314,16 +369,16 @@ class FakeTx:
         ref.delete()
 
 
-def patch_firestore_store(monkeypatch, modules, store: FakeStore | None = None):  # noqa: ANN001
-    """Aponta `get_db()` de todos os módulos listados para um FakeClient.
+def patch_firestore_store(
+    monkeypatch, modules, store: FakeStore | None = None
+):  # noqa: ANN001
+    """Aponta get_db() dos módulos indicados para um FakeClient.
 
-    `modules` deve incluir "app.services.base" + cada módulo que fez
-    `from app.core.firebase import get_db` (import por nome pega o próprio
-    atributo do módulo). Retorna o fake (para asserts).
+    `modules` deve incluir "app.services.base" e cada módulo que importa
+    get_db do Firebase. Retorna o fake para permitir asserts.
 
-    BARREIRA ANTI-LEAK: bloqueia `firebase_admin.initialize_app`/`get_app` —
-    se algum módulo esquecido tentar o Firestore REAL dentro de um teste,
-    o erro estoura aqui com a instrução certa em vez de escrever na produção.
+    Bloqueia initialize_app/get_app reais para evitar acessos acidentais
+    ao Firestore de produção durante testes.
     """
     import importlib
 
@@ -331,9 +386,9 @@ def patch_firestore_store(monkeypatch, modules, store: FakeStore | None = None):
 
     def _deny(*_a, **_kw):  # noqa: ANN002, ANN003
         raise RuntimeError(
-            "Firebase REAL chamado dentro de teste: módulo novo de serviço não "
-            "está em tests/conftest.py:MODULES (ou o import de get_db saiu do "
-            "padrão `from app.core.firebase import get_db`)."
+            "Firebase REAL chamado dentro de teste: módulo novo de serviço "
+            "não está em tests/conftest.py:MODULES (ou o import de get_db "
+            "saiu do padrão `from app.core.firebase import get_db`)."
         )
 
     monkeypatch.setattr(firebase_admin, "initialize_app", _deny)
@@ -347,4 +402,5 @@ def patch_firestore_store(monkeypatch, modules, store: FakeStore | None = None):
     for mod_name in modules:
         mod = importlib.import_module(mod_name)
         monkeypatch.setattr(mod, "get_db", lambda: fake, raising=False)
+
     return fake
