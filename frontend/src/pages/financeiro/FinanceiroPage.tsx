@@ -32,12 +32,12 @@ function mesAtual(): { inicio: string; fim: string } {
 
 export default function FinanceiroPage() {
   return (
-    <div className="p-3 sm:p-6">
+    <div className="min-w-0 w-full max-w-full overflow-x-hidden p-3 sm:p-6">
       <PageHeader title="Financeiro" subtitle="Fornecedores, despesas e resultado do mês" />
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid min-w-0 w-full max-w-full gap-4 sm:gap-6 lg:grid-cols-2">
         <ResumoMesCard />
         <FornecedoresCard />
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
           <DespesasCard />
         </div>
       </div>
@@ -63,29 +63,29 @@ function ResumoMesCard() {
   const positivo = f.resultadoGerencial >= 0
 
   return (
-    <Card className="space-y-4 p-4 sm:p-6">
+    <Card className="min-w-0 space-y-4 p-4 sm:p-6">
       <h3 className="font-bold text-slate-700 dark:text-slate-200">Resultado do mês</h3>
-      <div className="flex flex-col gap-1 rounded-xl bg-slate-50 p-4 sm:flex-row sm:items-baseline sm:justify-between dark:bg-slate-800">
+      <div className="flex min-w-0 flex-col gap-2 rounded-xl bg-slate-50 p-3 sm:flex-row sm:items-baseline sm:justify-between sm:p-4 dark:bg-slate-800">
         <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Receita</span>
         <span className="text-2xl font-extrabold text-slate-800 dark:text-slate-100">{brl(f.resultadoGerencial + f.totalDespesas)}</span>
       </div>
       <ul className="space-y-1.5 text-sm">
         {(Object.entries(f.despesasPorCategoria) as [DespesaCategoria, number][]).map(([cat, val]) => (
-          <li key={cat} className="flex flex-col gap-1 text-slate-600 sm:flex-row sm:justify-between dark:text-slate-300">
+          <li key={cat} className="flex min-w-0 flex-col gap-1 text-slate-600 sm:flex-row sm:justify-between dark:text-slate-300">
             <span>{labelCategoria(cat)}</span>
             <span className="font-semibold text-rose-600 dark:text-rose-400">− {brl(val)}</span>
           </li>
         ))}
-        <li className="flex flex-col gap-1 border-t border-slate-100 pt-1.5 font-semibold text-slate-700 sm:flex-row sm:justify-between dark:border-slate-700 dark:text-slate-200">
+        <li className="flex min-w-0 flex-col gap-1 border-t border-slate-100 pt-1.5 font-semibold text-slate-700 sm:flex-row sm:justify-between dark:border-slate-700 dark:text-slate-200">
           <span>Total de despesas</span>
           <span className="text-rose-600 dark:text-rose-400">− {brl(f.totalDespesas)}</span>
         </li>
       </ul>
       <p className="text-xs text-slate-500">CMV estimado (baixas de receita × custo médio): {brl(f.cmvEstimado)}</p>
       <div className={`rounded-xl p-4 ${positivo ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'bg-rose-50 dark:bg-rose-950/40'}`}>
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+        <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
           <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">Resultado</span>
-          <span className={`text-3xl font-extrabold ${positivo ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+          <span className={`break-words text-2xl font-extrabold tabular-nums sm:text-3xl ${positivo ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
             {positivo ? '+' : ''}{brl(f.resultadoGerencial)}
           </span>
         </div>
@@ -214,14 +214,14 @@ function DespesasCard() {
 
   return (
     <Card className="overflow-hidden">
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+      <div className="flex min-w-0 flex-col items-stretch gap-2 border-b border-slate-100 px-3 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:px-5 sm:py-4 dark:border-slate-800">
         <h3 className="mr-auto font-bold text-slate-700 dark:text-slate-200">Despesas</h3>
-        <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} className="!w-auto !py-1.5 !text-xs">
+        <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} className="w-full !py-2 !text-xs sm:!w-auto sm:!py-1.5">
           <option value="">Todos os status</option>
           <option value="pendente">Pendentes</option>
           <option value="pago">Pagas</option>
         </Select>
-        <Select value={filtroCat} onChange={(e) => setFiltroCat(e.target.value)} className="!w-auto !py-1.5 !text-xs">
+        <Select value={filtroCat} onChange={(e) => setFiltroCat(e.target.value)} className="w-full !py-2 !text-xs sm:!w-auto sm:!py-1.5">
           <option value="">Todas as categorias</option>
           {CATEGORIAS.map((c) => (
             <option key={c.valor} value={c.valor}>{c.label}</option>
@@ -244,45 +244,28 @@ function DespesasCard() {
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {lista.map((d) => (
-            <li key={d.id} className="flex min-w-0 items-start gap-2 px-3 py-3 sm:items-center sm:gap-3 sm:px-5">
+            <li key={d.id} className="flex min-w-0 flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-5">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{d.descricao}</p>
-                <p className="text-xs text-slate-500">
+                <p className="break-words text-sm font-semibold text-slate-700 dark:text-slate-200">{d.descricao}</p>
+                <p className="break-words text-xs text-slate-500">
                   {labelCategoria(d.categoria)} · competência {dataHora(d.data)}
                   {d.status === 'pago' && ` · paga em ${dataHora(d.pagoEm)}`}
                 </p>
               </div>
-              <Badge value={d.status} />
-              <span className={`shrink-0 text-sm font-bold ${d.status === 'pago' ? 'text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
-                {brl(d.valor)}
-              </span>
-              <div className="shrink-0">
-                {d.status === 'pendente' ? (
-                  <button
-                    onClick={() => pagar.mutate(d.id)}
-                    disabled={pagar.isPending}
-                    className="text-xs font-semibold text-emerald-600 hover:underline disabled:opacity-50"
-                  >
-                    Marcar paga
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => reabrir.mutate(d.id)}
-                    disabled={reabrir.isPending}
-                    className="text-xs font-semibold text-sky-600 hover:underline disabled:opacity-50"
-                  >
-                    Reabrir
-                  </button>
-                )}
-                <button onClick={() => abrirEdicao(d)} className="ml-3 text-xs font-semibold text-brand-600 hover:underline">
-                  Editar
-                </button>
-                <button
-                  onClick={() => window.confirm(`Excluir "${d.descricao}"?`) && excluir.mutate(d.id)}
-                  className="ml-3 text-xs font-semibold text-rose-400 hover:text-rose-600"
-                >
-                  Excluir
-                </button>
+              <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 sm:shrink-0 sm:justify-end">
+                <Badge value={d.status} />
+                <span className={`shrink-0 text-sm font-bold tabular-nums ${d.status === 'pago' ? 'text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
+                  {brl(d.valor)}
+                </span>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  {d.status === 'pendente' ? (
+                    <button onClick={() => pagar.mutate(d.id)} disabled={pagar.isPending} className="min-h-9 text-xs font-semibold text-emerald-600 hover:underline disabled:opacity-50">Marcar paga</button>
+                  ) : (
+                    <button onClick={() => reabrir.mutate(d.id)} disabled={reabrir.isPending} className="min-h-9 text-xs font-semibold text-sky-600 hover:underline disabled:opacity-50">Reabrir</button>
+                  )}
+                  <button onClick={() => abrirEdicao(d)} className="min-h-9 text-xs font-semibold text-brand-600 hover:underline">Editar</button>
+                  <button onClick={() => window.confirm(`Excluir "${d.descricao}"?`) && excluir.mutate(d.id)} className="min-h-9 text-xs font-semibold text-rose-400 hover:text-rose-600">Excluir</button>
+                </div>
               </div>
             </li>
           ))}
@@ -442,7 +425,7 @@ function FornecedoresCard() {
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {(fornecedores.data ?? []).map((f) => (
-            <li key={f.id} className="flex min-w-0 items-start gap-2 px-3 py-3 sm:items-center sm:gap-3 sm:px-5">
+            <li key={f.id} className="flex min-w-0 flex-wrap items-center gap-3 px-3 py-3 sm:flex-nowrap sm:px-5">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{f.nome}</p>
                 <p className="truncate text-xs text-slate-500">

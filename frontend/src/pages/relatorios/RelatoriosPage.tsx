@@ -34,7 +34,7 @@ export default function RelatoriosPage() {
   const maxHora = Math.max(0, ...horas.map(([, valor]) => Number(valor) || 0))
 
   return (
-    <div className="p-3 sm:p-6">
+    <div className="min-w-0 w-full max-w-full overflow-x-hidden p-3 sm:p-6">
       <PageHeader
         title="Relatórios"
         subtitle="Vendas do período (pedidos pagos)"
@@ -53,43 +53,45 @@ export default function RelatoriosPage() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid min-w-0 grid-cols-1 gap-3 min-[380px]:grid-cols-2 xl:grid-cols-4">
         <KpiCard icon={<ReceiptText className="h-5 w-5" aria-hidden="true" />} label="Pedidos pagos" value={String(r.totalPedidos)} />
         <KpiCard icon={<Banknote className="h-5 w-5" aria-hidden="true" />} label="Faturamento" value={brl(r.faturamentoBruto)} highlight />
         <KpiCard icon={<TrendingUp className="h-5 w-5" aria-hidden="true" />} label="Ticket médio" value={brl(r.ticketMedio)} />
         <KpiCard icon={<Clock3 className="h-5 w-5" aria-hidden="true" />} label="Período" value={PERIODOS.find((p) => p.id === periodo)?.label ?? ''} />
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <Card className="p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 className="text-sm font-bold text-slate-700">Vendas por hora</h3>
-            <span className="text-xs text-slate-500">Passe o mouse nas barras para ver o valor</span>
+      <div className="mt-4 grid min-w-0 gap-4 sm:mt-6 lg:grid-cols-2">
+        <Card className="min-w-0 w-full max-w-full overflow-hidden p-4 sm:p-5">
+          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">Vendas por hora</h3>
+            <span className="text-xs text-slate-500">Deslize para ver todas as horas.</span>
           </div>
           {maxHora <= 0 ? (
             <div className="flex h-40 items-center justify-center text-sm text-slate-500">Sem vendas no período.</div>
           ) : (
-            <div className="flex h-40 items-end gap-1 overflow-x-auto pb-1">
-              {horas.map(([hora, rawValor]) => {
-                const valor = Number(rawValor) || 0
-                const alturaPx = valor > 0 ? Math.max(4, (valor / maxHora) * 108) : 2
-                return (
-                  <div
-                    key={hora}
-                    className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end"
-                    title={`${hora}h — ${brl(valor)}`}
-                    aria-label={`${hora} horas: ${brl(valor)}`}
-                  >
-                    <div className="flex min-h-0 w-full flex-1 items-end">
-                      <div
-                        className="w-full rounded-t bg-brand-500 transition-colors group-hover:bg-brand-600"
-                        style={{ height: `${alturaPx}px`, opacity: valor > 0 ? 1 : 0.12 }}
-                      />
+            <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain pb-1">
+              <div className="flex h-44 w-max min-w-full items-end gap-2 px-1 pb-1">
+                {horas.map(([hora, rawValor]) => {
+                  const valor = Number(rawValor) || 0
+                  const alturaPx = valor > 0 ? Math.max(3, (valor / maxHora) * 124) : 2
+                  return (
+                    <div
+                      key={hora}
+                      className="flex h-full w-6 shrink-0 flex-col items-center justify-end"
+                      title={`${hora}h — ${brl(valor)}`}
+                      aria-label={`${hora} horas: ${brl(valor)}`}
+                    >
+                      <div className="flex h-[128px] w-full items-end justify-center">
+                        <div
+                          className="w-5 rounded-t bg-brand-500 transition-colors hover:bg-brand-600"
+                          style={{ height: `${alturaPx}px`, opacity: valor > 0 ? 1 : 0.15 }}
+                        />
+                      </div>
+                      <span className="mt-1 shrink-0 text-[10px] text-slate-500">{hora}</span>
                     </div>
-                    <span className="mt-1 text-[9px] leading-3 text-slate-500">{hora}</span>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
           )}
         </Card>
@@ -104,7 +106,7 @@ export default function RelatoriosPage() {
                 const pct = r.faturamentoBruto > 0 ? (valor / r.faturamentoBruto) * 100 : 0
                 return (
                   <li key={forma}>
-                    <div className="mb-1 flex justify-between text-sm">
+                    <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-sm">
                       <span className="font-semibold capitalize text-slate-600">{forma}</span>
                       <span className="text-slate-500">{brl(valor)} · {pct.toFixed(0)}%</span>
                     </div>
