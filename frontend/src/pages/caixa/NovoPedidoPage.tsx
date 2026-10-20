@@ -138,15 +138,20 @@ export default function NovoPedidoPage() {
   const pedidoAberto = pedidoExistente.data ?? null
 
   return (
-    <div className="flex h-full">
+    <div className="flex min-h-full min-w-0 flex-col lg:h-full lg:min-h-0 lg:flex-row">
       {/* Catálogo */}
-      <div className="min-w-0 flex-1 overflow-y-auto p-3 sm:p-6">
+      <div id="catalogo-pedido" className="min-w-0 p-3 sm:p-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+        <div className="min-w-0 pl-14 md:pl-0">
         <Link to={adicionando ? `/caixa/mesa/${mesaId}` : '/caixa'} className="text-xs font-semibold text-brand-600 hover:underline">
           ← Voltar
         </Link>
-        <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">
+        <h1 className="mt-1 break-words text-xl font-bold text-slate-800 dark:text-slate-100">
           Mesa {mesa.data?.numero} — {adicionando ? 'adicionar itens' : 'novo pedido'}
         </h1>
+        </div>
+        <a href="#comanda-pedido" className="mt-3 inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-brand-600 underline lg:hidden">
+          Ver comanda ({cart.reduce((qtd, item) => qtd + item.qtd, 0)} itens) · {brl(total)}
+        </a>
 
         {erro && (
           <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -154,9 +159,9 @@ export default function NovoPedidoPage() {
           </div>
         )}
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Input placeholder="Buscar produto…" value={busca} onChange={(e) => setBusca(e.target.value)} className="w-56" />
-          <Select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)} className="w-52">
+        <div className="mt-4 flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Input placeholder="Buscar produto…" value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar produto" className="min-w-0 !w-full sm:!w-56" />
+          <Select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)} aria-label="Categoria" className="min-w-0 !w-full sm:!w-52">
             <option value="">Todas as categorias</option>
             {(categorias.data ?? []).map((c) => (
               <option key={c.id} value={c.id}>
@@ -166,13 +171,13 @@ export default function NovoPedidoPage() {
           </Select>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 min-[420px]:grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-4 grid min-w-0 grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {produtosFiltrados.map((p) => (
-            <Card key={p.id} className="flex flex-col p-4 transition hover:shadow-md">
+            <Card key={p.id} className="flex min-w-0 flex-col p-4 transition hover:shadow-md">
               <button
                 type="button"
                 onClick={() => setCustomizando({ p })}
-                className="text-left"
+                className="min-w-0 break-words text-left"
                 title="Personalizar e adicionar"
               >
                 <p className="font-semibold text-slate-800 dark:text-slate-100">{p.nome}</p>
@@ -194,20 +199,21 @@ export default function NovoPedidoPage() {
       </div>
 
       {/* Carrinho */}
-      <aside className="flex w-80 flex-col border-l border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+      <aside id="comanda-pedido" aria-label="Comanda" className="flex w-full min-w-0 shrink-0 scroll-mt-16 flex-col border-t border-slate-200 bg-white lg:min-h-0 lg:w-80 lg:scroll-mt-0 lg:border-t-0 lg:border-l dark:border-slate-700 dark:bg-slate-900">
         <div className="border-b border-slate-100 px-5 py-4">
-          <h2 className="font-bold text-slate-700">Comanda</h2>
+          <h2 className="font-bold text-slate-700 dark:text-slate-100">Comanda</h2>
+          <a href="#catalogo-pedido" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-600 underline lg:hidden">Voltar aos produtos</a>
           {adicionando && pedidoAberto && <Badge value="aberto" label={`pedido ${pedidoAberto.id.slice(0, 8)}…`} />}
         </div>
 
-        <ul className="flex-1 divide-y divide-slate-50 overflow-y-auto">
+        <ul className="divide-y divide-slate-50 lg:min-h-0 lg:flex-1 lg:overflow-y-auto dark:divide-slate-800">
           {cart.map((item) => (
             <li key={item.key} className="px-5 py-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-700">{item.nome}</p>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0 flex-1 basis-32">
+                  <p className="break-words text-sm font-semibold text-slate-700 dark:text-slate-200">{item.nome}</p>
                   <p className="text-xs text-brand-600">{brl(item.precoUnitario)}</p>
-                  {item.observacoes && <p className="mt-0.5 text-xs italic text-slate-500">✏️ {item.observacoes}</p>}
+                  {item.observacoes && <p className="mt-0.5 break-words text-xs italic text-slate-500">✏️ {item.observacoes}</p>}
                 </div>
                 <QtyStepper onDec={() => changeQtd(item.key, -1)} onInc={() => changeQtd(item.key, 1)} qtd={item.qtd} />
               </div>
@@ -216,7 +222,7 @@ export default function NovoPedidoPage() {
           {cart.length === 0 && <li className="px-5 py-10 text-center text-sm text-slate-500">Toque nos produtos para adicionar</li>}
         </ul>
 
-        <div className="space-y-3 border-t border-slate-100 p-5">
+        <div className="shrink-0 space-y-3 border-t border-slate-100 p-4 sm:p-5 dark:border-slate-800">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-slate-500">Total</span>
             <span className="text-xl font-bold text-brand-600">{brl(total)}</span>
@@ -245,10 +251,10 @@ export default function NovoPedidoPage() {
 
 function QtyStepper({ qtd, onInc, onDec }: { qtd: number; onInc: () => void; onDec: () => void }) {
   return (
-    <div className="flex items-center gap-1 rounded-lg bg-slate-100 px-1">
-      <button onClick={onDec} className="px-2 text-slate-500 hover:text-rose-600">−</button>
+    <div className="flex shrink-0 items-center gap-1 rounded-lg bg-slate-100 px-1 dark:bg-slate-800">
+      <button aria-label="Diminuir quantidade" onClick={onDec} className="min-h-11 min-w-11 px-2 text-slate-500 hover:text-rose-600">−</button>
       <span className="min-w-5 text-center text-sm font-bold">{qtd}</span>
-      <button onClick={onInc} className="px-2 text-slate-500 hover:text-emerald-600">+</button>
+      <button aria-label="Aumentar quantidade" onClick={onInc} className="min-h-11 min-w-11 px-2 text-slate-500 hover:text-emerald-600">+</button>
     </div>
   )
 }
