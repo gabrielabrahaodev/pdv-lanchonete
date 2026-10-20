@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "pdv-lanchonete-1fa79"
-  }
+  },
+  "targets": {
+    "pdv-lanchonete-1fa79": {
+      "hosting": {
+        "default": [
+          "pdv-lanchonete-1fa79"
+        ],
+        "nexocomanda": [
+          "nexocomanda"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

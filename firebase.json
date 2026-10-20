@@ -7,13 +7,26 @@
     "ui": { "enabled": false },
     "firestore": { "host": "127.0.0.1", "port": "8680" }
   },
-  "hosting": {
-    "public": "frontend/dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [{ "source": "**", "destination": "/index.html" }],
-    "headers": [
-      { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
-      { "source": "/registerSW.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
-    ]
-  }
+  "hosting": [
+    {
+      "target": "default",
+      "public": "frontend/dist",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "headers": [
+        { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+        { "source": "/registerSW.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+      ]
+    },
+    {
+      "target": "nexocomanda",
+      "public": "frontend/dist",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "headers": [
+        { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+        { "source": "/registerSW.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+      ]
+    }
+  ]
 }
