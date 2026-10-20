@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { numeroDecimal, precificar } from '../../lib/precificacao'
 import { api } from '../../lib/api'
 import { comprimirImagem, urlImagemProduto } from '../../lib/imagem'
 import type { Category, InventoryItem, ProductDraft } from '../../types'
@@ -33,6 +34,8 @@ export default function ProdutoFormPage() {
     enabled: editando,
   })
 
+  const [aba, setAba] = useState<'dados' | 'precificacao'>('dados')
+  const [acrescimo, setAcrescimo] = useState('0')
   const [form, setForm] = useState({
     nome: '',
     categoriaId: '',
@@ -61,6 +64,7 @@ export default function ProdutoFormPage() {
         ativo: p.ativo,
         precisaPreparar: p.precisaPreparar ?? true,
       })
+      setAcrescimo(String(p.acrescimoLucroPercentual ?? 0).replace('.', ','))
       setTemImagem(!!p.temImagem)
       setNovaImagem(null)
       setPreview(null)
@@ -102,7 +106,12 @@ export default function ProdutoFormPage() {
 
   const salvar = useMutation({
     mutationFn: async () => {
+      if (!Number.isFinite(numeroDecimal(acrescimo))) throw new Error('Informe um percentual de lucro válido, maior ou igual a zero.')
+      if (ingredientes.some((i) => !i.itemId || !Number.isFinite(numeroDecimal(i.qtd)) || numeroDecimal(i.qtd) <= 0)) {
+        throw new Error('Preencha o item e uma quantidade positiva em todos os ingredientes, ou remova a linha incompleta.')
+      }
       const body = {
+        acrescimoLucroPercentual: numeroDecimal(acrescimo),
         nome: form.nome.trim(),
         categoriaId: form.categoriaId,
         preco: Number(form.preco.replace(',', '.')),
@@ -140,6 +149,9 @@ export default function ProdutoFormPage() {
     onError: (e) => setErro(e instanceof Error ? e.message : 'Erro ao salvar'),
   })
 
+  const calculo = precificar(ingredientes, estoque.data ?? [], acrescimo)
+  const moeda = (valor: number) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
   if (categorias.isLoading || (editando && produto.isLoading)) return <LoadingScreen />
   if (editando && produto.isError) return <ErrorState error={produto.error} />
 
@@ -157,6 +169,11 @@ export default function ProdutoFormPage() {
       <h1 className="mt-1 mb-6 text-xl font-bold text-slate-800 dark:text-slate-100">{editando ? 'Editar' : 'Novo'} produto</h1>
 
       <Card className="space-y-4 p-4 sm:p-6">
+        <div className="flex flex-wrap gap-2" aria-label="Seções do produto">
+          <Button variant={aba === 'dados' ? 'primary' : 'secondary'} aria-pressed={aba === 'dados'} onClick={() => setAba('dados')}>Dados do produto</Button>
+          <Button variant={aba === 'precificacao' ? 'primary' : 'secondary'} aria-pressed={aba === 'precificacao'} onClick={() => setAba('precificacao')}>Precificação</Button>
+        </div>
+        <div hidden={aba !== 'dados'} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Nome">
             <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required />
@@ -175,7 +192,7 @@ export default function ProdutoFormPage() {
           <Field label="Estoque mínimo (produção)">
             <Input inputMode="numeric" value={form.estoqueMinimo} onChange={(e) => setForm({ ...form, estoqueMinimo: e.target.value })} />
           </Field>
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <span className="mb-1 block text-sm font-medium text-slate-600">Foto</span>
             <div className="flex items-center gap-3">
               {preview || (temImagem && !removerImagem && produtoId) ? (
@@ -258,6 +275,8 @@ export default function ProdutoFormPage() {
           </div>
         </div>
 
+        </div>
+        <div hidden={aba !== 'precificacao'} className="space-y-4">
         <div>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Ingredientes da receita</span>
@@ -266,7 +285,7 @@ export default function ProdutoFormPage() {
             </Button>
           </div>
           <p className="mb-2 text-xs text-slate-500">
-            Quantidade gasta por 1 unidade do produto — descontada do estoque quando o preparo inicia.
+            Quantidade por 1 unidade do produto, na unidade do estoque. Ex.: para 150 g de um item em kg, informe 0,15. A receita também será usada na baixa automática de estoque.
           </p>
           <div className="space-y-2">
             {ingredientes.map((ing, idx) => {
@@ -308,6 +327,33 @@ export default function ProdutoFormPage() {
               <p className="text-xs text-slate-500">Sem receita cadastrada — nenhuma baixa de estoque será feita.</p>
             )}
           </div>
+        </div>
+
+        {estoque.isLoading && <p role="status">Carregando custos do estoque…</p>}
+        {estoque.isError && <div role="alert"><p>Não foi possível carregar os custos do estoque.</p><Button variant="secondary" onClick={() => void estoque.refetch()}>Tentar novamente</Button></div>}
+        <div className="space-y-2" aria-label="Custos por ingrediente">
+          {calculo.linhas.map((linha, idx) => (
+            <div key={idx} className="flex flex-wrap justify-between gap-2 rounded-lg bg-slate-50 p-3 text-sm dark:bg-slate-800">
+              <span className="min-w-0 break-words">{linha.item?.nome ?? 'Selecione um ingrediente'}<br />
+                <span className="text-xs text-slate-500">{linha.item ? `${moeda(linha.item.custoMedio)} / ${linha.item.unidade}` : 'Item não encontrado'}</span>
+              </span>
+              <strong>{linha.custo === null ? 'Custo ou quantidade pendente' : moeda(linha.custo)}</strong>
+            </div>
+          ))}
+        </div>
+        <Field label="Lucro desejado sobre o custo (%)" hint="Acréscimo (markup): custo × (1 + percentual ÷ 100). Ex.: custo R$ 10 + 50% = R$ 15; margem sobre a venda = 33,33%.">
+          <Input inputMode="decimal" value={acrescimo} onChange={(e) => setAcrescimo(e.target.value)} />
+        </Field>
+        <div className="grid gap-4 sm:grid-cols-2" aria-live="polite">
+          <Field label="Custo dos ingredientes por produto"><Input readOnly value={calculo.custo === null || !estoque.isSuccess ? 'Pendente' : moeda(calculo.custo)} /></Field>
+          <Field label="Preço sugerido com margem"><Input readOnly value={calculo.preco === null || !estoque.isSuccess ? 'Pendente' : moeda(calculo.preco)} /></Field>
+        </div>
+        {calculo.preco !== null && estoque.isSuccess && <p className="text-sm">Lucro bruto estimado: {moeda(calculo.lucro!)} · Margem sobre a venda: {calculo.margemVenda!.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%</p>}
+        <p className="text-xs text-slate-500">A estimativa considera apenas os ingredientes do produto base. Não inclui despesas, taxas, impostos ou ingredientes extras das variações. Cadastre custos maiores que zero para todos os ingredientes para obter a sugestão.</p>
+        <Button variant="secondary" disabled={calculo.preco === null || !estoque.isSuccess} onClick={() => {
+          if (calculo.preco !== null) setForm({ ...form, preco: calculo.preco.toFixed(2).replace('.', ',') })
+        }}>Usar preço sugerido</Button>
+        <Field label="Preço de venda (R$)"><Input inputMode="decimal" value={form.preco} onChange={(e) => setForm({ ...form, preco: e.target.value })} /></Field>
         </div>
 
         {erro && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{erro}</p>}

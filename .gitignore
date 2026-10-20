@@ -44,3 +44,6 @@ frontend/dev.pid
 
 # Copias manuais de seguranca (backup local do usuario)
 frontend/src/pages/*/* - Copia.tsx
+
+# Compilação temporária dos testes de precificação
+frontend/.test-build/
