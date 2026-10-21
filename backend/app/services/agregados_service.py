@@ -108,11 +108,15 @@ def registrar_venda_tx(
     }
     for pag in pagamentos:
         tipo = pag.get("tipo", "outros")
-        inc[f"vendasPorFormaPagamento.{tipo}"] = Increment(round(float(pag.get("valor", 0)), 2))
+        key = f"vendasPorFormaPagamento.{tipo}"
+        anterior = inc[key].value if key in inc else 0
+        inc[key] = Increment(round(anterior + float(pag.get("valor", 0)), 2))
     for item in pedido.get("itens", []):
         pid = item.get("produtoId")
         if pid and item.get("status") != "cancelado":
-            inc[f"topProdutos.{pid}"] = Increment(int(item.get("qtd", 1)))
+            key = f"topProdutos.{pid}"
+            anterior = inc[key].value if key in inc else 0
+            inc[key] = Increment(anterior + int(item.get("qtd", 1)))
     _aplicar_tx(t, restaurant_id, dia, mes, inc)
     if evento_id:
         _marcar_evento(t, restaurant_id, evento_id, "venda")
@@ -259,11 +263,15 @@ def registrar_venda(
     }
     for pag in pagamentos:
         tipo = pag.get("tipo", "outros")
-        inc[f"vendasPorFormaPagamento.{tipo}"] = Increment(round(float(pag.get("valor", 0)), 2))
+        key = f"vendasPorFormaPagamento.{tipo}"
+        anterior = inc[key].value if key in inc else 0
+        inc[key] = Increment(round(anterior + float(pag.get("valor", 0)), 2))
     for item in pedido.get("itens", []):
         pid = item.get("produtoId")
         if pid and item.get("status") != "cancelado":
-            inc[f"topProdutos.{pid}"] = Increment(int(item.get("qtd", 1)))
+            key = f"topProdutos.{pid}"
+            anterior = inc[key].value if key in inc else 0
+            inc[key] = Increment(anterior + int(item.get("qtd", 1)))
     _gravar(restaurant_id, dia, mes, inc)
 
 

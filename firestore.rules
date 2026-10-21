@@ -1,33 +1,35 @@
 rules_version = '2';
-
-// PDV Lanchonete — regras de acesso direto ao Firestore.
-//
-// O app opera via API FastAPI (Admin SDK, imune a estas regras). Elas existem
-// para proteger o acesso DIRETO do frontend (ex.: listeners onSnapshot em
-// tempo real). Regra geral: só quem tem o custom claim restaurantId igual ao
-// tenant enxerga os dados dele. Tudo mais: negado.
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Onboarding: usuário pode reservar/ler apenas o próprio marcador.
-    // (A escrita real é feita pelo backend com Admin SDK; esta regra cobre leitura.)
+    function membro(rid) {
+      return get(/databases/$(database)/documents/restaurantes/$(rid)/data/usuarios/items/$(request.auth.uid)).data;
+    }
+    function ativo(rid) {
+      return request.auth != null
+        && request.auth.token.restaurantId == rid
+        && membro(rid).ativo == true;
+    }
+    function financeiro(rid) {
+      return ativo(rid) && membro(rid).papel in ['admin', 'gerente', 'caixa'];
+    }
     match /onboarding/{uid} {
-      allow get, list: if request.auth != null && request.auth.uid == uid;
-      allow write: if false;
+      allow read: if request.auth != null && request.auth.uid == uid;
     }
-
-    // Tenant: coleções do restaurante (inclui subcoleção items e doc configuracoes).
-    // LEITURA direta somente para membros do tenant (listeners onSnapshot).
-    // ESCRITA DIRETA: SEMPRE NEGADA — toda criação/edição/exclusão passa pela
-    // API FastAPI (Admin SDK não depende destas regras). Isso fecha a porta
-    // para qualquer usuário autenticado forjar pedidos, pagamentos, sessão de
-    // caixa, estoque, agregados ou despesas direto pelo SDK cliente.
-    match /restaurantes/{restaurantId}/{document=**} {
-      allow read: if request.auth != null
-        && request.auth.token.restaurantId == restaurantId;
-      allow write: if false;
+    match /restaurantes/{rid} {
+      allow get: if ativo(rid);
+      match /data/configuracoes {
+        allow get: if ativo(rid);
+      }
+      match /data/{colecao}/items/{id} {
+        allow read: if ativo(rid) && (
+          colecao in ['mesas', 'pedidos', 'produtos', 'categorias', 'imagens',
+                      'estoque', 'movimentacoes_estoque', 'delivery_orders']
+          || (colecao in ['despesas', 'fornecedores', 'sessoes_caixa',
+                          'agregados_diarios', 'agregados_mensais', 'agregados_meta'] && financeiro(rid))
+          || (colecao == 'usuarios' && (id == request.auth.uid || financeiro(rid)))
+        );
+      }
     }
-
-    // Negado por padrão — qualquer outro caminho não tem regra explícita.
+    // Escritas diretas e coleções internas de eventos: negadas por padrão.
   }
 }

@@ -130,7 +130,9 @@ def obter(restaurant_id: str, despesa_id: str) -> dict:
 
 def _ver(doc: dict) -> str:
     """Fingerprint do estado lido — compõe o evento idempotente de mutação."""
-    dt = _dt(doc.get("atualizadoEm") or doc.get("criadoEm"))
+    if "versaoAgregado" in doc:
+        return str(doc["versaoAgregado"])
+    dt = _dt(doc.get("updatedAt") or doc.get("atualizadoEm") or doc.get("createdAt") or doc.get("criadoEm"))
     return dt.isoformat() if dt else "nd"
 
 
@@ -198,6 +200,7 @@ def atualizar(restaurant_id: str, despesa_id: str, payload: DespesaUpdate) -> di
         agregados_service.ajustar_despesa_tx(
             t, restaurant_id, anterior, novo, evento_id=evento
         )
+        changes["versaoAgregado"] = int(anterior.get("versaoAgregado", 0)) + 1
         t.update(ref, stamp_update(changes))
 
     _exec(db.transaction())

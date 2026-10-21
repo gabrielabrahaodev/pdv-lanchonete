@@ -16,6 +16,7 @@ export class ApiError extends Error {
 type Options = {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
   body?: unknown
+  idempotencyKey?: string
 }
 
 async function token(): Promise<string> {
@@ -30,6 +31,7 @@ export async function api<T = unknown>(path: string, options: Options = {}): Pro
     method: options.method ?? 'GET',
     headers: {
       Authorization: `Bearer ${t}`,
+      ...(options.idempotencyKey ? { 'Idempotency-Key': options.idempotencyKey } : {}),
       ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     },
     ...(options.body !== undefined ? { body: JSON.stringify(options.body) } : {}),

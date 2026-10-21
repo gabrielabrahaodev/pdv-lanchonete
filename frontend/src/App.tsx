@@ -37,6 +37,12 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+function RequireFinanceiro({ children }: { children: ReactNode }) {
+  const { me } = useAuth()
+  return ['admin', 'gerente', 'caixa'].includes(me?.papel ?? '')
+    ? <>{children}</> : <Navigate to="/caixa" replace />
+}
+
 function RequireNoAuth({ children }: { children: ReactNode }) {
   const { fbUser, me, loading } = useAuth()
   const location = useLocation()
@@ -104,7 +110,7 @@ export default function App() {
           <Route path="caixa" element={<CaixaOverviewPage />} />
           <Route path="caixa/mesa/:mesaId" element={<MesaDetailPage />} />
           <Route path="caixa/novo-pedido/:mesaId" element={<NovoPedidoPage />} />
-          <Route path="caixa/pagamento/:pedidoId" element={<PagamentoPage />} />
+          <Route path="caixa/pagamento/:pedidoId" element={<RequireFinanceiro><PagamentoPage /></RequireFinanceiro>} />
           <Route path="produtos" element={<ProdutosPage />} />
           <Route path="produtos/novo" element={<ProdutoFormPage />} />
           <Route path="produtos/editar/:produtoId" element={<ProdutoFormPage />} />
@@ -113,9 +119,9 @@ export default function App() {
           <Route path="estoque" element={<EstoquePage />} />
           <Route path="cozinha" element={<CozinhaPage />} />
           <Route path="delivery" element={<DeliveryPage />} />
-          <Route path="relatorios" element={<RelatoriosPage />} />
-          <Route path="relatorios/fechamento-caixa" element={<FechamentoCaixaPage />} />
-          <Route path="financeiro" element={<FinanceiroPage />} />
+          <Route path="relatorios" element={<RequireFinanceiro><RelatoriosPage /></RequireFinanceiro>} />
+          <Route path="relatorios/fechamento-caixa" element={<RequireFinanceiro><FechamentoCaixaPage /></RequireFinanceiro>} />
+          <Route path="financeiro" element={<RequireFinanceiro><FinanceiroPage /></RequireFinanceiro>} />
           <Route path="configuracoes" element={<ConfiguracoesPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/caixa" replace />} />

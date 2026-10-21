@@ -8,10 +8,10 @@ import {
   query,
   where,
   type CollectionReference,
-  type DocumentData,
   type Query,
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
+import { normDoc } from '../lib/firestoreData'
 import type {
   CashSession,
   Category,
@@ -37,29 +37,6 @@ export interface SnapshotResult<T> {
   isLoading: boolean
   isError: boolean
   error: Error | null
-}
-
-function normValor(v: unknown): unknown {
-  if (v === null || v === undefined) return v
-  if (typeof v === 'object') {
-    const maybe = v as { toDate?: unknown }
-    if (typeof maybe.toDate === 'function') {
-      try {
-        return (maybe as { toDate: () => Date }).toDate().toISOString()
-      } catch {
-        return v
-      }
-    }
-    if (Array.isArray(v)) return v.map(normValor)
-    const out: Record<string, unknown> = {}
-    for (const [k, x] of Object.entries(v as Record<string, unknown>)) out[k] = normValor(x)
-    return out
-  }
-  return v
-}
-
-function normDoc<T>(id: string, data: DocumentData): T {
-  return { ...(normValor(data) as Record<string, unknown>), id } as T
 }
 
 // ---------------------------------------------------------- status da escuta

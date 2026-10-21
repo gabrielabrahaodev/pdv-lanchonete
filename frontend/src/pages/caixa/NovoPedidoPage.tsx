@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
@@ -41,25 +41,37 @@ export default function NovoPedidoPage() {
 
   const pedidoExistente = usePedidoAbertoDaMesa(rid, mesaId)
 
+  const [envioPendente, setEnvioPendente] = useState(false)
+  const envio = useRef<{
+    pedidoId: string
+    chave: string
+    itens: { produtoId: string; variacaoId: string | null; qtd: number; observacoes: string | null }[]
+  } | null>(null)
+
   const criarPedido = useMutation({
     mutationFn: async () => {
       if (adicionando) {
-        const existente = pedidoExistente.data ?? null
-        if (!existente) {
-          throw new ApiError(409, 'O pedido desta mesa foi fechado. Volte à mesa e abra um novo pedido.')
+        // Uma resposta perdida não autoriza criar outro lote: repete a mesma
+        // chave e o mesmo corpo, mesmo se o listener já mudou de pedido.
+        if (!envio.current) {
+          const existente = pedidoExistente.data ?? null
+          if (!existente) {
+            throw new ApiError(409, 'O pedido desta mesa foi fechado. Volte à mesa e abra um novo pedido.')
+          }
+          envio.current = {
+            pedidoId: existente.id, chave: crypto.randomUUID(),
+            itens: cart.map((item) => ({
+              produtoId: item.produtoId, variacaoId: item.variacaoId ?? null,
+              qtd: item.qtd, observacoes: item.observacoes ?? null,
+            })),
+          }
         }
-        for (const item of cart) {
-          await api(`/pedidos/${existente.id}/itens`, {
-            method: 'POST',
-            body: {
-              produtoId: item.produtoId,
-              variacaoId: item.variacaoId ?? null,
-              qtd: item.qtd,
-              observacoes: item.observacoes ?? null,
-            },
-          })
-        }
-        return existente.id
+        setEnvioPendente(true)
+        const lote = envio.current
+        await api(`/pedidos/${lote.pedidoId}/itens/lote`, {
+          method: 'POST', body: lote.itens, idempotencyKey: lote.chave,
+        })
+        return lote.pedidoId
       }
       return api<{ id: string }>(`/pedidos?mesa_id=${encodeURIComponent(mesaId)}`, {
         method: 'POST',
@@ -75,7 +87,13 @@ export default function NovoPedidoPage() {
       navigate(`/caixa/mesa/${mesaId}`)
     },
     onError: (e) => {
-      setErro(e instanceof Error ? e.message : 'Erro ao salvar pedido')
+      if (e instanceof ApiError && e.status >= 400 && e.status < 500) {
+        envio.current = null
+        setEnvioPendente(false)
+      }
+      setErro(envio.current
+        ? 'Não foi possível confirmar o envio. Toque em "Tentar novamente" para conferir o mesmo lote sem duplicar itens.'
+        : e instanceof Error ? e.message : 'Erro ao salvar pedido')
     },
   })
 
@@ -92,6 +110,7 @@ export default function NovoPedidoPage() {
   const total = cart.reduce((s, i) => s + i.precoUnitario * i.qtd, 0)
 
   function addToCart(produto: Product, variacao?: ProductVariation, qtd = 1, observacoes?: string) {
+    if (envio.current) return
     const key = `${produto.id}|${variacao?.id ?? ''}|${observacoes ?? ''}`
     setCart((prev) => {
       const idx = prev.findIndex((i) => i.key === key)
@@ -124,6 +143,7 @@ export default function NovoPedidoPage() {
   }
 
   function changeQtd(key: string, delta: number) {
+    if (envio.current) return
     setCart((prev) =>
       prev
         .map((i) => (i.key === key ? { ...i, qtd: i.qtd + delta } : i))
@@ -176,6 +196,7 @@ export default function NovoPedidoPage() {
             <Card key={p.id} className="flex min-w-0 flex-col p-4 transition hover:shadow-md">
               <button
                 type="button"
+                disabled={envioPendente}
                 onClick={() => setCustomizando({ p })}
                 className="min-w-0 break-words text-left"
                 title="Personalizar e adicionar"
@@ -187,7 +208,7 @@ export default function NovoPedidoPage() {
               </button>
               <div className="mt-auto pt-3">
                 <div className="flex flex-wrap gap-1.5">
-                  <Button variant="secondary" className="!px-2 !py-1 !text-xs min-h-11" onClick={() => setCustomizando({ p })}>
+                  <Button disabled={envioPendente} variant="secondary" className="!px-2 !py-1 !text-xs min-h-11" onClick={() => setCustomizando({ p })}>
                     Personalizar
                   </Button>
                 </div>
@@ -215,7 +236,7 @@ export default function NovoPedidoPage() {
                   <p className="text-xs text-brand-600">{brl(item.precoUnitario)}</p>
                   {item.observacoes && <p className="mt-0.5 break-words text-xs italic text-slate-500">✏️ {item.observacoes}</p>}
                 </div>
-                <QtyStepper onDec={() => changeQtd(item.key, -1)} onInc={() => changeQtd(item.key, 1)} qtd={item.qtd} />
+                <QtyStepper disabled={envioPendente} onDec={() => changeQtd(item.key, -1)} onInc={() => changeQtd(item.key, 1)} qtd={item.qtd} />
               </div>
             </li>
           ))}
@@ -233,7 +254,7 @@ export default function NovoPedidoPage() {
             loading={criarPedido.isPending}
             onClick={() => criarPedido.mutate()}
           >
-            {adicionando ? 'Adicionar ao pedido' : 'Abrir pedido'}
+            {envioPendente && criarPedido.isError ? 'Tentar novamente' : adicionando ? 'Adicionar ao pedido' : 'Abrir pedido'}
           </Button>
         </div>
       </aside>
@@ -249,12 +270,12 @@ export default function NovoPedidoPage() {
   )
 }
 
-function QtyStepper({ qtd, onInc, onDec }: { qtd: number; onInc: () => void; onDec: () => void }) {
+function QtyStepper({ qtd, onInc, onDec, disabled }: { qtd: number; onInc: () => void; onDec: () => void; disabled?: boolean }) {
   return (
     <div className="flex shrink-0 items-center gap-1 rounded-lg bg-slate-100 px-1 dark:bg-slate-800">
-      <button aria-label="Diminuir quantidade" onClick={onDec} className="min-h-11 min-w-11 px-2 text-slate-500 hover:text-rose-600">−</button>
+      <button disabled={disabled} aria-label="Diminuir quantidade" onClick={onDec} className="min-h-11 min-w-11 px-2 text-slate-500 hover:text-rose-600">−</button>
       <span className="min-w-5 text-center text-sm font-bold">{qtd}</span>
-      <button aria-label="Aumentar quantidade" onClick={onInc} className="min-h-11 min-w-11 px-2 text-slate-500 hover:text-emerald-600">+</button>
+      <button disabled={disabled} aria-label="Aumentar quantidade" onClick={onInc} className="min-h-11 min-w-11 px-2 text-slate-500 hover:text-emerald-600">+</button>
     </div>
   )
 }

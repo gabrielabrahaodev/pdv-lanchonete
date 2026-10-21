@@ -15,7 +15,8 @@ export default function CaixaOverviewPage() {
 
   const mesas = useMesas(me?.restaurantId)
 
-  const sessao = useSessaoAtual(me?.restaurantId)
+  const podeCaixa = ['admin', 'gerente', 'caixa'].includes(me?.papel ?? '')
+  const sessao = useSessaoAtual(podeCaixa ? me?.restaurantId : null)
 
   const abrirCaixa = useMutation({
     mutationFn: (valorInicial: number) => api('/caixa/abrir', { method: 'POST', body: { valorInicial } }),
@@ -38,7 +39,7 @@ export default function CaixaOverviewPage() {
       <PageHeader
         title="Caixa"
         subtitle={`${ocupadas} mesa(s) ocupada(s) de ${lista.length}`}
-        actions={
+        actions={podeCaixa &&
           <>
             <Link to="/relatorios/fechamento-caixa">
               <Button variant="secondary">Sessão de caixa</Button>

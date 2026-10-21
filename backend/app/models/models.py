@@ -434,7 +434,7 @@ class DespesaCreate(CamelModel):
 class DespesaUpdate(CamelModel):
     categoria: Optional[Literal["insumo", "folha", "conta_fixa", "outra"]] = None
     descricao: Optional[str] = None
-    valor: Optional[float] = None
+    valor: Optional[float] = Field(default=None, gt=0, allow_inf_nan=False)
     data: Optional[datetime] = None
     vencimento: Optional[datetime] = None
     fornecedor_id: Optional[str] = None

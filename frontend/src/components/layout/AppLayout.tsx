@@ -138,7 +138,7 @@ export default function AppLayout() {
         </div>
 
         <nav aria-label="Navegação principal" className="flex-1 space-y-1 overflow-y-auto p-2">
-          {NAV.map((item) => (
+          {NAV.filter((item) => !['/financeiro', '/relatorios'].includes(item.to) || ['admin', 'gerente', 'caixa'].includes(me?.papel ?? '')).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

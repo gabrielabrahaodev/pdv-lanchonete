@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from fastapi import HTTPException
 from google.cloud.firestore_v1 import DELETE_FIELD
+from google.cloud.firestore import transactional
+from app.core.firebase import get_db
 
 from app.services.base import (
     ensure_parent,
@@ -50,8 +52,17 @@ def atualizar_status(restaurant_id: str, mesa_id: str, status: str) -> dict:
     permitidos = {"livre", "ocupada", "reservada", "inativa"}
     if status not in permitidos:
         raise HTTPException(422, f"Status inválido. Use: {', '.join(sorted(permitidos))}")
-    obter(restaurant_id, mesa_id)
-    item_doc(restaurant_id, "mesas", mesa_id).update(stamp_update({"status": status}))
+    ref = item_doc(restaurant_id, "mesas", mesa_id)
+    @transactional
+    def executar(t):
+        snap = next(iter(t.get(ref)), None)
+        if not snap or not snap.exists:
+            raise HTTPException(404, "Mesa não encontrada")
+        mesa = snap.to_dict() or {}
+        if mesa.get("pedidoAtivoId") and status != "ocupada":
+            raise HTTPException(409, "Feche ou cancele o pedido antes de liberar a mesa")
+        t.update(ref, stamp_update({"status": status}))
+    executar(get_db().transaction())
     return obter(restaurant_id, mesa_id)
 
 
@@ -89,7 +100,14 @@ def liberar_transacional(transaction, restaurant_id: str, mesa_id: str) -> None:
 
 
 def remover(restaurant_id: str, mesa_id: str) -> None:
-    mesa = obter(restaurant_id, mesa_id)
-    if mesa.get("status") == "ocupada":
-        raise HTTPException(409, "Mesa está ocupada — feche o pedido antes de remover")
-    item_doc(restaurant_id, "mesas", mesa_id).delete()
+    ref = item_doc(restaurant_id, "mesas", mesa_id)
+    @transactional
+    def executar(t):
+        snap = next(iter(t.get(ref)), None)
+        if not snap or not snap.exists:
+            raise HTTPException(404, "Mesa não encontrada")
+        mesa = snap.to_dict() or {}
+        if mesa.get("status") == "ocupada" or mesa.get("pedidoAtivoId"):
+            raise HTTPException(409, "Mesa está ocupada — feche o pedido antes de remover")
+        t.delete(ref)
+    executar(get_db().transaction())

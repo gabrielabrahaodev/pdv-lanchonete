@@ -6,6 +6,9 @@ import App from './App'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import './index.css'
 
+// Remove o cache autenticado criado por versões anteriores.
+if ('caches' in window) void caches.delete('api-get')
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

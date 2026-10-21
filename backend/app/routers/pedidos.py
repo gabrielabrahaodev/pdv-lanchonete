@@ -1,5 +1,5 @@
 """Pedidos e itens."""
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, Query, Response, Header
 
 from app.core.security import CurrentAuth, require_restaurant, require_roles
 from app.models.models import OrderItemAdd
@@ -55,6 +55,16 @@ def adicionar_item(
     auth: CurrentAuth = Depends(ESCRITA),
 ) -> dict:
     return pedidos_service.adicionar_item(auth.restaurant_id, auth.uid, pedido_id, payload)
+
+
+@router.post("/{pedido_id}/itens/lote", status_code=201)
+def adicionar_itens(
+    pedido_id: str,
+    payload: list[OrderItemAdd],
+    idempotency_key: str = Header(alias="Idempotency-Key", min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_-]+$"),
+    auth: CurrentAuth = Depends(ESCRITA),
+) -> dict:
+    return pedidos_service.adicionar_itens(auth.restaurant_id, auth.uid, pedido_id, payload, idempotency_key)
 
 
 @router.delete("/{pedido_id}/itens/{item_id}")
