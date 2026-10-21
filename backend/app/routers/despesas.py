@@ -25,7 +25,7 @@ def listar(
     usuario_id: str | None = Query(default=None),
     limit: int | None = LIMIT_PAGINACAO,
     cursor: str | None = Query(default=None),
-    restaurant_id: str = Depends(require_restaurant),
+    restaurant_id: str = Depends(ESCRITA),
 ) -> list[dict]:
     docs, next_cursor = despesas_service.listar_paginado(
         restaurant_id.restaurant_id,
@@ -44,7 +44,7 @@ def listar(
 
 
 @router.get("/{despesa_id}")
-def obter(despesa_id: str, restaurant_id: str = Depends(require_restaurant)) -> dict:
+def obter(despesa_id: str, restaurant_id: str = Depends(ESCRITA)) -> dict:
     return despesas_service.obter(restaurant_id.restaurant_id, despesa_id)
 
 

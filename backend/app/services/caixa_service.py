@@ -99,46 +99,54 @@ def abrir(restaurant_id: str, usuario_id: str, valor_inicial: float) -> dict:
     return get_item(restaurant_id, "sessoes_caixa", sessao_id)  # type: ignore[return-value]
 
 
-def movimentacao_caixa(restaurant_id: str, usuario_id: str, tipo: str, valor: float, observacao: str | None) -> dict:
+def _alterar_sessao_aberta(restaurant_id: str, alterar) -> dict:
+    # Escolhe a sessão, mas SEMPRE relê seus valores dentro da transação.
     sessao = sessao_atual(restaurant_id)
     if not sessao:
         raise HTTPException(409, "Não há sessão de caixa aberta")
+    ref = item_doc(restaurant_id, "sessoes_caixa", sessao["id"])
+
+    @transactional
+    def executar(t):
+        snap = next(iter(t.get(ref)), None)
+        atual = (snap.to_dict() or {}) if snap and snap.exists else {}
+        if atual.get("status") != "aberto":
+            raise HTTPException(409, "A sessão de caixa já foi fechada")
+        t.update(ref, stamp_update(alterar(atual)))
+
+    executar(get_db().transaction())
+    return get_item(restaurant_id, "sessoes_caixa", sessao["id"])
+
+
+def movimentacao_caixa(restaurant_id: str, usuario_id: str, tipo: str, valor: float, observacao: str | None) -> dict:
     if tipo not in {"suprimento", "sangria"}:
         raise HTTPException(422, "Tipo deve ser 'suprimento' ou 'sangria'")
     campo = "suprimentos" if tipo == "suprimento" else "sangrias"
-    novo_total = calculos.round_money(float(sessao.get(campo, 0)) + valor)
-    lancamentos = list(sessao.get("movimentacoesCaixa", []))
-    lancamentos.append(
-        {"id": new_id("mv_"), "tipo": tipo, "valor": calculos.round_money(valor), "observacao": observacao,
-         "usuarioId": usuario_id, "criadoEm": now_utc().isoformat()}
-    )
-    item_doc(restaurant_id, "sessoes_caixa", sessao["id"]).update(
-        stamp_update({campo: novo_total, "movimentacoesCaixa": lancamentos})
-    )
-    return get_item(restaurant_id, "sessoes_caixa", sessao["id"])  # type: ignore[return-value]
+    movimento = {"id": new_id("mv_"), "tipo": tipo, "valor": calculos.round_money(valor),
+                 "observacao": observacao, "usuarioId": usuario_id, "criadoEm": now_utc().isoformat()}
+    def alterar(sessao):
+        return {
+            campo: calculos.round_money(float(sessao.get(campo, 0)) + valor),
+            "movimentacoesCaixa": [*sessao.get("movimentacoesCaixa", []), movimento],
+        }
+    return _alterar_sessao_aberta(restaurant_id, alterar)
 
 
 def fechar(restaurant_id: str, valor_contado: float | None) -> dict:
-    sessao = sessao_atual(restaurant_id)
-    if not sessao:
-        raise HTTPException(409, "Não há sessão de caixa aberta")
-    esperado = calculos.round_money(
-        float(sessao.get("valorInicial", 0))
-        + float(sessao.get("totalRecebido", 0))
-        + float(sessao.get("suprimentos", 0))
-        - float(sessao.get("sangrias", 0))
-    )
-    updates: dict[str, Any] = {
-        "status": "fechado",
-        "fechadoEm": now_utc(),
-        "resumoFechamento": {
-            "esperadoEmCaixa": esperado,
-            "valorContado": calculos.round_money(valor_contado) if valor_contado is not None else None,
-            "diferenca": calculos.round_money((valor_contado or 0) - esperado) if valor_contado is not None else None,
-        },
-    }
-    item_doc(restaurant_id, "sessoes_caixa", sessao["id"]).update(stamp_update(updates))
-    return get_item(restaurant_id, "sessoes_caixa", sessao["id"])  # type: ignore[return-value]
+    def alterar(sessao):
+        esperado = calculos.round_money(
+            float(sessao.get("valorInicial", 0)) + float(sessao.get("totalRecebido", 0))
+            + float(sessao.get("suprimentos", 0)) - float(sessao.get("sangrias", 0))
+        )
+        return {
+            "status": "fechado", "fechadoEm": now_utc(),
+            "resumoFechamento": {
+                "esperadoEmCaixa": esperado,
+                "valorContado": calculos.round_money(valor_contado) if valor_contado is not None else None,
+                "diferenca": calculos.round_money(valor_contado - esperado) if valor_contado is not None else None,
+            },
+        }
+    return _alterar_sessao_aberta(restaurant_id, alterar)
 
 
 # ------------------------------------------------------------------ pagamentos

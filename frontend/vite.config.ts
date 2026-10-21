@@ -29,15 +29,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
         runtimeCaching: [
           {
-            // leitura da API: rede primeiro; offline responde do cache
+            // Respostas autenticadas não podem compartilhar cache entre usuários.
             urlPattern: ({ url, request }: { url: URL; request: Request }) =>
               url.pathname.startsWith('/api/') && request.method === 'GET',
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-get',
-              networkTimeoutSeconds: 4,
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 },
-            },
+            handler: 'NetworkOnly',
           },
         ],
       },

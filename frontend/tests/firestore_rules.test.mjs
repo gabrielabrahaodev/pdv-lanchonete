@@ -33,6 +33,32 @@ async function main() {
     firestore: { rules, host: "127.0.0.1", port: 8680 },
   });
 
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    for (const [uid, papel, ativo] of [
+      ['uA','admin',true], ['garcom','garcom',true], ['cozinha','cozinha',true],
+      ['caixa','caixa',true], ['gerente','gerente',true], ['inativo','admin',false],
+      ['rebaixado','garcom',true],
+    ]) {
+      await ctx.firestore().doc(`restaurantes/rA/data/usuarios/items/${uid}`).set({papel, ativo});
+    }
+  });
+  for (const papel of ['garcom','cozinha','caixa','gerente']) {
+    const db = env.authenticatedContext(papel, {restaurantId:'rA', papel}).firestore();
+    await assertSucceeds(db.collection('restaurantes/rA/data/pedidos/items').get());
+    await assertSucceeds(db.doc(`restaurantes/rA/data/usuarios/items/${papel}`).get());
+    for (const col of ['despesas','sessoes_caixa','agregados_diarios','agregados_mensais','usuarios']) {
+      const leitura = db.collection(`restaurantes/rA/data/${col}/items`).get();
+      await (['caixa','gerente'].includes(papel) ? assertSucceeds(leitura) : assertFails(leitura));
+    }
+    await assertFails(db.collection('restaurantes/rA/data/eventos_itens/items').get());
+  }
+  for (const uid of ['inativo','sem-perfil']) {
+    const db = env.authenticatedContext(uid, {restaurantId:'rA',papel:'admin'}).firestore();
+    await assertFails(db.collection('restaurantes/rA/data/pedidos/items').get());
+  }
+  const rebaixado = env.authenticatedContext('rebaixado', {restaurantId:'rA',papel:'admin'}).firestore();
+  await assertFails(rebaixado.collection('restaurantes/rA/data/despesas/items').get());
+
   const ctxA = env.authenticatedContext("uA", { restaurantId: "rA" });
   const ctxB = env.authenticatedContext("uB", { restaurantId: "rB" });
   const dbA = ctxA.firestore();

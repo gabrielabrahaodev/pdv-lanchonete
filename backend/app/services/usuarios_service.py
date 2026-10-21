@@ -75,8 +75,15 @@ def atualizar(restaurant_id: str, ator_papel: str, usuario_id: str, payload: Use
         raise HTTPException(422, "Papel inválido")
     if (novo_papel == "admin" or atual.get("papel") == "admin") and ator_papel != "admin":
         raise HTTPException(403, "Apenas admin altera contas admin")
+    auth_changes = {}
     if senha:
-        auth.update_user(usuario_id, password=senha)
+        auth_changes["password"] = senha
+    if "ativo" in changes:
+        auth_changes["disabled"] = not changes["ativo"]
+    if auth_changes:
+        auth.update_user(usuario_id, **auth_changes)
+    if changes.get("ativo") is False:
+        auth.revoke_refresh_tokens(usuario_id)
     if novo_papel:
         claims = auth.get_user(usuario_id).custom_claims or {}
         auth.set_custom_user_claims(
@@ -101,10 +108,9 @@ def remover(restaurant_id: str, ator_papel: str, usuario_id: str) -> None:
         raise HTTPException(403, "Apenas admin remove contas admin")
     from app.core.firebase import get_auth
 
-    try:
-        get_auth().update_user(usuario_id, disabled=True)
-    except Exception:  # noqa: BLE001
-        pass
+    auth = get_auth()
+    auth.update_user(usuario_id, disabled=True)
+    auth.revoke_refresh_tokens(usuario_id)
     item_doc(restaurant_id, "usuarios", usuario_id).delete()
 
 

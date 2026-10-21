@@ -15,7 +15,7 @@ def listar(
     response: Response,
     limit: int | None = Query(default=None, ge=1, le=200, description="Sem limit → lista completa (compat)"),
     cursor: str | None = Query(default=None),
-    restaurant_id: str = Depends(require_restaurant),
+    restaurant_id: str = Depends(CAIXA),
 ) -> list[dict]:
     docs, next_cursor = caixa_service.listar_sessoes_paginado(
         restaurant_id.restaurant_id, limit=limit, cursor_id=cursor
@@ -26,7 +26,7 @@ def listar(
 
 
 @router.get("/sessao-atual")
-def atual(restaurant_id: str = Depends(require_restaurant)) -> dict | None:
+def atual(restaurant_id: str = Depends(CAIXA)) -> dict | None:
     return caixa_service.sessao_atual(restaurant_id.restaurant_id)
 
 

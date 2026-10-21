@@ -96,6 +96,15 @@ def reconstruir(restaurant_id: str, *, apply: bool = False) -> dict[str, Any]:
                 if qtd > 0:
                     alvo["saidasPorItem"][iid] = round(alvo["saidasPorItem"].get(iid, 0.0) + qtd, 3)
 
+    # Uma despesa pode ter mudado de competência ou sido removida. Zera os
+    # períodos já existentes que ficaram sem fontes, evitando saldo fantasma.
+    dias_existentes = list_items(restaurant_id, "agregados_diarios")
+    meses_existentes = list_items(restaurant_id, "agregados_mensais")
+    for doc in dias_existentes:
+        dias.setdefault(doc["id"], _novo())
+    for doc in meses_existentes:
+        meses.setdefault(doc["id"], _novo())
+
     plano: dict[str, Any] = {
         "pedidosConsiderados": len(pedidos),
         "despesasConsideradas": len(despesas),

@@ -74,25 +74,29 @@ export async function imprimirBluetooth(_nome: string | null, linhas: LinhaImpre
   }
 }
 
+function escaparHtml(texto: string): string {
+  return texto.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
+}
+
 /** Fallback universal: abre janela do navegador com layout de cupom e chama print(). */
 export function imprimirJanela(titulo: string, linhas: LinhaImpressao[]): void {
   const corpo = linhas
     .map((l) => {
       const style =
         [
-          `text-align:${l.alinhamento ?? 'esq'}`,
+          `text-align:${({ esq: 'left', centro: 'center', dir: 'right' })[l.alinhamento ?? 'esq']}`,
           l.negrito ? 'font-weight:bold' : '',
           l.grande ? 'font-size:16pt' : 'font-size:11pt',
         ]
           .filter(Boolean)
           .join(';') + ';margin:0'
-      return `<div style="${style}">${semAcento(l.texto)}</div>`
+      return `<div style="${style}">${escaparHtml(semAcento(l.texto))}</div>`
     })
     .join('')
   const w = window.open('', '_blank', 'width=380,height=600')
   if (!w) return
   w.document.write(
-    `<html><head><title>${titulo}</title></head><body style="font-family:'Courier New',monospace;padding:8px">${corpo}<script>window.onload=()=>{setTimeout(()=>window.print(),150)}</script></body></html>`,
+    `<html><head><title>${escaparHtml(titulo)}</title></head><body style="font-family:'Courier New',monospace;padding:8px">${corpo}<script>window.onload=()=>{setTimeout(()=>window.print(),150)}</script></body></html>`,
   )
   w.document.close()
 }

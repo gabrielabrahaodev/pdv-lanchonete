@@ -152,3 +152,11 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 - pydantic-settings: a env é vinculada pelo NOME DO CAMPO (case-insensitive, sem prefixo) — o campo precisa se chamar exatamente como a variável (ver bug 7).
 - Render free: cold start de ~30–60s (às vezes mais) — testes com `Invoke-RestMethod`/`curl` precisam de timeout ≥120s, senão parecem falha. Slugs `.onrender.com` são globais: `pdv-lanchonete.onrender.com` é de OUTRA conta; o nosso é o `-dwiw`.
 - PowerShell: `Invoke-WebRequest` em modo NonInteractive exige `-UseBasicParsing`; para HEAD rápido usar `curl.exe -I`.
+
+## Auditoria master — correções de integridade (2026-10-21)
+
+- Autorização usa perfil ativo/papel atual, além de token com revogação verificada. Firestore exige perfil ativo e restringe coleções financeiras por papel.
+- Inclusão múltipla de itens usa `/pedidos/{id}/itens/lote` com `Idempotency-Key`; validar todos antes de qualquer escrita e manter chave/corpo no retry.
+- Cancelamento de item recalcula total, não estorna ingredientes e é bloqueado após pagamentos; pedidos fechados não aceitam alteração de itens.
+- Sangria, suprimento e fechamento são transacionais. Edições de despesas usam `versaoAgregado`; não depender somente de timestamps para idempotência.
+- Plano de validação e reconstrução histórica: `docs/04-testes/correcoes-auditoria-master.md`.

@@ -1,6 +1,10 @@
 """Pedidos: criação, itens e fechamento — preços sempre resolvidos no servidor."""
 from __future__ import annotations
 
+import hashlib
+import json
+from copy import deepcopy
+
 from fastapi import HTTPException
 from google.cloud.firestore import transactional
 
@@ -87,7 +91,7 @@ def criar(restaurant_id: str, usuario_id: str, mesa_id: str, tipo: str, itens_pa
         if not snap or not snap.exists:
             raise HTTPException(404, "Mesa não encontrada")
         mesa = snap.to_dict() or {}
-        if mesa.get("status") == "ocupada":
+        if mesa.get("pedidoAtivoId") or mesa.get("status") not in {"livre", "reservada"}:
             raise HTTPException(409, f"Mesa {mesa.get('numero')} já está ocupada")
         ref = items_col(restaurant_id, "pedidos").document()
         if consumo_inicial:
@@ -148,22 +152,43 @@ def listar_paginado(
 
 
 def adicionar_item(restaurant_id: str, usuario_id: str, pedido_id: str, payload: OrderItemAdd) -> dict:
+    return adicionar_itens(restaurant_id, usuario_id, pedido_id, [payload])
+
+
+def adicionar_itens(restaurant_id: str, usuario_id: str, pedido_id: str,
+                    payloads: list[OrderItemAdd], idempotency_key: str | None = None) -> dict:
+    if not payloads or len(payloads) > 100:
+        raise HTTPException(422, "Informe de 1 a 100 itens")
+    fingerprint = hashlib.sha256(json.dumps(
+        [p.model_dump(by_alias=True) for p in payloads], sort_keys=True
+    ).encode()).hexdigest()
+    evento = item_doc(restaurant_id, "eventos_itens", f"{pedido_id}:{idempotency_key}") if idempotency_key else None
     saidas_adicionadas: dict[str, float] = {}
 
     def txn(transaction, doc_ref):
+        saidas_adicionadas.clear()
+        if evento:
+            anterior = next(iter(transaction.get(evento)), None)
+            if anterior and anterior.exists:
+                if (anterior.to_dict() or {}).get("fingerprint") != fingerprint:
+                    raise HTTPException(409, "Chave de envio já utilizada para outros itens")
+                return
         snap = next(iter(transaction.get(doc_ref)), None)
-        if not snap.exists:
+        if not snap or not snap.exists:
             raise HTTPException(404, "Pedido não encontrado")
         pedido = doc_to_dict_local(snap)
         if pedido.get("status") != "aberto":
             raise HTTPException(409, "Pedido não está aberto")
-        novo = _montar_item(restaurant_id, new_id("item_"), payload)
-        itens = [*pedido.get("itens", []), novo]
-        consumo = _consumo_itens_entregues(restaurant_id, [novo])
+        # Valida TODOS os produtos antes de qualquer escrita ou baixa.
+        novos = [_montar_item(restaurant_id, new_id("item_"), p) for p in payloads]
+        itens = [*pedido.get("itens", []), *novos]
+        consumo = _consumo_itens_entregues(restaurant_id, novos)
         if consumo:
             _, aplicadas = _aplicar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
             saidas_adicionadas.update(aplicadas)
         transaction.update(doc_ref, stamp_update({"itens": itens, "total": _total(itens)}))
+        if evento:
+            transaction.set(evento, stamp_create({"fingerprint": fingerprint, "pedidoId": pedido_id}))
 
     pedido = _run_txn(restaurant_id, pedido_id, txn)
     _publicar_saidas_agregado(restaurant_id, saidas_adicionadas)
@@ -210,6 +235,8 @@ def remover_item(restaurant_id: str, pedido_id: str, item_id: str) -> dict:
             raise HTTPException(404, "Item não encontrado no pedido")
         if alvo.get("status") != "pendente":
             raise HTTPException(409, "Só é possível remover itens pendentes")
+        if pedido.get("pagamentos"):
+            raise HTTPException(409, "Pedido com pagamento: não é possível remover itens")
         itens.remove(alvo)
         transaction.update(doc_ref, stamp_update({"itens": itens, "total": _total(itens)}))
 
@@ -250,14 +277,32 @@ def atualizar_status_itens(
         if not snap or not snap.exists:
             raise HTTPException(404, "Pedido não encontrado")
         pedido = doc_to_dict_local(snap)
-        itens = list(pedido.get("itens", []))
+        if pedido.get("status") != "aberto":
+            raise HTTPException(409, "Pedido não está aberto")
+        if novo_status == "cancelado" and pedido.get("pagamentos"):
+            raise HTTPException(409, "Pedido com pagamento: não é possível cancelar itens")
+        itens = deepcopy(pedido.get("itens", []))
+        if not ids or not set(ids).issubset({i.get("id") for i in itens}):
+            raise HTTPException(404, "Item não encontrado no pedido")
+        transicoes = {
+            "pendente": {"preparo", "cancelado"},
+            "preparo": {"pronto", "cancelado"},
+            "pronto": {"entregue", "cancelado"},
+            "entregue": {"cancelado"},
+            "cancelado": set(),
+        }
         consumo: dict[str, float] = {}
         algum = False
         receitas: dict[str, dict] = {}
         for item in itens:
-            if item.get("id") not in ids or item.get("status") == "cancelado":
+            if item.get("id") not in ids:
                 continue
             algum = True
+            atual = item.get("status")
+            if atual == novo_status:
+                continue
+            if novo_status not in transicoes.get(atual, set()):
+                raise HTTPException(409, f"Transição inválida: {atual} → {novo_status}")
             vai_baixar = (
                 novo_status == "preparo"
                 and item.get("status") == "pendente"
@@ -278,7 +323,7 @@ def atualizar_status_itens(
         if consumo:
             _, aplicadas = _aplicar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
             saidas_transicao.update(aplicadas)
-        transaction.update(doc_ref, stamp_update({"itens": itens}))
+        transaction.update(doc_ref, stamp_update({"itens": itens, "total": _total(itens)}))
 
     pedido = _run_txn(restaurant_id, pedido_id, txn)
     _publicar_saidas_agregado(restaurant_id, saidas_transicao)

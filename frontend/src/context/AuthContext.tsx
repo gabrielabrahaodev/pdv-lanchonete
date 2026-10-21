@@ -6,6 +6,7 @@ import {
   signOut,
   type User as FirebaseUser,
 } from 'firebase/auth'
+import { useQueryClient } from '@tanstack/react-query'
 import { auth } from '../lib/firebase'
 import { api } from '../lib/api'
 import type { AuthMe } from '../types'
@@ -23,17 +24,21 @@ interface AuthState {
 const AuthContext = createContext<AuthState | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient()
   const [fbUser, setFbUser] = useState<FirebaseUser | null>(null)
   const [me, setMe] = useState<AuthMe | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     return onAuthStateChanged(auth, async (user) => {
+      queryClient.clear()
+      setMe(null)
+      setLoading(true)
       setFbUser(user)
       if (user) {
         try {
           const data = await api<AuthMe>('/auth/me')
-          setMe(data)
+          if (auth.currentUser?.uid === user.uid) setMe(data)
         } catch (err) {
           console.error('Falha ao carregar contexto /auth/me', err)
           setMe(null)
@@ -43,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setLoading(false)
     })
-  }, [])
+  }, [queryClient])
 
   async function login(email: string, senha: string) {
     await signInWithEmailAndPassword(auth, email, senha)

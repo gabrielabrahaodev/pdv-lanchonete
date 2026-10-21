@@ -22,16 +22,25 @@ def get_current_auth(authorization: str = Header(default="")) -> CurrentAuth:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token ausente ou malformado")
     token = authorization.removeprefix("Bearer ").strip()
     try:
-        decoded = fb_auth.verify_id_token(token)
+        decoded = fb_auth.verify_id_token(token, check_revoked=True)
     except Exception as exc:  # noqa: BLE001
         logger.exception("Falha ao verificar ID token: %s", exc)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token inválido ou expirado") from exc
     email = decoded.get("email") or (decoded.get("firebase", {}).get("sign_in_attributes", {}).get("email"))
+    rid = decoded.get("restaurantId")
+    papel = decoded.get("papel")
+    if rid:
+        from app.services.base import get_item
+
+        membro = get_item(rid, "usuarios", decoded["uid"])
+        if not membro or membro.get("ativo") is not True:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Usuário inativo ou sem vínculo com o restaurante")
+        papel = membro.get("papel")
     return CurrentAuth(
         uid=decoded["uid"],
         email=email,
         restaurant_id=decoded.get("restaurantId"),
-        papel=decoded.get("papel"),
+        papel=papel,
         nome=decoded.get("name") or decoded.get("display_name"),
     )
 

@@ -30,7 +30,7 @@ def atualizar_minhas_preferencias(
 
 
 @router.get("")
-def listar(restaurant_id: str = Depends(require_restaurant)) -> list[dict]:
+def listar(restaurant_id: str = Depends(require_roles("admin", "gerente", "caixa"))) -> list[dict]:
     return usuarios_service.listar(restaurant_id.restaurant_id)
 
 
