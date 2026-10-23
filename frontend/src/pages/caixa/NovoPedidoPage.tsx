@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
-import { useMesa, usePedidoAbertoDaMesa, useProdutos, useCategorias } from '../../hooks/useFirestore'
+import { useMesa, usePedidoAbertoDaMesa, useProdutos, useCategorias, useLotesProducao } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
 import type { Category, Order, Product, ProductVariation } from '../../types'
 import { Badge, Button, Card, ErrorState, Input, LoadingScreen, Select } from '../../components/ui'
@@ -36,6 +36,11 @@ export default function NovoPedidoPage() {
   const categorias = useCategorias(rid)
 
   const produtos = useProdutos(rid, true)
+  const lotes = useLotesProducao(rid)
+  function disponivel(produtoId: string) {
+    const saldo = (lotes.data ?? []).filter((l) => l.produtoId === produtoId && +new Date(l.validade) > Date.now()).reduce((s, l) => s + l.saldo - l.reservado, 0)
+    return Math.max(0, saldo - cart.filter((i) => i.produtoId === produtoId).reduce((s, i) => s + i.qtd, 0))
+  }
 
   const mesa = useMesa(rid, mesaId)
 
@@ -111,6 +116,9 @@ export default function NovoPedidoPage() {
 
   function addToCart(produto: Product, variacao?: ProductVariation, qtd = 1, observacoes?: string) {
     if (envio.current) return
+    if (produto.modoEstoque === 'antecipado' && (lotes.isLoading || lotes.isError || qtd > disponivel(produto.id))) {
+      setErro('Quantidade indisponível na estufa. Confira os lotes e a validade.'); return
+    }
     const key = `${produto.id}|${variacao?.id ?? ''}|${observacoes ?? ''}`
     setCart((prev) => {
       const idx = prev.findIndex((i) => i.key === key)
@@ -144,6 +152,11 @@ export default function NovoPedidoPage() {
 
   function changeQtd(key: string, delta: number) {
     if (envio.current) return
+    const item = cart.find((i) => i.key === key)
+    const produto = produtos.data?.find((p) => p.id === item?.produtoId)
+    if (delta > 0 && produto?.modoEstoque === 'antecipado' && disponivel(produto.id) < delta) {
+      setErro('Saldo disponível da estufa insuficiente.'); return
+    }
     setCart((prev) =>
       prev
         .map((i) => (i.key === key ? { ...i, qtd: i.qtd + delta } : i))
@@ -196,7 +209,7 @@ export default function NovoPedidoPage() {
             <Card key={p.id} className="flex min-w-0 flex-col p-4 transition hover:shadow-md">
               <button
                 type="button"
-                disabled={envioPendente}
+                disabled={envioPendente || (p.modoEstoque === 'antecipado' && (lotes.isLoading || lotes.isError || disponivel(p.id) <= 0))}
                 onClick={() => setCustomizando({ p })}
                 className="min-w-0 break-words text-left"
                 title="Personalizar e adicionar"
@@ -206,9 +219,10 @@ export default function NovoPedidoPage() {
                   {p.variacoes?.some((v) => v.ativo) ? `a partir de ${brl(p.preco)}` : brl(p.preco)}
                 </p>
               </button>
+              {p.modoEstoque === 'antecipado' && <p className="mt-2 text-xs text-slate-500">Estufa: {lotes.isError ? 'saldo indisponível' : lotes.isLoading ? 'consultando…' : `${disponivel(p.id)} disponíveis`}</p>}
               <div className="mt-auto pt-3">
                 <div className="flex flex-wrap gap-1.5">
-                  <Button disabled={envioPendente} variant="secondary" className="!px-2 !py-1 !text-xs min-h-11" onClick={() => setCustomizando({ p })}>
+                  <Button disabled={envioPendente || (p.modoEstoque === 'antecipado' && (lotes.isLoading || lotes.isError || disponivel(p.id) <= 0))} variant="secondary" className="!px-2 !py-1 !text-xs min-h-11" onClick={() => setCustomizando({ p })}>
                     Personalizar
                   </Button>
                 </div>

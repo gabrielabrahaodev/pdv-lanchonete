@@ -102,6 +102,7 @@ def registrar_venda_tx(
 
     inc: dict[str, Any] = {
         "faturamento": Increment(total),
+        "cmvProducao": Increment(round(sum(float(i.get("custoProducao", 0)) for i in pedido.get("itens", []) if i.get("status") != "cancelado"), 2)),
         "totalPedidos": Increment(1),
         f"vendasPorHora.{hora}": Increment(total),
         "restaurantId": restaurant_id,
@@ -220,6 +221,7 @@ def _base_doc(restaurant_id: str) -> dict[str, Any]:
         "saidasPorItem": {},
         "despesasPorCategoria": {},
         "totalDespesas": 0.0,
+        "cmvProducao": 0.0,
     }
 
 
@@ -257,6 +259,7 @@ def registrar_venda(
 
     inc: dict[str, Any] = {
         "faturamento": Increment(total),
+        "cmvProducao": Increment(round(sum(float(i.get("custoProducao", 0)) for i in pedido.get("itens", []) if i.get("status") != "cancelado"), 2)),
         "totalPedidos": Increment(1),
         f"vendasPorHora.{hora}": Increment(total),
         "restaurantId": restaurant_id,
@@ -362,6 +365,7 @@ def obter(restaurant_id: str, tipo: str, ref: str) -> dict[str, Any]:
         "saidasPorItem": {},
         "despesasPorCategoria": {},
         "totalDespesas": 0.0,
+        "cmvProducao": 0.0,
         "vazio": True,
     }
     if snap.exists:
@@ -392,6 +396,7 @@ def resumo_agregado(restaurant_id: str, tipo: str, ref: str) -> dict[str, Any]:
         custo_medio_por_item=custo_medio,
         faturamento=float(agg.get("faturamento") or 0),
     )
+    financeiro["cmvEstimado"] = calculos.round_money(financeiro["cmvEstimado"] + float(agg.get("cmvProducao", 0)))
 
     produtos = listar_produtos(restaurant_id)
     nomes = {d["id"]: d.get("nome", d["id"]) for d in produtos}
