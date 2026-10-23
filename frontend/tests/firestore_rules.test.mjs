@@ -51,6 +51,11 @@ async function main() {
       await (['caixa','gerente'].includes(papel) ? assertSucceeds(leitura) : assertFails(leitura));
     }
     await assertFails(db.collection('restaurantes/rA/data/eventos_itens/items').get());
+    await assertSucceeds(db.collection('restaurantes/rA/data/lotes_producao/items').get());
+    const movimentos = db.collection('restaurantes/rA/data/movimentacoes_producao/items').get();
+    await (papel === 'garcom' ? assertFails(movimentos) : assertSucceeds(movimentos));
+    await assertFails(db.collection('restaurantes/rA/data/eventos_producao/items').get());
+    await assertFails(db.collection('restaurantes/rB/data/lotes_producao/items').get());
   }
   for (const uid of ['inativo','sem-perfil']) {
     const db = env.authenticatedContext(uid, {restaurantId:'rA',papel:'admin'}).firestore();
@@ -78,6 +83,9 @@ async function main() {
 
   // escrita direta: SEMPRE negada (qualquer papel/tenant/método)
   const caminhos = [
+    "restaurantes/rA/data/lotes_producao/items/forjado",
+    "restaurantes/rA/data/movimentacoes_producao/items/forjado",
+    "restaurantes/rA/data/eventos_producao/items/forjado",
     "restaurantes/rA/data/pedidos/items/forjado",
     "restaurantes/rA/data/pagamentos/items/forjado",
     "restaurantes/rA/data/despesas/items/forjado",

@@ -28,14 +28,16 @@ def obter(restaurant_id: str, produto_id: str) -> dict:
 def criar(restaurant_id: str, payload: ProductCreate) -> dict:
     ensure_parent(restaurant_id, "produtos")
     data = payload.model_dump(by_alias=True)
+    _validar_estoque(restaurant_id, data)
     ref = items_col(restaurant_id, "produtos").document()
     ref.set(stamp_create({**data, "restaurantId": restaurant_id}))
     return obter(restaurant_id, ref.id)
 
 
 def atualizar(restaurant_id: str, produto_id: str, payload: ProductUpdate) -> dict:
-    obter(restaurant_id, produto_id)  # 404 se não existir
+    atual = obter(restaurant_id, produto_id)  # 404 se não existir
     changes = {k: v for k, v in payload.model_dump(by_alias=True).items() if v is not None}
+    _validar_estoque(restaurant_id, {**atual, **changes})
     if changes:
         item_doc(restaurant_id, "produtos", produto_id).update(stamp_update(changes))
     return obter(restaurant_id, produto_id)
@@ -80,3 +82,14 @@ def bytes_imagem(restaurant_id: str, produto_id: str) -> tuple[bytes, str] | Non
         return base64.b64decode(doc["base64"]), doc.get("mime") or "image/jpeg"
     except Exception:
         return None
+
+
+def _validar_estoque(rid, produto):
+    if produto.get("modoEstoque") == "revenda":
+        iid = produto.get("itemRevendaId")
+        if not iid or not get_item(rid, "estoque", iid):
+            raise HTTPException(422, "Selecione o item de estoque da revenda")
+    if produto.get("modoEstoque") == "antecipado":
+        for ing in produto.get("ingredientes") or []:
+            if not ing.get("itemId") or not 0 < float(ing.get("qtd", 0)) < float("inf"):
+                raise HTTPException(422, "Informe ingredientes e quantidades positivas")

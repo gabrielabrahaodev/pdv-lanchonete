@@ -14,6 +14,8 @@ import { db } from '../lib/firebase'
 import { normDoc } from '../lib/firestoreData'
 import type {
   CashSession,
+  LoteProducao,
+  MovimentoProducao,
   Category,
   DeliveryOrder,
   InventoryItem,
@@ -176,9 +178,10 @@ export interface FilaPedido {
 /** Fila da cozinha: só itens que precisam passar por ela, mais antigo primeiro. */
 export function useCozinhaFila(rid: string | null | undefined): SnapshotResult<FilaPedido[]> {
   const q = usePedidosAbertos(rid)
+  const pagosPendentes = useDocs<Order>(rid, 'pedidos', 'cozinha-pendente', (c) => query(c, where('cozinhaPendente', '==', true)))
   const data = useMemo(
     () =>
-      (q.data ?? [])
+      [...new Map([...(q.data ?? []), ...(pagosPendentes.data ?? [])].map((p) => [p.id, p])).values()]
         .map((p) => ({
           id: p.id,
           mesaId: p.mesaId,
@@ -187,9 +190,9 @@ export function useCozinhaFila(rid: string | null | undefined): SnapshotResult<F
         }))
         .filter((p) => p.itens.length > 0)
         .sort((a, b) => +new Date(a.criadoEm) - +new Date(b.criadoEm)),
-    [q.data],
+    [q.data, pagosPendentes.data],
   )
-  return { data, isLoading: q.isLoading, isError: q.isError, error: q.error }
+  return { data, isLoading: q.isLoading || pagosPendentes.isLoading, isError: q.isError || pagosPendentes.isError, error: q.error ?? pagosPendentes.error }
 }
 
 export const useDeliveryAtivos = (rid: string | null | undefined) =>
@@ -243,3 +246,10 @@ export const useSessoes = (rid: string | null | undefined) =>
   useDocs<CashSession>(rid, 'sessoes_caixa', 'recentes', (c) =>
     query(c, orderBy('createdAt', 'desc'), limit(30)),
   )
+
+
+export const useLotesProducao = (rid: string | null | undefined) =>
+  useDocs<LoteProducao>(rid, 'lotes_producao', 'abertos', (c) => query(c, where('aberto', '==', true)))
+
+export const useHistoricoProducao = (rid: string | null | undefined) =>
+  useDocs<MovimentoProducao>(rid, 'movimentacoes_producao', 'recentes', (c) => query(c, orderBy('createdAt', 'desc'), limit(100)))

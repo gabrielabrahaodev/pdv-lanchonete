@@ -38,3 +38,13 @@ test('alterar quantidade ou custo recalcula a sugestão', () => {
   assert.equal(precificar([{ itemId: 'carne', qtd: '0,3' }], estoque, '50').preco, 18)
   assert.equal(precificar(receita, [{ ...estoque[0], custoMedio: 60 }, estoque[1]], '50').preco, 16.5)
 })
+
+test('custo e preço por unidade consideram o rendimento da receita', () => {
+  const r = precificar(receita, estoque, '50', 4)
+  assert.equal(r.custo, 2)
+  assert.equal(r.preco, 3)
+  assert.equal(r.lucro, 1)
+  for (const rendimento of [0, -1, NaN, Infinity]) {
+    assert.equal(precificar(receita, estoque, '50', rendimento).preco, null)
+  }
+})

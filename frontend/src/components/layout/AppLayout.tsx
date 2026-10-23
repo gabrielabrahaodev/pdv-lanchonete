@@ -28,6 +28,7 @@ const NAV: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/mesas', label: 'Mesas', icon: <UtensilsCrossed className="h-5 w-5" aria-hidden="true" /> },
   { to: '/produtos', label: 'Produtos', icon: <Sandwich className="h-5 w-5" aria-hidden="true" /> },
   { to: '/categorias', label: 'Categorias', icon: <FolderOpen className="h-5 w-5" aria-hidden="true" /> },
+  { to: '/producao', label: 'Produção e Estufa', icon: <ChefHat className="h-5 w-5" aria-hidden="true" /> },
   { to: '/estoque', label: 'Estoque', icon: <Package className="h-5 w-5" aria-hidden="true" /> },
   { to: '/cozinha', label: 'Cozinha (KDS)', icon: <ChefHat className="h-5 w-5" aria-hidden="true" /> },
   { to: '/delivery', label: 'Delivery', icon: <Bike className="h-5 w-5" aria-hidden="true" /> },

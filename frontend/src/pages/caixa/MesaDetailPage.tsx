@@ -114,7 +114,12 @@ function PedidoCard({ pedido, produtos, onCancel, cancelando }: { pedido: Order;
 }
 
 function ItensList({ pedido, produtos }: { pedido: Order; produtos: Product[] }) {
-  return (
+  const { me } = useAuth()
+  const permitido = ['admin', 'gerente', 'caixa', 'cozinha', 'garcom'].includes(me?.papel ?? '')
+  const operacao = useMutation({ mutationFn: ({id, renovar}: {id: string; renovar: boolean}) =>
+    api(renovar ? `/pedidos/${pedido.id}/itens/${id}/renovar-reserva` : `/pedidos/${pedido.id}/itens/${id}/status?novo_status=entregue`, {method: renovar ? 'POST' : 'PATCH'}) })
+  return (<div>
+    {operacao.isError && <p role="alert" className="p-3 text-sm text-rose-600">{operacao.error instanceof Error ? operacao.error.message : 'Não foi possível atualizar o item'}</p>}
     <ul className="divide-y divide-slate-50">
       {pedido.itens
         .filter((i) => i.status !== 'cancelado')
@@ -129,10 +134,12 @@ function ItensList({ pedido, produtos }: { pedido: Order; produtos: Product[] })
                 {item.qtd}× {brl(item.precoUnitario)}
               </p>
               <Badge value={item.status} />
+              {permitido && pedido.status !== 'cancelado' && item.status === 'pronto' && <Button variant="secondary" loading={operacao.isPending} onClick={() => operacao.mutate({id:item.id, renovar:false})}>Confirmar entrega</Button>}
+              {permitido && pedido.status !== 'cancelado' && item.modoEstoque === 'antecipado' && item.status !== 'entregue' && item.status !== 'cancelado' && <Button variant="ghost" loading={operacao.isPending} onClick={() => operacao.mutate({id:item.id, renovar:true})}>Atualizar lotes reservados</Button>}
             </div>
           </li>
         ))}
-    </ul>
+    </ul></div>
   )
 }
 

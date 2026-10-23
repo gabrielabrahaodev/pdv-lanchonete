@@ -160,3 +160,12 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 - Cancelamento de item recalcula total, não estorna ingredientes e é bloqueado após pagamentos; pedidos fechados não aceitam alteração de itens.
 - Sangria, suprimento e fechamento são transacionais. Edições de despesas usam `versaoAgregado`; não depender somente de timestamps para idempotência.
 - Plano de validação e reconstrução histórica: `docs/04-testes/correcoes-auditoria-master.md`.
+
+## Produção e Estufa (2026-10-23)
+
+- Modos: sob_pedido (compatível), antecipado (receita por fornada/rendimento), revenda (1 unidade vinculada ao estoque).
+- Produção explícita consome ingredientes, registra custo congelado e cria lotes. Reserva FEFO na inclusão; baixa do pronto na entrega; nunca baixar ingredientes novamente para antecipado.
+- Cancelamento libera apenas reservas ainda não entregues; perda exige saldo livre. Conversão preserva validade/custo.
+- A restrição de pedidos pagos acima passa a valer para alterações comerciais: preparo/pronto/entrega continuam permitidos, sem alterar total. KDS inclui pagos com cozinhaPendente; cancelamento permanece bloqueado após pagamento.
+- Toda leitura transacional deve preceder escrita. Planejadores de reservas/destino devolvem funções de escrita; chamar somente após todas as leituras do pedido/estoque.
+- Guia, limitações históricas e validação: docs/04-testes/producao-estufa.md. Publicação em produção continua sujeita à homologação localhost.

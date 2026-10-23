@@ -10,6 +10,7 @@ export function precificar(
   ingredientes: { itemId: string; qtd: string }[],
   estoque: InventoryItem[],
   percentual: string,
+  rendimento = 1,
 ) {
   const acrescimo = numeroDecimal(percentual)
   const linhas = ingredientes.map((ingrediente) => {
@@ -19,8 +20,8 @@ export function precificar(
       && Number.isFinite(qtd) && qtd > 0
     return { item, qtd, custo: valido ? item!.custoMedio * qtd : null }
   })
-  const custo = linhas.reduce((total, linha) => total + (linha.custo ?? 0), 0)
-  const completo = linhas.length > 0 && linhas.every((linha) => linha.custo !== null)
+  const custo = linhas.reduce((total, linha) => total + (linha.custo ?? 0), 0) / rendimento
+  const completo = Number.isFinite(rendimento) && rendimento > 0 && linhas.length > 0 && linhas.every((linha) => linha.custo !== null)
     && Number.isFinite(custo) && custo > 0
   const calculado = custo * (1 + acrescimo / 100)
   // Arredonda para cima para não ficar abaixo do percentual pedido.

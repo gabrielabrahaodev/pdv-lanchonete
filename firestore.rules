@@ -23,9 +23,10 @@ service cloud.firestore {
       match /data/{colecao}/items/{id} {
         allow read: if ativo(rid) && (
           colecao in ['mesas', 'pedidos', 'produtos', 'categorias', 'imagens',
-                      'estoque', 'movimentacoes_estoque', 'delivery_orders']
+                      'estoque', 'movimentacoes_estoque', 'delivery_orders', 'lotes_producao']
           || (colecao in ['despesas', 'fornecedores', 'sessoes_caixa',
                           'agregados_diarios', 'agregados_mensais', 'agregados_meta'] && financeiro(rid))
+          || (colecao == 'movimentacoes_producao' && membro(rid).papel in ['admin', 'gerente', 'caixa', 'cozinha'])
           || (colecao == 'usuarios' && (id == request.auth.uid || financeiro(rid)))
         );
       }

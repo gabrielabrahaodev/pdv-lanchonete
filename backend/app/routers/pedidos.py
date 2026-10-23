@@ -9,7 +9,7 @@ router = APIRouter(prefix="/pedidos", tags=["pedidos"])
 
 # garcom monta pedidos; cozinha não cria (apenas status de itens)
 ESCRITA = require_roles("admin", "gerente", "caixa", "garcom")
-STATUS = require_roles("admin", "gerente", "caixa", "cozinha")
+STATUS = require_roles("admin", "gerente", "caixa", "cozinha", "garcom")
 
 
 @router.get("")
@@ -79,9 +79,17 @@ def status_item(
     novo_status: str,
     auth: CurrentAuth = Depends(STATUS),
 ) -> dict:
-    return pedidos_service.atualizar_status_item(auth.restaurant_id, pedido_id, item_id, novo_status)
+    if auth.papel == "garcom" and novo_status != "entregue":
+        from fastapi import HTTPException
+        raise HTTPException(403, "Garçom pode apenas confirmar a entrega")
+    return pedidos_service.atualizar_status_item(auth.restaurant_id, pedido_id, item_id, novo_status, auth.uid)
 
 
 @router.post("/{pedido_id}/cancelar")
 def cancelar(pedido_id: str, auth: CurrentAuth = Depends(require_roles("admin", "gerente", "caixa"))) -> dict:
     return pedidos_service.cancelar(auth.restaurant_id, pedido_id)
+
+
+@router.post("/{pedido_id}/itens/{item_id}/renovar-reserva")
+def renovar_reserva(pedido_id: str, item_id: str, auth: CurrentAuth = Depends(STATUS)):
+    return pedidos_service.renovar_reserva(auth.restaurant_id, pedido_id, item_id, auth.uid)
