@@ -27,7 +27,7 @@ _TZ = ZoneInfo("America/Sao_Paulo")
 
 _CAMPOS = (
     "faturamento", "totalPedidos", "vendasPorHora", "vendasPorFormaPagamento",
-    "topProdutos", "saidasPorItem", "despesasPorCategoria", "totalDespesas",
+    "topProdutos", "saidasPorItem", "despesasPorCategoria", "totalDespesas", "cmvProducao",
 )
 
 
@@ -56,6 +56,7 @@ def reconstruir(restaurant_id: str, *, apply: bool = False) -> dict[str, Any]:
         total = round(float(p.get("total", 0)), 2)
         for alvo in (dias.setdefault(dia, _novo()), meses.setdefault(mes, _novo())):
             alvo["faturamento"] = alvo["faturamento"] + total
+            alvo["cmvProducao"] += round(sum(float(i.get("custoProducao", 0)) for i in p.get("itens", []) if i.get("status") != "cancelado"), 2)
             alvo["totalPedidos"] = int(alvo["totalPedidos"]) + 1
             alvo["vendasPorHora"][hora] = alvo["vendasPorHora"].get(hora, 0.0) + total
             for mov in p.get("pagamentos", []):
@@ -143,6 +144,7 @@ def _novo() -> dict[str, Any]:
         "saidasPorItem": {},
         "despesasPorCategoria": {},
         "totalDespesas": 0.0,
+        "cmvProducao": 0.0,
     }
     return vals
 

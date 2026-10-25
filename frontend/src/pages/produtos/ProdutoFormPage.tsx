@@ -37,6 +37,10 @@ export default function ProdutoFormPage() {
   const [aba, setAba] = useState<'dados' | 'precificacao'>('dados')
   const [acrescimo, setAcrescimo] = useState('0')
   const [form, setForm] = useState({
+    modoEstoque: 'sob_pedido',
+    rendimentoReceita: '1',
+    unidadeVenda: 'un',
+    itemRevendaId: '',
     nome: '',
     categoriaId: '',
     preco: '',
@@ -57,6 +61,10 @@ export default function ProdutoFormPage() {
     if (produto.data) {
       const p = produto.data
       setForm({
+        modoEstoque: p.modoEstoque ?? 'sob_pedido',
+        rendimentoReceita: String(p.rendimentoReceita ?? 1),
+        unidadeVenda: p.unidadeVenda ?? 'un',
+        itemRevendaId: p.itemRevendaId ?? '',
         nome: p.nome,
         categoriaId: p.categoriaId,
         preco: String(p.preco).replace('.', ','),
@@ -110,7 +118,13 @@ export default function ProdutoFormPage() {
       if (ingredientes.some((i) => !i.itemId || !Number.isFinite(numeroDecimal(i.qtd)) || numeroDecimal(i.qtd) <= 0)) {
         throw new Error('Preencha o item e uma quantidade positiva em todos os ingredientes, ou remova a linha incompleta.')
       }
+      const rendimento = numeroDecimal(form.rendimentoReceita)
+      if (form.modoEstoque === 'antecipado' && (!Number.isInteger(rendimento) || rendimento < 1)) throw new Error('Informe um rendimento inteiro maior que zero.')
       const body = {
+        modoEstoque: form.modoEstoque,
+        rendimentoReceita: form.modoEstoque === 'antecipado' ? rendimento : 1,
+        unidadeVenda: form.unidadeVenda.trim() || 'un',
+        itemRevendaId: form.itemRevendaId || null,
         acrescimoLucroPercentual: numeroDecimal(acrescimo),
         nome: form.nome.trim(),
         categoriaId: form.categoriaId,
@@ -149,7 +163,8 @@ export default function ProdutoFormPage() {
     onError: (e) => setErro(e instanceof Error ? e.message : 'Erro ao salvar'),
   })
 
-  const calculo = precificar(ingredientes, estoque.data ?? [], acrescimo)
+  const receitaCusto = form.modoEstoque === 'revenda' ? [{itemId: form.itemRevendaId, qtd: '1'}] : ingredientes
+  const calculo = precificar(receitaCusto, estoque.data ?? [], acrescimo, form.modoEstoque === 'antecipado' ? numeroDecimal(form.rendimentoReceita) : 1)
   const moeda = (valor: number) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
   if (categorias.isLoading || (editando && produto.isLoading)) return <LoadingScreen />
@@ -175,6 +190,26 @@ export default function ProdutoFormPage() {
         </div>
         <div hidden={aba !== 'dados'} className="space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="Como controlar o estoque?">
+            <Select value={form.modoEstoque} onChange={(e) => setForm({ ...form, modoEstoque: e.target.value })}>
+              <option value="sob_pedido">Preparado sob pedido</option>
+              <option value="antecipado">Produzido antecipadamente (estufa)</option>
+              <option value="revenda">Revenda (unidade do estoque)</option>
+            </Select>
+          </Field>
+          <Field label="Unidade de venda" hint="Ex.: un, pão, fatia, bolo.">
+            <Input value={form.unidadeVenda} onChange={(e) => setForm({ ...form, unidadeVenda: e.target.value })} />
+          </Field>
+          {form.modoEstoque === 'antecipado' && <Field label="Rendimento de uma receita" hint="Quantas unidades prontas a receita completa produz?">
+            <Input type="number" min="1" step="1" value={form.rendimentoReceita} onChange={(e) => setForm({ ...form, rendimentoReceita: e.target.value })} />
+          </Field>}
+          {form.modoEstoque === 'revenda' && <Field label="Item do estoque" hint="Cada unidade vendida consome 1 unidade deste item.">
+            <Select value={form.itemRevendaId} onChange={(e) => setForm({ ...form, itemRevendaId: e.target.value })}>
+              <option value="">Selecione…</option>
+              {(estoque.data ?? []).map((i) => <option key={i.id} value={i.id}>{i.nome} ({i.unidade})</option>)}
+            </Select>
+          </Field>}
+          {form.modoEstoque === 'antecipado' && <p className="text-sm text-slate-500 sm:col-span-2">Produza os lotes em Produção e Estufa. Os ingredientes são consumidos na produção; o pedido reserva produtos prontos até a entrega. Aquecer não consome a receita novamente.</p>}
           <Field label="Nome">
             <Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} required />
           </Field>
@@ -227,7 +262,7 @@ export default function ProdutoFormPage() {
             />
             Produto ativo
           </label>
-          <label className="flex items-end gap-2 pb-1 text-sm font-medium text-slate-600" title="Desmarcado: item já nasce entregue e não aparece na cozinha">
+          <label className="flex items-end gap-2 pb-1 text-sm font-medium text-slate-600" title="Na estufa, desmarcado significa pronto para entregar; marcado permite aquecer na cozinha">
             <input
               type="checkbox"
               checked={form.precisaPreparar}
@@ -285,7 +320,9 @@ export default function ProdutoFormPage() {
             </Button>
           </div>
           <p className="mb-2 text-xs text-slate-500">
-            Quantidade por 1 unidade do produto, na unidade do estoque. Ex.: para 150 g de um item em kg, informe 0,15. A receita também será usada na baixa automática de estoque.
+            {form.modoEstoque === 'antecipado'
+              ? `Quantidades para uma receita completa, que rende ${form.rendimentoReceita} ${form.unidadeVenda}. Na produção você informa o rendimento real.`
+              : 'Quantidade por 1 unidade do produto, na unidade do estoque. Para 150 g de um item em kg, informe 0,15.'}
           </p>
           <div className="space-y-2">
             {ingredientes.map((ing, idx) => {
@@ -324,7 +361,7 @@ export default function ProdutoFormPage() {
               )
             })}
             {ingredientes.length === 0 && (
-              <p className="text-xs text-slate-500">Sem receita cadastrada — nenhuma baixa de estoque será feita.</p>
+              <p className="text-xs text-slate-500">Sem receita cadastrada. Para produção antecipada, cadastre ingredientes; revenda utiliza o item vinculado.</p>
             )}
           </div>
         </div>

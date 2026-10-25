@@ -7,7 +7,7 @@ from app.services.pedidos_service import listar
 def fila(restaurant_id: str) -> list[dict]:
     """Pedidos abertos ordenados do mais antigo para o mais novo,
     com apenas os itens relevantes (pendente/preparo/pronto)."""
-    pedidos = listar(restaurant_id, status="aberto")
+    pedidos = [p for p in listar(restaurant_id) if p.get("status") in {"aberto", "pago"}]
     pedidos.reverse()  # mais antigo primeiro
     resultado = []
     for p in pedidos:

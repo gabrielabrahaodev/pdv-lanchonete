@@ -236,7 +236,7 @@ def registrar_pagamento(
         pagamentos = [*pedido.get("pagamentos", []), pagamento]
         updates: dict[str, Any] = {"pagamentos": pagamentos}
         if quitado:
-            updates |= {"status": "pago", "fechadoEm": fechado_em}
+            updates |= {"status": "pago", "fechadoEm": fechado_em, "cozinhaPendente": any(i.get("status") in {"pendente", "preparo", "pronto"} for i in pedido.get("itens", []))}
 
         # Agregado PRIMEIRO (faz leituras prórias — Firestore proíbe leitura
         # após escrita na transação); pedido/evento/sessão/mesa vêm depois.

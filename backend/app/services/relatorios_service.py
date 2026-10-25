@@ -174,6 +174,7 @@ def _resumo_por_agregados(
         custo_medio_por_item=custo_medio,
         faturamento=faturamento,
     )
+    financeiro["cmvEstimado"] = calculos.round_money(financeiro["cmvEstimado"] + sum(float((s.to_dict() or {}).get("cmvProducao", 0)) for s in snaps))
     financeiro["totalDespesas"] = total_despesas
     financeiro["despesasPorCategoria"] = dict(
         sorted(
@@ -312,6 +313,7 @@ def _resumo_historico(
         custo_medio_por_item=custo_medio,
         faturamento=faturamento,
     )
+    financeiro["cmvEstimado"] = calculos.round_money(financeiro["cmvEstimado"] + sum(round(sum(float(i.get("custoProducao", 0)) for i in p.get("itens", []) if i.get("status") != "cancelado"), 2) for p in pagos))
 
     return {
         "periodoInicio": inicio,

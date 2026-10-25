@@ -50,6 +50,11 @@ export default function CozinhaPage() {
       api(`/cozinha/pedidos/${pedidoId}/itens/status`, { method: 'PATCH', body: { itemIds, novoStatus: novo } }),
   })
 
+  const renovar = useMutation({
+    mutationFn: ({ pedidoId, itemId }: { pedidoId: string; itemId: string }) =>
+      api(`/pedidos/${pedidoId}/itens/${itemId}/renovar-reserva`, { method: 'POST' }),
+  })
+
   const nomeProduto = (produtoId: string) => {
     const p = produtos.data?.find((x) => x.id === produtoId)
     return p?.nome ?? 'Produto'
@@ -81,6 +86,8 @@ export default function CozinhaPage() {
         </span>
       </header>
 
+      {mudarStatus.isError && <p role="alert" className="mb-4 rounded-lg bg-rose-100 p-3 text-sm text-rose-800">{mudarStatus.error instanceof Error ? mudarStatus.error.message : 'Erro ao atualizar pedido'}</p>}
+      {renovar.isError && <p role="alert" className="mb-4 rounded-lg bg-rose-100 p-3 text-sm text-rose-800">{renovar.error instanceof Error ? renovar.error.message : 'Erro ao atualizar reserva'}</p>}
       {/* Um cartão por PEDIDO/MESA: a cozinha vê TUDO da mesa junto */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {pedidos.map((pedido) => {
@@ -146,6 +153,7 @@ export default function CozinhaPage() {
                                 {nomeVariacao(item.produtoId, item.variacaoId)}
                               </span>
                             )}
+                            {item.modoEstoque === 'antecipado' && <button className="block min-h-11 text-xs font-semibold text-brand-700" disabled={renovar.isPending || mudarStatus.isPending} onClick={() => renovar.mutate({pedidoId: pedido.id, itemId: item.id})}>Atualizar lotes reservados</button>}
                             {item.observacoes && (
                               <span className="block pl-5 text-xs font-semibold italic text-amber-600">
                                 <span aria-hidden="true">✏️ </span>“{item.observacoes}”
@@ -162,7 +170,7 @@ export default function CozinhaPage() {
                             novo: sec.proximo,
                           })
                         }
-                        disabled={mudarStatus.isPending}
+                        disabled={mudarStatus.isPending || renovar.isPending}
                         className={`min-h-11 w-full rounded-lg py-2.5 text-sm font-bold transition ${sec.botao}`}
                       >
                         {sec.acao} →

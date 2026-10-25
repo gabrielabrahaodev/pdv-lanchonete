@@ -53,6 +53,10 @@ class Product(CamelModel):
     categoria_id: str
     preco: float
     acrescimo_lucro_percentual: float = Field(default=0, ge=0, allow_inf_nan=False)
+    modo_estoque: Literal["sob_pedido", "antecipado", "revenda"] = "sob_pedido"
+    rendimento_receita: int = Field(default=1, ge=1, le=100000)
+    unidade_venda: str = Field(default="un", min_length=1, max_length=30)
+    item_revenda_id: Optional[str] = None
     precisa_preparar: bool = True
     variacoes: list[ProductVariation] = []
     ingredientes: list[ProductIngredient] = []
@@ -68,6 +72,10 @@ class ProductCreate(CamelModel):
     categoria_id: str
     preco: float = Field(gt=0)
     acrescimo_lucro_percentual: float = Field(default=0, ge=0, allow_inf_nan=False)
+    modo_estoque: Literal["sob_pedido", "antecipado", "revenda"] = "sob_pedido"
+    rendimento_receita: int = Field(default=1, ge=1, le=100000)
+    unidade_venda: str = Field(default="un", min_length=1, max_length=30)
+    item_revenda_id: Optional[str] = None
     precisa_preparar: bool = True
     variacoes: list[ProductVariation] = []
     ingredientes: list[ProductIngredient] = []
@@ -81,6 +89,10 @@ class ProductUpdate(CamelModel):
     categoria_id: Optional[str] = None
     preco: Optional[float] = Field(default=None, gt=0)
     acrescimo_lucro_percentual: Optional[float] = Field(default=None, ge=0, allow_inf_nan=False)
+    modo_estoque: Optional[Literal["sob_pedido", "antecipado", "revenda"]] = None
+    rendimento_receita: Optional[int] = Field(default=None, ge=1, le=100000)
+    unidade_venda: Optional[str] = Field(default=None, min_length=1, max_length=30)
+    item_revenda_id: Optional[str] = None
     precisa_preparar: Optional[bool] = None
     variacoes: Optional[list[ProductVariation]] = None
     ingredientes: Optional[list[ProductIngredient]] = None
@@ -458,3 +470,26 @@ class AuthMe(CamelModel):
     restaurant_nome: Optional[str] = None
     perfil: Optional[AppUser] = None
     sou_dono: Optional[bool] = None  # dono da PLATAFORMA (sistema/global.donoUids)
+
+
+# -------------------------------------------------------------- Produção
+class ProducaoCreate(CamelModel):
+    produto_id: str = Field(min_length=1)
+    receitas: float = Field(default=1, gt=0, le=10000, allow_inf_nan=False)
+    quantidade: int = Field(gt=0, le=100000)
+    validade: datetime
+    local: str = Field(default="Estufa", min_length=1, max_length=80)
+    observacao: Optional[str] = Field(default=None, max_length=300)
+
+
+class PerdaProducao(CamelModel):
+    quantidade: int = Field(gt=0, le=100000)
+    motivo: Literal["vencimento", "queima", "quebra", "consumo_interno", "ajuste"]
+    observacao: str = Field(min_length=3, max_length=300)
+
+
+class ConversaoProducao(CamelModel):
+    produto_destino_id: str = Field(min_length=1)
+    quantidade_origem: int = Field(gt=0, le=100000)
+    quantidade_destino: int = Field(gt=0, le=100000)
+    observacao: str = Field(min_length=3, max_length=300)

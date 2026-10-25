@@ -58,6 +58,10 @@ export interface Product {
   nome: string
   categoriaId: string
   preco: number
+  modoEstoque?: 'sob_pedido' | 'antecipado' | 'revenda'
+  rendimentoReceita?: number
+  unidadeVenda?: string
+  itemRevendaId?: string | null
   acrescimoLucroPercentual?: number
   precisaPreparar: boolean
   variacoes: ProductVariation[]
@@ -85,6 +89,10 @@ export interface OrderItem {
   qtd: number
   precoUnitario: number
   observacoes?: string | null
+  modoEstoque?: 'sob_pedido' | 'antecipado' | 'revenda'
+  lotesReservados?: { loteId: string; qtd: number; custoUnitario: number }[]
+  custoProducao?: number
+  estoqueEntregueEm?: string
   status: 'pendente' | 'preparo' | 'pronto' | 'entregue' | 'cancelado'
 }
 
@@ -225,4 +233,36 @@ export interface ResumoFinanceiro {
   totalDespesas: number
   cmvEstimado: number
   resultadoGerencial: number
+}
+
+
+export interface LoteProducao {
+  id: string
+  produtoId: string
+  produtoNome: string
+  unidade: string
+  quantidadeProduzida: number
+  saldo: number
+  reservado: number
+  custoTotal: number
+  custoUnitario: number
+  validade: string
+  local: string
+  usuarioId: string
+  criadoEm: string
+  loteOrigemId?: string
+}
+
+export interface MovimentoProducao {
+  id: string
+  tipo: 'producao' | 'reserva' | 'entrega' | 'liberacao' | 'perda' | 'conversao_saida' | 'conversao_entrada'
+  loteId: string
+  produtoId: string
+  quantidade: number
+  custoTotal?: number
+  motivo?: string
+  observacao?: string
+  pedidoId?: string
+  usuarioId: string
+  criadoEm: string
 }
