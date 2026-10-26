@@ -9,18 +9,20 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/pwa-192.png', 'icons/pwa-512.png'],
+      includeAssets: ['favicon.ico', 'icons/pdv.svg', 'icons/favicon-32.png', 'icons/apple-touch-icon.png'],
       manifest: {
-        name: 'PDV Lanchonete',
+        name: 'PDV',
         short_name: 'PDV',
+        lang: 'pt-BR',
         description: 'Ponto de venda de lanchonete — caixa, cozinha, estoque e financeiro',
         theme_color: '#ea580c',
         background_color: '#0f172a',
         display: 'standalone',
         start_url: '/',
         icons: [
-          { src: '/icons/pwa-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/pwa-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/pdv-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/pdv-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/pdv-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
