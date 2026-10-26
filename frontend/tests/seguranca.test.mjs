@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { imprimirJanela } from '../.test-build/impressora.js'
+import { imprimirJanela, linhasComanda, linhasRecibo } from '../.test-build/impressora.js'
 import { normDoc } from '../.test-build/firestoreData.js'
 
 test('impressão escapa observações e título, preservando layout', () => {
@@ -27,4 +27,14 @@ test('snapshots normalizam datas antigas e atuais, incluindo valores aninhados',
   assert.equal(doc.createdAt,undefined)
   assert.equal(doc.id,'p')
   assert.equal(normDoc('u',{criadoEm:timestamp}).criadoEm,doc.criadoEm)
+})
+
+test('comanda e recibo identificam balcao sem inventar mesa', () => {
+  const pedido = {id:'pedido_123456',tipo:'balcao',mesaId:null,criadoEm:'2026-10-26T12:00:00Z',total:10}
+  const comanda = linhasComanda(pedido,[{qtd:1,nomeProduto:'Café'}])
+  const recibo = linhasRecibo('Café Anis',pedido,[{qtd:1,produtoId:'cafe',precoUnitario:10,status:'entregue'}],()=> 'Café')
+  for (const linhas of [comanda,recibo]) {
+    assert.ok(linhas.some(l => l.texto.includes('Balcão #123456')))
+    assert.ok(!linhas.some(l => l.texto.includes('Mesa')))
+  }
 })

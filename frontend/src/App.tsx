@@ -109,6 +109,7 @@ export default function App() {
         >
           <Route index element={<Navigate to="/caixa" replace />} />
           <Route path="caixa" element={<CaixaOverviewPage />} />
+          <Route path="caixa/venda-direta" element={<RequireFinanceiro><NovoPedidoPage balcao /></RequireFinanceiro>} />
           <Route path="caixa/mesa/:mesaId" element={<MesaDetailPage />} />
           <Route path="caixa/novo-pedido/:mesaId" element={<NovoPedidoPage />} />
           <Route path="caixa/pagamento/:pedidoId" element={<RequireFinanceiro><PagamentoPage /></RequireFinanceiro>} />

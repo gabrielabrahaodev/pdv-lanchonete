@@ -114,7 +114,11 @@ export async function imprimir(titulo: string, linhas: LinhaImpressao[]): Promis
 }
 
 // ------------------------------------------------------------------ builders
-type PedidoBasico = { mesaId?: string | null; criadoEm: string; total?: number }
+type PedidoBasico = { id?: string; tipo?: string; mesaId?: string | null; criadoEm: string; total?: number }
+
+export function identificacaoPedido(pedido: PedidoBasico): string {
+  return pedido.tipo === 'balcao' ? `Balcão #${pedido.id?.slice(-6) ?? '-'}` : pedido.tipo === 'delivery' ? `Delivery #${pedido.id?.slice(-6) ?? '-'}` : `Mesa ${pedido.mesaId?.replace('mesa_', '') ?? '-'}`
+}
 
 export function linhasComanda(
   pedido: PedidoBasico,
@@ -122,7 +126,7 @@ export function linhasComanda(
 ): LinhaImpressao[] {
   const ls: LinhaImpressao[] = [
     { texto: '*** COMANDA ***', alinhamento: 'centro', negrito: true, grande: true },
-    { texto: `Mesa ${pedido.mesaId?.replace('mesa_', '') ?? '-'}  ${horaCurta(pedido.criadoEm)}`, negrito: true },
+    { texto: `${identificacaoPedido(pedido)}  ${horaCurta(pedido.criadoEm)}`, negrito: true },
     { texto: '--------------------------------' },
   ]
   for (const i of itens) {
@@ -140,6 +144,7 @@ export function linhasRecibo(
 ): LinhaImpressao[] {
   const ls: LinhaImpressao[] = [
     { texto: restaurante || 'PDV LANCHONETE', alinhamento: 'centro', negrito: true, grande: true },
+    { texto: identificacaoPedido(pedido), alinhamento: 'centro' },
     { texto: dataCurta(pedido.criadoEm), alinhamento: 'centro' },
     { texto: '--------------------------------' },
   ]

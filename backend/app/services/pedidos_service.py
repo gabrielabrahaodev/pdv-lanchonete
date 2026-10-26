@@ -123,6 +123,44 @@ def criar(restaurant_id: str, usuario_id: str, mesa_id: str, tipo: str, itens_pa
     return obter(restaurant_id, pedido_id)
 
 
+def criar_balcao(restaurant_id: str, usuario_id: str, itens_payload: list[OrderItemAdd], chave: str) -> dict:
+    """Pedido sem mesa; chave protege reserva e baixa inicial contra repeticao."""
+    if not 1 <= len(itens_payload) <= 50:
+        raise HTTPException(422, "Informe entre 1 e 50 itens")
+    corpo = [i.model_dump(by_alias=True) for i in itens_payload]
+    fingerprint = hashlib.sha256(json.dumps(corpo, sort_keys=True).encode()).hexdigest()
+    evento = item_doc(restaurant_id, "eventos_itens", "balcao_" + chave)
+    ref = items_col(restaurant_id, "pedidos").document()
+
+    @transactional
+    def executar(t):
+        snap = next(iter(t.get(evento)), None)
+        if snap and snap.exists:
+            data = snap.to_dict() or {}
+            if data.get("fingerprint") != fingerprint:
+                raise HTTPException(409, "Chave de venda ja utilizada com outros itens")
+            return data["pedidoId"]
+        sessao = next(iter(t.get(items_col(restaurant_id, "sessoes_caixa").where("status", "==", "aberto"))), None)
+        if not sessao or not sessao.exists:
+            raise HTTPException(409, "Abra o caixa antes de iniciar uma venda direta")
+        itens = [_montar_item(restaurant_id, new_id("item_"), i) for i in itens_payload]
+        consumo = _consumo_itens_entregues(restaurant_id, itens)
+        gravar_lotes = producao_service.planejar_reservas(t, restaurant_id, ref.id, itens, usuario_id)
+        gravar_consumo, aplicadas = _planejar_consumo(t, restaurant_id, ref.id, consumo, usuario_id)
+        from app.services import agregados_service
+        agregados_service.registrar_saidas_tx(t, restaurant_id, aplicadas, evento_id=f"balcao:{ref.id}")
+        gravar_consumo()
+        gravar_lotes()
+        t.set(ref, {**stamp_create({"tipo": "balcao", "status": "aberto",
+            "itens": itens, "total": _total(itens), "pagamentos": [],
+            "usuarioId": usuario_id, "restaurantId": restaurant_id}), "mesaId": None})
+        t.set(evento, stamp_create({"fingerprint": fingerprint, "pedidoId": ref.id}))
+        return ref.id
+
+    pedido_id = executar(get_db().transaction())
+    return obter(restaurant_id, pedido_id)
+
+
 def obter(restaurant_id: str, pedido_id: str) -> dict:
     doc = get_item(restaurant_id, "pedidos", pedido_id)
     if not doc:
@@ -374,20 +412,25 @@ def _aplicar_consumo(
     consumo: dict[str, float],
     usuario_id: str | None,
 ) -> tuple[bool, dict[str, float]]:
-    """Escreve as saídas de estoque do consumo já agregado. Respeita o flag
-    `baixaEstoqueAutomatica`; saldo pode ficar negativo (não trava preparo).
-    Contrato ÚNICO: sempre `(escreveu, {itemId: qtd aplicada})` — quando a
-    baixa está desligada devolve `(False, {})` (nunca um bool solto).
+    """Compatibilidade: planeja as leituras e aplica a baixa imediatamente."""
+    gravar, aplicadas = _planejar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
+    gravar()
+    return bool(aplicadas), aplicadas
 
-    ⚠️ Firestore proíbe LEITURA após ESCRITA dentro da transação
-    (ReadAfterWriteError): por isso TODOS os docs são lidos primeiro e as
-    escritas acontecem numa segunda fase (bug 10 do AGENTS.md).
-    """
+
+def _planejar_consumo(
+    transaction,
+    restaurant_id: str,
+    pedido_id: str,
+    consumo: dict[str, float],
+    usuario_id: str | None,
+):
+    """Le os insumos e devolve a fase de escrita e as quantidades aplicadas."""
     # -------- fase 1: TODAS as leituras --------
     cfg_snap = next(iter(transaction.get(config_doc(restaurant_id))), None)
     if cfg_snap and cfg_snap.exists:
         if not (cfg_snap.to_dict() or {}).get("baixaEstoqueAutomatica", True):
-            return False, {}  # controle desativado pelo admin
+            return (lambda: None), {}  # controle desativado pelo admin
 
     pendentes: list[tuple[str, object, float, float]] = []  # (itemId, doc_ref, qtd_consumida, novo_saldo)
     for iid, total in sorted(consumo.items()):
@@ -401,30 +444,29 @@ def _aplicar_consumo(
         atual = float((snap.to_dict() or {}).get("quantidadeAtual", 0) or 0)
         pendentes.append((iid, ref, total, round(atual - total, 3)))
 
-    # -------- fase 2: TODAS as escritas --------
-    escreveu = False
-    observacao = f"Baixa automática — preparo do pedido {pedido_id}"
-    for iid, ref, qtd, novo_saldo in pendentes:
-        mov_ref = items_col(restaurant_id, "movimentacoes_estoque").document()
-        transaction.set(
-            mov_ref,
-            stamp_create(
-                {
-                    "tipo": "saida",
-                    "itemId": iid,
-                    "qtd": qtd,
-                    "saldoApos": novo_saldo,
-                    "observacao": observacao,
-                    "pedidoId": pedido_id,
-                    "usuarioId": usuario_id,
-                    "restaurantId": restaurant_id,
-                }
-            ),
-        )
-        transaction.update(ref, stamp_update({"quantidadeAtual": novo_saldo}))
-        escreveu = True
-    aplicadas = {iid: qtd for (iid, _, qtd, _) in pendentes} if escreveu else {}
-    return escreveu, aplicadas
+    def gravar():
+        # -------- fase 2: TODAS as escritas --------
+        observacao = f"Baixa automática — preparo do pedido {pedido_id}"
+        for iid, ref, qtd, novo_saldo in pendentes:
+            mov_ref = items_col(restaurant_id, "movimentacoes_estoque").document()
+            transaction.set(
+                mov_ref,
+                stamp_create(
+                    {
+                        "tipo": "saida",
+                        "itemId": iid,
+                        "qtd": qtd,
+                        "saldoApos": novo_saldo,
+                        "observacao": observacao,
+                        "pedidoId": pedido_id,
+                        "usuarioId": usuario_id,
+                        "restaurantId": restaurant_id,
+                    }
+                ),
+            )
+            transaction.update(ref, stamp_update({"quantidadeAtual": novo_saldo}))
+    aplicadas = {iid: qtd for (iid, _, qtd, _) in pendentes}
+    return gravar, aplicadas
 
 
 def cancelar(restaurant_id: str, pedido_id: str) -> dict:

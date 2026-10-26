@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Printer } from 'lucide-react'
 import { api } from '../../lib/api'
 import { hora } from '../../lib/format'
-import { imprimir, linhasComanda } from '../../lib/impressora'
+import { imprimir, linhasComanda, identificacaoPedido } from '../../lib/impressora'
 import { useCozinhaFila, useProdutos } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
 
@@ -36,7 +36,7 @@ export default function CozinhaPage() {
     if (vistos.current) {
       const novos = fila.data.filter((p) => !vistos.current!.has(p.id))
       if (novos.length === 1) {
-        setAnuncio(`Novo pedido na mesa ${novos[0].mesaId?.replace('mesa_', '') ?? '?'}`)
+        setAnuncio(`Novo pedido: ${identificacaoPedido(novos[0])}`)
       } else if (novos.length > 1) {
         setAnuncio(`${novos.length} novos pedidos na cozinha`)
       }
@@ -79,10 +79,10 @@ export default function CozinhaPage() {
       <header className="mb-5 flex flex-col gap-3 pl-14 sm:flex-row sm:items-center sm:justify-between sm:pl-0">
         <div>
           <h1 className="text-xl font-bold text-white">👨‍🍳 Cozinha — KDS</h1>
-          <p className="text-xs text-slate-500">Um cartão por mesa · tempo real</p>
+          <p className="text-xs text-slate-500">Um cartão por pedido · mesas e balcão · tempo real</p>
         </div>
         <span className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-bold text-emerald-400">
-          {pedidos.length} mesa(s) ativa(s)
+          {pedidos.length} pedido(s) ativo(s)
         </span>
       </header>
 
@@ -99,13 +99,13 @@ export default function CozinhaPage() {
             <article key={pedido.id} className={`rounded-xl border-l-4 ${borda} bg-white p-4 shadow`}>
               <div className="mb-3 flex items-center justify-between border-b border-slate-100 pb-2">
                 <span className="text-base font-extrabold text-slate-800">
-                  Mesa {pedido.mesaId?.replace('mesa_', '') ?? '?'}
+                  {identificacaoPedido(pedido)}
                 </span>
                 <span className="flex items-center gap-2">
                   <button
                     onClick={() =>
                       imprimir(
-                        `Comanda mesa ${pedido.mesaId}`,
+                        `Comanda ${identificacaoPedido(pedido)}`,
                         linhasComanda(
                           pedido,
                           pedido.itens

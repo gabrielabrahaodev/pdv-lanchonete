@@ -2,12 +2,12 @@ import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { UtensilsCrossed } from 'lucide-react'
 import { api } from '../../lib/api'
-import { useMesas, useSessaoAtual } from '../../hooks/useFirestore'
+import { useMesas, useSessaoAtual, useVendasBalcao } from '../../hooks/useFirestore'
 import type { Mesa } from '../../types'
 import { useAuth } from '../../context/AuthContext'
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingScreen } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
-import { brl } from '../../lib/format'
+import { brl, dataHora } from '../../lib/format'
 
 export default function CaixaOverviewPage() {
   const navigate = useNavigate()
@@ -17,6 +17,8 @@ export default function CaixaOverviewPage() {
 
   const podeCaixa = ['admin', 'gerente', 'caixa'].includes(me?.papel ?? '')
   const sessao = useSessaoAtual(podeCaixa ? me?.restaurantId : null)
+
+  const balcao = useVendasBalcao(podeCaixa ? me?.restaurantId : null)
 
   const abrirCaixa = useMutation({
     mutationFn: (valorInicial: number) => api('/caixa/abrir', { method: 'POST', body: { valorInicial } }),
@@ -41,6 +43,7 @@ export default function CaixaOverviewPage() {
         subtitle={`${ocupadas} mesa(s) ocupada(s) de ${lista.length}`}
         actions={podeCaixa &&
           <>
+            <Link to="/caixa/venda-direta"><Button>Nova venda direta</Button></Link>
             <Link to="/relatorios/fechamento-caixa">
               <Button variant="secondary">Sessão de caixa</Button>
             </Link>
@@ -49,6 +52,7 @@ export default function CaixaOverviewPage() {
         }
       />
 
+      {abrirCaixa.isError && <ErrorState error={abrirCaixa.error} />}
       {s && (
         <Card className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-2 p-4">
           <div className="flex items-center gap-2">
@@ -63,6 +67,16 @@ export default function CaixaOverviewPage() {
         </Card>
       )}
 
+      {podeCaixa && <Card className="mb-5 p-4">
+        <h2 className="font-bold">Vendas de balcão</h2>
+        <p className="mb-3 text-xs text-slate-500">Vendas em aberto, entregas pendentes e vendas de balcão entre os últimos 25 pedidos.</p>
+        {balcao.error ? <ErrorState error={balcao.error} /> : balcao.isLoading ? <p>Carregando…</p> : balcao.data.length === 0 ? <p className="text-sm text-slate-500">Nenhuma venda de balcão nesta lista.</p> :
+          <ul className="divide-y divide-slate-200">{balcao.data.map(p => <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+            <div><p className="text-sm font-semibold">Balcão #{p.id.slice(-6)} · {brl(p.total)} <Badge value={p.status} /></p><p className="text-xs text-slate-500">{dataHora(p.criadoEm)}{p.itens.some(i => ['pendente','preparo','pronto'].includes(i.status)) ? ' · entrega pendente' : ''}</p></div>
+            <Link className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-600" to={`/caixa/pagamento/${p.id}`}>{p.status === 'aberto' ? 'Continuar pagamento' : 'Ver venda / entrega'}</Link>
+          </li>)}</ul>}
+      </Card>}
+
       <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
         {lista.map((m) => (
           <MesaCard key={m.id} mesa={m} />
@@ -72,7 +86,7 @@ export default function CaixaOverviewPage() {
       {lista.length === 0 && (
         <EmptyState
           icon={<UtensilsCrossed className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />}
-          message="Nenhuma mesa cadastrada — crie em Mesas."
+          message="Nenhuma mesa cadastrada. A venda direta funciona sem mesas."
         />
       )}
     </div>

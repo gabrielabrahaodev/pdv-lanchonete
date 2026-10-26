@@ -83,6 +83,7 @@ export interface Mesa {
 }
 
 export interface OrderItem {
+  produtoNome?: string
   id: string
   produtoId: string
   variacaoId?: string | null
@@ -107,7 +108,7 @@ export interface Payment {
 
 export interface Order {
   id: string
-  mesaId: string
+  mesaId: string | null
   tipo: 'local' | 'delivery' | 'balcao'
   status: 'aberto' | 'pago' | 'cancelado'
   itens: OrderItem[]

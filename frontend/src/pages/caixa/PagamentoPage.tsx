@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { api } from '../../lib/api'
-import { usePedido, useProdutos } from '../../hooks/useFirestore'
+import { api, ApiError } from '../../lib/api'
+import { usePedido, useProdutos, useSessaoAtual } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
 import type { Order } from '../../types'
 import { Badge, Button, Card, ErrorState, Field, Input, LoadingScreen } from '../../components/ui'
 import { brl, dataHora } from '../../lib/format'
-import { imprimir, linhasRecibo } from '../../lib/impressora'
+import { imprimir, linhasRecibo, identificacaoPedido } from '../../lib/impressora'
 
 const FORMAS = [
   { id: 'dinheiro', label: '💵 Dinheiro' },
@@ -29,27 +29,49 @@ export default function PagamentoPage() {
   const [forma, setForma] = useState<string>('dinheiro')
   const [valor, setValor] = useState('')
   const [valorRecebido, setValorRecebido] = useState('')
+  const sessao = useSessaoAtual(rid)
+  const [entregarProntos, setEntregarProntos] = useState(false)
+  const envio = useRef<{chave:string; body:{tipo:string; valor:number; troco:number|null; entregarProntos:boolean}} | null>(null)
+  const [bloqueado, setBloqueado] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
   const registrar = useMutation({
-    mutationFn: () =>
-      api(`/pagamentos/${pedidoId}`, {
-        method: 'POST',
-        body: {
-          tipo: forma,
-          valor: Number(valor.replace(',', '.')),
-          troco:
-            forma === 'dinheiro' && valorRecebido
-              ? Math.max(0, Number(valorRecebido.replace(',', '.')) - Number(valor.replace(',', '.')))
-              : null,
-        },
-      }),
+    mutationFn: () => {
+      if (!envio.current) {
+        const p = pedido.data
+        if (!p) throw new ApiError(404, 'Pedido não encontrado')
+        const restante = Math.max(0, Math.round((p.total - p.pagamentos.reduce((s,pg) => s+pg.valor,0))*100)/100)
+        const quantia = p.tipo === 'balcao' ? restante : Number(valor.replace(',', '.'))
+        envio.current = {chave:crypto.randomUUID(), body:{tipo:forma, valor:quantia,
+          troco: forma === 'dinheiro' && valorRecebido ? Math.max(0,Number(valorRecebido.replace(',','.'))-quantia) : null,
+          entregarProntos: p.tipo === 'balcao' && entregarProntos}}
+      }
+      setBloqueado(true)
+      return api<Order>(`/pagamentos/${pedidoId}`, {method:'POST', body:envio.current.body, paymentIdempotencyKey:envio.current.chave})
+    },
     onSuccess: (data) => {
       const pago = (data as Order).status === 'pago'
-      if (pago) navigate('/caixa')
+      envio.current = null
+      setBloqueado(false)
+      setErro(null)
+      if (pago && (data as Order).tipo !== 'balcao') navigate('/caixa')
       else resetValores()
     },
-    onError: (e) => setErro(e instanceof Error ? e.message : 'Erro ao registrar pagamento'),
+    onError: (e) => {
+      if (e instanceof ApiError && e.status >= 400 && e.status < 500) { envio.current = null; setBloqueado(false) }
+      setErro(envio.current ? 'Pagamento não confirmado. Tente novamente: a mesma operação será conferida sem duplicar o recebimento.' : e instanceof Error ? e.message : 'Erro ao registrar pagamento')
+    },
+  })
+
+  const cancelar = useMutation({
+    mutationFn: () => api(`/pedidos/${pedidoId}/cancelar`, {method:'POST'}),
+    onSuccess: () => navigate('/caixa'),
+    onError: (e) => setErro(e instanceof Error ? e.message : 'Erro ao cancelar'),
+  })
+  const entregar = useMutation({
+    mutationFn: () => api(`/cozinha/pedidos/${pedidoId}/itens/status`, {method:'PATCH', body:{itemIds:pedido.data?.itens.filter(i => i.status === 'pronto').map(i => i.id), novoStatus:'entregue'}}),
+    onError: (e) => setErro(e instanceof Error ? e.message : 'Erro ao entregar'),
+    onSuccess: () => setErro(null),
   })
 
   function resetValores() {
@@ -63,7 +85,7 @@ export default function PagamentoPage() {
     imprimir(
       `Recibo ${pedidoId}`,
       linhasRecibo(
-        'PDV Lanchonete',
+        me?.restaurantNome ?? 'PDV Lanchonete',
         pedido.data,
         pedido.data.itens,
         (pid) => produtos.data?.find((x) => x.id === pid)?.nome ?? 'Produto',
@@ -74,14 +96,19 @@ export default function PagamentoPage() {
   if (pedido.isLoading) return <LoadingScreen />
   if (pedido.isError) return <ErrorState error={pedido.error} />
 
-  const p = pedido.data!
+  const p = pedido.data
+  if (!p) return <p className="p-6">Pedido não encontrado.</p>
+  if (p.status === 'cancelado') return <div className="p-6">Pedido cancelado. <Link to="/caixa">Voltar ao caixa</Link></div>
+  const balcao = p.tipo === 'balcao'
   const jaPago = p.pagamentos.reduce((s, pg) => s + pg.valor, 0)
   const restante = Math.max(0, Math.round((p.total - jaPago) * 100) / 100)
   const quitado = restante <= 0.009
 
+  const quantia = balcao ? restante : Number(valor.replace(',', '.'))
+  const prontos = p.itens.filter(i => i.status === 'pronto')
   const trocoCalculado =
     forma === 'dinheiro' && valorRecebido
-      ? Number(valorRecebido.replace(',', '.')) - Number(valor.replace(',', '.'))
+      ? Number(valorRecebido.replace(',', '.')) - quantia
       : null
 
   return (
@@ -89,15 +116,15 @@ export default function PagamentoPage() {
       <Link to="/caixa" className="text-xs font-semibold text-brand-600 hover:underline">
         ← Voltar ao caixa
       </Link>
-      <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">Pagamento</h1>
-      <p className="text-sm text-slate-500">Pedido de {dataHora(p.criadoEm)} · <Badge value={p.status} /></p>
+      <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">{balcao ? 'Pagamento — venda direta' : 'Pagamento'}</h1>
+      <p className="text-sm text-slate-500">{identificacaoPedido(p)} · {dataHora(p.criadoEm)} · <Badge value={p.status} /></p>
 
       <Card className="mt-4 divide-y divide-slate-100">
         <ul>
           {p.itens.filter((i) => i.status !== 'cancelado').map((i) => (
-            <li key={i.id} className="flex justify-between px-5 py-2 text-sm">
-              <span className="text-slate-700">{i.qtd}× produto</span>
-              <span className="font-semibold">{brl(i.qtd * i.precoUnitario)}</span>
+            <li key={i.id} className="flex items-start justify-between gap-3 px-5 py-2 text-sm">
+              <span className="min-w-0 break-words text-slate-700">{i.qtd}× {i.produtoNome ?? produtos.data?.find(prod => prod.id === i.produtoId)?.nome ?? 'Produto'} · {i.status}</span>
+              <span className="shrink-0 font-semibold">{brl(i.qtd * i.precoUnitario)}</span>
             </li>
           ))}
         </ul>
@@ -122,11 +149,15 @@ export default function PagamentoPage() {
         )}
       </Card>
 
+      {erro && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{erro}</p>}
       {quitado ? (
         <Card className="mt-4 bg-emerald-50 p-8 text-center">
           <p className="text-3xl">✅</p>
           <p className="mt-2 font-bold text-emerald-700">Pedido quitado!</p>
+          {balcao && p.itens.some(i => ['pendente','preparo'].includes(i.status)) && <p className="mt-2 text-sm">O preparo continua na cozinha como {identificacaoPedido(p)}.</p>}
+          {balcao && prontos.length > 0 && <Button className="mt-3" loading={entregar.isPending} onClick={() => entregar.mutate()}>Confirmar entrega dos itens prontos</Button>}
           <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {balcao && <Link to="/caixa/venda-direta"><Button>Nova venda</Button></Link>}
             <Button variant="secondary" onClick={() => imprimirRecibo()}>
               🖨 Recibo
             </Button>
@@ -135,7 +166,9 @@ export default function PagamentoPage() {
         </Card>
       ) : (
         <>
+          {balcao && !sessao.isLoading && !sessao.data && <p role="alert" className="mt-4 text-rose-600">Abra o caixa para receber esta venda.</p>}
           <Card className="mt-4 space-y-4 p-5">
+            <fieldset disabled={bloqueado || cancelar.isPending} className="space-y-4">
             <div className="grid grid-cols-4 gap-2">
               {FORMAS.map((f) => (
                 <button
@@ -156,7 +189,8 @@ export default function PagamentoPage() {
               <Field label={`Valor (${restante > 0 ? `restante ${brl(restante)}` : ''})`}>
                 <Input
                   inputMode="decimal"
-                  value={valor}
+                  value={balcao ? restante.toFixed(2).replace('.', ',') : valor}
+                  readOnly={balcao}
                   onChange={(e) => setValor(e.target.value)}
                   placeholder={restante.toFixed(2).replace('.', ',')}
                 />
@@ -185,18 +219,20 @@ export default function PagamentoPage() {
               </Button>
             </div>
 
-            {erro && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{erro}</p>}
+            {balcao && prontos.length > 0 && <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={entregarProntos} onChange={e => setEntregarProntos(e.target.checked)} />Confirmar também a entrega dos itens prontos. Os que precisam de preparo continuam na cozinha.</label>}
+            </fieldset>
 
             <Button
               className="w-full py-2.5"
               loading={registrar.isPending}
-              disabled={!valor || Number(valor.replace(',', '.')) <= 0 || (trocoCalculado ?? 0) < 0}
+              disabled={cancelar.isPending || (!bloqueado && (!Number.isFinite(quantia) || quantia <= 0 || (trocoCalculado !== null && (!Number.isFinite(trocoCalculado) || trocoCalculado < 0)) || (balcao && (!sessao.data || sessao.isError || sessao.isLoading))))}
               onClick={() => registrar.mutate()}
             >
-              Registrar {FORMAS.find((f) => f.id === forma)?.label}
+              {bloqueado && registrar.isError ? 'Tentar novamente' : balcao ? `Confirmar pagamento ${brl(restante)}` : `Registrar ${FORMAS.find((f) => f.id === forma)?.label}`}
             </Button>
+            {balcao && jaPago === 0 && <Button variant="secondary" disabled={bloqueado} loading={cancelar.isPending} onClick={() => window.confirm('Cancelar esta venda? Reservas da estufa serão liberadas. Insumos já consumidos não serão estornados.') && cancelar.mutate()}>Cancelar venda</Button>}
           </Card>
-
+          <p className="mt-3 text-xs text-slate-500">Confirme apenas após receber o dinheiro ou verificar a aprovação do PIX/cartão.</p>
           {forma === 'pix' && <PixHint />}
         </>
       )}

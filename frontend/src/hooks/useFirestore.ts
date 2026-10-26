@@ -170,7 +170,8 @@ export function usePedidosDaMesa(rid: string | null | undefined, mesaId: string)
 
 export interface FilaPedido {
   id: string
-  mesaId: string
+  mesaId: string | null
+  tipo: Order['tipo']
   criadoEm: string
   itens: Order['itens']
 }
@@ -185,6 +186,7 @@ export function useCozinhaFila(rid: string | null | undefined): SnapshotResult<F
         .map((p) => ({
           id: p.id,
           mesaId: p.mesaId,
+          tipo: p.tipo,
           criadoEm: p.criadoEm,
           itens: (p.itens ?? []).filter((i) => STATUS_RELEVANTES_KDS.includes(i.status)),
         }))
@@ -253,3 +255,14 @@ export const useLotesProducao = (rid: string | null | undefined) =>
 
 export const useHistoricoProducao = (rid: string | null | undefined) =>
   useDocs<MovimentoProducao>(rid, 'movimentacoes_producao', 'recentes', (c) => query(c, orderBy('createdAt', 'desc'), limit(100)))
+
+/** Abertos e pagos aguardando entrega, mais os 25 pedidos recentes. Sem indice composto. */
+export function useVendasBalcao(rid: string | null | undefined) {
+  const abertos = usePedidosAbertos(rid)
+  const pendentes = useDocs<Order>(rid, 'pedidos', 'balcao-entrega', (c) => query(c, where('cozinhaPendente', '==', true)))
+  const recentes = useDocs<Order>(rid, 'pedidos', 'balcao-recentes', (c) => query(c, orderBy('createdAt', 'desc'), limit(25)))
+  return { data: [...new Map([...(abertos.data ?? []), ...(pendentes.data ?? []), ...(recentes.data ?? [])].map(p => [p.id,p])).values()]
+    .filter(p => p.tipo === 'balcao' && p.status !== 'cancelado').sort((a,b) => +new Date(b.criadoEm)-+new Date(a.criadoEm)),
+    isLoading: abertos.isLoading || pendentes.isLoading || recentes.isLoading,
+    error: abertos.error ?? pendentes.error ?? recentes.error }
+}

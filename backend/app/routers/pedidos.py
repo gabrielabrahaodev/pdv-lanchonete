@@ -33,6 +33,15 @@ def listar(
     return docs
 
 
+@router.post("/balcao", status_code=201)
+def criar_balcao(
+    itens: list[OrderItemAdd],
+    chave: str = Header(alias="Idempotency-Key", min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_-]+$"),
+    auth: CurrentAuth = Depends(require_roles("admin", "gerente", "caixa")),
+) -> dict:
+    return pedidos_service.criar_balcao(auth.restaurant_id, auth.uid, itens, chave)
+
+
 @router.get("/{pedido_id}")
 def obter(pedido_id: str, restaurant_id: str = Depends(require_restaurant)) -> dict:
     return pedidos_service.obter(restaurant_id.restaurant_id, pedido_id)

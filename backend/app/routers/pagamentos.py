@@ -33,4 +33,5 @@ def registrar(
         troco=pagamento.troco,
         referencia=pagamento.referencia,
         idempotency_key=idempotencia,
+        entregar_prontos=pagamento.entregar_prontos,
     )
