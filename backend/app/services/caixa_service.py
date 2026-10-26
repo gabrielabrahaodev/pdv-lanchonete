@@ -1,6 +1,9 @@
 """Sessões de caixa e registro de pagamentos."""
 from __future__ import annotations
 from typing import Any
+import hashlib
+import json
+from copy import deepcopy
 
 from fastapi import HTTPException
 from google.cloud.firestore import transactional
@@ -167,6 +170,7 @@ def registrar_pagamento(
     troco: float | None = None,
     referencia: str | None = None,
     idempotency_key: str | None = None,
+    entregar_prontos: bool = False,
 ) -> dict:
     """Registra pagamento em UMA transação (leituras antes de escritas):
 
@@ -176,15 +180,16 @@ def registrar_pagamento(
       diário/mensal na MESMA transação (falha no meio não diverge estado);
     - agregado vai com evento determinístico `venda:{pedidoId}` (no-replay);
     - idempotência por chave opcional (header `X-Idempotency-Key`): replay
-      rejeitado com 409 e nenhum dado duplicado.
+      replay igual de balcão retorna o pedido; demais modos rejeitam com 409.
     """
-    from app.services import agregados_service, mesas_service
+    from app.services import agregados_service, mesas_service, producao_service
 
     if tipo not in {"dinheiro", "pix", "credito", "debito"}:
         raise HTTPException(422, "Tipo de pagamento inválido (dinheiro, pix, credito, debito)")
     if float(valor) <= 0:
         raise HTTPException(422, "Valor do pagamento deve ser maior que zero")
 
+    fingerprint = hashlib.sha256(json.dumps([tipo, valor, troco, referencia, entregar_prontos], sort_keys=True).encode()).hexdigest()
     db = get_db()
     pedido_ref = item_doc(restaurant_id, "pedidos", pedido_id)
     evento_ref = (
@@ -199,16 +204,21 @@ def registrar_pagamento(
         if not pedido_snap or not pedido_snap.exists:
             raise HTTPException(404, "Pedido não encontrado")
         pedido = dict(pedido_snap.to_dict() or {})
-        if pedido.get("status") != "aberto":
-            raise HTTPException(409, "Pedido não está aberto para pagamentos")
-
         if evento_ref is not None:
             ev_snap = next(iter(t.get(evento_ref)), None)
             if ev_snap and ev_snap.exists:
+                if pedido.get("tipo") == "balcao":
+                    if (ev_snap.to_dict() or {}).get("fingerprint") != fingerprint:
+                        raise HTTPException(409, "Chave de pagamento ja utilizada com outros dados")
+                    return
                 raise HTTPException(
                     409, "Pagamento já registrado para esta chave de idempotência"
                 )
 
+        if pedido.get("status") != "aberto":
+            raise HTTPException(409, "Pedido não está aberto para pagamentos")
+        if entregar_prontos and pedido.get("tipo") != "balcao":
+            raise HTTPException(422, "Entrega no pagamento disponivel apenas para balcao")
         ja_pago = float(calculos.soma_monet(p.get("valor", 0) for p in pedido.get("pagamentos", [])))
         total = float(calculos.monet(pedido.get("total", 0)))
         restante = calculos.round_money(total - ja_pago)
@@ -218,13 +228,25 @@ def registrar_pagamento(
         sessao_snap = next(iter(
             t.get(items_col(restaurant_id, "sessoes_caixa").where("status", "==", "aberto"))
         ), None)
+        if pedido.get("tipo") == "balcao" and not (sessao_snap and sessao_snap.exists):
+            raise HTTPException(409, "Abra o caixa antes de receber a venda direta")
         mesa_id = pedido.get("mesaId")
         mesa_ref = item_doc(restaurant_id, "mesas", mesa_id) if mesa_id else None
         mesa_snap = next(iter(t.get(mesa_ref)), None) if mesa_ref else None
 
         quitado = calculos.round_money(ja_pago + float(valor)) >= calculos.round_money(total) - TOLERANCIA
 
-        # ---------- fase 2: TODAS as escritas ----------
+        gravar_entrega = lambda: None
+        if entregar_prontos:
+            if not quitado:
+                raise HTTPException(422, "Para pagar e entregar, quite todo o saldo")
+            pedido["itens"] = deepcopy(pedido.get("itens", []))
+            prontos = [i for i in pedido["itens"] if i.get("status") == "pronto"]
+            gravar_entrega = producao_service.planejar_destino(t, restaurant_id, pedido_id, prontos, "entrega", usuario_id)
+            for item in prontos:
+                item["status"] = "entregue"
+
+        # Agregados ainda fazem suas leituras antes de qualquer escrita.
         pagamento = {
             "id": new_id("pag_"),
             "tipo": tipo,
@@ -235,6 +257,8 @@ def registrar_pagamento(
         }
         pagamentos = [*pedido.get("pagamentos", []), pagamento]
         updates: dict[str, Any] = {"pagamentos": pagamentos}
+        if entregar_prontos:
+            updates["itens"] = pedido["itens"]
         if quitado:
             updates |= {"status": "pago", "fechadoEm": fechado_em, "cozinhaPendente": any(i.get("status") in {"pendente", "preparo", "pronto"} for i in pedido.get("itens", []))}
 
@@ -244,6 +268,7 @@ def registrar_pagamento(
             agregados_service.registrar_venda_tx(
                 t, restaurant_id, pedido, pagamentos, fechado_em, evento_id=f"venda:{pedido_id}"
             )
+        gravar_entrega()
         t.update(pedido_ref, stamp_update(updates))
         if evento_ref is not None:
             t.set(
@@ -253,6 +278,7 @@ def registrar_pagamento(
                         "pedidoId": pedido_id,
                         "tipo": "pagamento",
                         "idempotencyKey": idempotency_key,
+                        "fingerprint": fingerprint,
                         "restaurantId": restaurant_id,
                     }
                 ),

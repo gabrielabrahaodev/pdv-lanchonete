@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
-import { useMesa, usePedidoAbertoDaMesa, useProdutos, useCategorias, useLotesProducao } from '../../hooks/useFirestore'
+import { useMesa, usePedidoAbertoDaMesa, useProdutos, useCategorias, useLotesProducao, useSessaoAtual } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
 import type { Category, Order, Product, ProductVariation } from '../../types'
 import { Badge, Button, Card, ErrorState, Input, LoadingScreen, Select } from '../../components/ui'
@@ -19,10 +19,10 @@ interface CartItem {
   observacoes?: string
 }
 
-export default function NovoPedidoPage() {
+export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean }) {
   const { mesaId = '' } = useParams()
   const [searchParams] = useSearchParams()
-  const adicionando = searchParams.get('add') === '1'
+  const adicionando = !balcao && searchParams.get('add') === '1'
   const navigate = useNavigate()
   const { me } = useAuth()
   const rid = me?.restaurantId
@@ -42,9 +42,10 @@ export default function NovoPedidoPage() {
     return Math.max(0, saldo - cart.filter((i) => i.produtoId === produtoId).reduce((s, i) => s + i.qtd, 0))
   }
 
-  const mesa = useMesa(rid, mesaId)
+  const mesa = useMesa(balcao ? null : rid, mesaId)
+  const sessao = useSessaoAtual(balcao ? rid : null)
 
-  const pedidoExistente = usePedidoAbertoDaMesa(rid, mesaId)
+  const pedidoExistente = usePedidoAbertoDaMesa(balcao ? null : rid, mesaId)
 
   const [envioPendente, setEnvioPendente] = useState(false)
   const envio = useRef<{
@@ -55,6 +56,13 @@ export default function NovoPedidoPage() {
 
   const criarPedido = useMutation({
     mutationFn: async () => {
+      if (balcao) {
+        if (!envio.current) {
+          envio.current = {pedidoId: '', chave: crypto.randomUUID(), itens: cart.map((i) => ({produtoId:i.produtoId, variacaoId:i.variacaoId ?? null, qtd:i.qtd, observacoes:i.observacoes ?? null}))}
+        }
+        setEnvioPendente(true)
+        return api<{id:string}>('/pedidos/balcao', {method:'POST', body:envio.current.itens, idempotencyKey:envio.current.chave}).then((p) => p.id)
+      }
       if (adicionando) {
         // Uma resposta perdida não autoriza criar outro lote: repete a mesma
         // chave e o mesmo corpo, mesmo se o listener já mudou de pedido.
@@ -88,8 +96,8 @@ export default function NovoPedidoPage() {
         })),
       }).then((p) => p.id)
     },
-    onSuccess: () => {
-      navigate(`/caixa/mesa/${mesaId}`)
+    onSuccess: (id) => {
+      navigate(balcao ? `/caixa/pagamento/${id}` : `/caixa/mesa/${mesaId}`)
     },
     onError: (e) => {
       if (e instanceof ApiError && e.status >= 400 && e.status < 500) {
@@ -164,7 +172,7 @@ export default function NovoPedidoPage() {
     )
   }
 
-  if (categorias.isLoading || produtos.isLoading || mesa.isLoading || (adicionando && pedidoExistente.isLoading))
+  if (categorias.isLoading || produtos.isLoading || (!balcao && mesa.isLoading) || (adicionando && pedidoExistente.isLoading))
     return <LoadingScreen />
   if (produtos.isError) return <ErrorState error={produtos.error} />
 
@@ -179,13 +187,15 @@ export default function NovoPedidoPage() {
           ← Voltar
         </Link>
         <h1 className="mt-1 break-words text-xl font-bold text-slate-800 dark:text-slate-100">
-          Mesa {mesa.data?.numero} — {adicionando ? 'adicionar itens' : 'novo pedido'}
+          {balcao ? 'Venda direta — balcão' : `Mesa ${mesa.data?.numero} — ${adicionando ? 'adicionar itens' : 'novo pedido'}`}
         </h1>
         </div>
         <a href="#comanda-pedido" className="mt-3 inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-brand-600 underline lg:hidden">
           Ver comanda ({cart.reduce((qtd, item) => qtd + item.qtd, 0)} itens) · {brl(total)}
         </a>
 
+        {balcao && <p className="mt-3 text-sm text-slate-500">Escolha os produtos e prossiga para o pagamento. Nenhuma mesa será ocupada.</p>}
+        {balcao && !sessao.isLoading && !sessao.data && <p role="alert" className="mt-3 text-rose-600">Abra o caixa para iniciar uma venda direta.</p>}
         {erro && (
           <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {erro}
@@ -264,11 +274,11 @@ export default function NovoPedidoPage() {
           </div>
           <Button
             className="w-full"
-            disabled={cart.length === 0}
+            disabled={cart.length === 0 || (balcao && !envioPendente && (sessao.isLoading || sessao.isError || !sessao.data))}
             loading={criarPedido.isPending}
             onClick={() => criarPedido.mutate()}
           >
-            {envioPendente && criarPedido.isError ? 'Tentar novamente' : adicionando ? 'Adicionar ao pedido' : 'Abrir pedido'}
+            {envioPendente && criarPedido.isError ? 'Tentar novamente' : balcao ? 'Ir para pagamento' : adicionando ? 'Adicionar ao pedido' : 'Abrir pedido'}
           </Button>
         </div>
       </aside>

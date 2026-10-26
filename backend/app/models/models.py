@@ -204,9 +204,10 @@ class Payment(CamelModel):
 class PaymentCreate(CamelModel):
     """Payload de criação — id/criadoEm são gerados no servidor."""
     tipo: str  # dinheiro | pix | credito | debito
-    valor: float = Field(gt=0)
-    troco: Optional[float] = None
+    valor: float = Field(gt=0, allow_inf_nan=False)
+    troco: Optional[float] = Field(default=None, ge=0, allow_inf_nan=False)
     referencia: Optional[str] = None
+    entregar_prontos: bool = False
 
 
 class Order(CamelModel):

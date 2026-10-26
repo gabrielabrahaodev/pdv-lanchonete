@@ -61,5 +61,5 @@ jobs:
           python-version: '3.12'
       - run: pip install -r backend/requirements-dev.txt
       - name: firebase emulators:exec (regras e produção concorrente)
-        run: npx firebase-tools emulators:exec --only firestore --project demo-p0a "node tests/firestore_rules.test.mjs && PYTHONPATH=../backend python ../scripts/e2e/producao_emulator.py"
+        run: npx firebase-tools emulators:exec --only firestore --project demo-p0a "node tests/firestore_rules.test.mjs && PYTHONPATH=../backend python ../scripts/e2e/producao_emulator.py && PYTHONPATH=../backend python ../scripts/e2e/balcao_emulator.py"
         working-directory: frontend

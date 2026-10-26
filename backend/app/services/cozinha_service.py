@@ -17,6 +17,7 @@ def fila(restaurant_id: str) -> list[dict]:
                 {
                     "id": p["id"],
                     "mesaId": p.get("mesaId"),
+                    "tipo": p.get("tipo", "local"),
                     "criadoEm": p.get("criadoEm"),
                     "itens": sorted(itens, key=lambda i: 0 if i["status"] == "pendente" else 1),
                 }
