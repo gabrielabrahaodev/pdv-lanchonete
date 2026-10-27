@@ -63,7 +63,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-200">
             <UtensilsCrossed className="h-7 w-7" aria-hidden="true" />
           </div>
-          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">PDV Lanchonete</h1>
+          <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">NexoComanda</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {criando ? 'Crie sua conta para começar' : 'Entre com sua conta para continuar'}
           </p>
