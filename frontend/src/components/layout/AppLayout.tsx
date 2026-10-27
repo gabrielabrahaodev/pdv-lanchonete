@@ -113,7 +113,7 @@ export default function AppLayout() {
             <UtensilsCrossed className="h-5 w-5" aria-hidden="true" />
           </div>
           <span className={`truncate font-bold text-slate-800 dark:text-slate-100 ${collapsed ? 'hidden md:inline' : ''}`}>
-            PDV Lanchonete
+            NexoComanda
           </span>
           <button
             onClick={() => setDrawerAberto(false)}

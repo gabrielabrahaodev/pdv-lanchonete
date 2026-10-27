@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icons/pdv.svg', 'icons/favicon-32.png', 'icons/apple-touch-icon.png'],
       manifest: {
-        name: 'PDV',
-        short_name: 'PDV',
+        name: 'NexoComanda',
+        short_name: 'NexoComanda',
         lang: 'pt-BR',
         description: 'Ponto de venda de lanchonete — caixa, cozinha, estoque e financeiro',
         theme_color: '#ea580c',
