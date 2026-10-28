@@ -317,7 +317,10 @@ export interface PedidoReposicao {
   dataRecebimentoLocal?: string
   despesaId?: string
   valorTotalRecebido?: number
-  recebimento?: Array<{ itemId: string; quantidade: number; custoUnitario: number; valorTotal: number }>
+  recebidoPorNome?: string
+  recebidoPor?: string
+  usuarioId?: string
+  recebimento?: Array<{ itemId: string; nome?: string; unidade?: string; quantidade: number; quantidadeCompra?: number; unidadeCompra?: string; custoUnitario: number; valorTotal: number }>
 }
 
 export interface GrupoReposicao {

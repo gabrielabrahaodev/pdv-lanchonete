@@ -29,6 +29,28 @@ def listar(rid: str) -> list[dict]:
     return list_items(rid, COL)
 
 
+def listar_pagina(rid, status, limit=20, cursor=None):
+    from app.services.base import doc_to_dict
+    from google.cloud.firestore import Query
+    if status not in {'gerado','recebido','cancelado'}:
+        raise HTTPException(422, 'Status inválido de reposição')
+    if not 1 <= limit <= 100:
+        raise HTTPException(422, 'Limite deve estar entre 1 e 100')
+    query=items_col(rid,COL).where('status','==',status).order_by('createdAt', direction=Query.DESCENDING)
+    if cursor:
+        snap=item_doc(rid,COL,cursor).get()
+        if not snap.exists or (snap.to_dict() or {}).get('status')!=status:
+            raise HTTPException(409,'Cursor mudou ou não pertence a esta lista. Atualize a página.')
+        query=query.start_after(snap)
+    from google.api_core.exceptions import FailedPrecondition
+    try:
+        docs=[doc_to_dict(s) for s in query.limit(limit).stream()]
+    except FailedPrecondition as exc:
+        if 'index' not in str(exc).lower():raise
+        raise HTTPException(503,'Consulta de reposição indisponível: o índice de status e data precisa ser configurado pelo administrador.') from exc
+    return {'items':docs,'nextCursor':docs[-1]['id'] if len(docs)==limit else None}
+
+
 def obter(rid: str, pedido_id: str) -> dict:
     pedido = get_item(rid, COL, pedido_id)
     if not pedido:
@@ -45,8 +67,8 @@ def candidatos(rid: str) -> list[dict]:
     fornecedores = {f['id']: f for f in list_items(rid, 'fornecedores') if f.get('ativo', True)}
     em_aberto = {
         i['itemId']
-        for p in listar(rid) if p.get('status') == 'gerado'
-        for i in p.get('itens', [])
+        for snap in items_col(rid,COL).where('status','==','gerado').stream()
+        for i in (snap.to_dict() or {}).get('itens', [])
     }
     agrupados: dict[str, dict] = {}
     for item in list_items(rid, 'estoque'):
@@ -146,7 +168,7 @@ def cancelar(rid: str, uid: str, pedido_id: str) -> dict:
     return obter(rid, pedido_id)
 
 
-def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao) -> dict:
+def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao, usuario_nome: str | None = None) -> dict:
     linhas = {item.item_id: item for item in payload.itens}
     if len(linhas) != len(payload.itens):
         raise HTTPException(422, 'Insumo duplicado no recebimento')
@@ -276,8 +298,10 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
             'dataRecebimento': competencia,
             'dataRecebimentoLocal': payload.data_recebimento.isoformat(),
             'despesaId': despesa_ref.id, 'valorTotalRecebido': float(total_despesa),
-            'recebidoPor': uid, 'recebimento': recebidos,
+            'recebidoPor': uid, 'recebidoPorNome': usuario_nome, 'recebimento': recebidos,
         }))
 
     executar_transacao(_exec)
+    from app.services.bi_service import invalidar
+    invalidar(rid)
     return obter(rid, pedido_id)

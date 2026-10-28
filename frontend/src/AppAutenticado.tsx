@@ -21,6 +21,7 @@ const CategoriasPage = lazy(() => import('./pages/produtos/CategoriasPage'))
 const MesasPage = lazy(() => import('./pages/mesas/MesasPage'))
 const ProducaoPage = lazy(() => import('./pages/producao/ProducaoPage'))
 const EstoquePage = lazy(() => import('./pages/estoque/EstoquePage'))
+const ReposicaoHistoricoPage = lazy(() => import('./pages/estoque/ReposicaoHistoricoPage'))
 const ReposicaoPage = lazy(() => import('./pages/estoque/ReposicaoPage'))
 const CozinhaPage = lazy(() => import('./pages/cozinha/CozinhaPage'))
 const DeliveryPage = lazy(() => import('./pages/delivery/DeliveryPage'))
@@ -127,6 +128,8 @@ export default function AppAutenticado() {
           <Route path="mesas" element={<MesasPage />} />
           <Route path="estoque" element={<EstoquePage />} />
           <Route path="reposicao" element={<RequireGestao><ReposicaoPage /></RequireGestao>} />
+          <Route path="reposicao/recebidos" element={<RequireGestao><ReposicaoHistoricoPage key="recebidos" /></RequireGestao>} />
+          <Route path="reposicao/cancelados" element={<RequireGestao><ReposicaoHistoricoPage key="cancelados" cancelados /></RequireGestao>} />
           <Route path="producao" element={<ProducaoPage />} />
           <Route path="cozinha" element={<CozinhaPage />} />
           <Route path="delivery" element={<DeliveryPage />} />

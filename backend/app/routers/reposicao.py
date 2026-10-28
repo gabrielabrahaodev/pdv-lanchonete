@@ -1,5 +1,5 @@
 """Reposição de insumos: compras por fornecedor e recebimento transacional."""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app.core.security import CurrentAuth, require_roles
 from app.models.models import PedidoReposicaoCreate, ReceberPedidoReposicao
@@ -19,6 +19,18 @@ def pedidos(auth: CurrentAuth = Depends(GESTAO)) -> list[dict]:
     return reposicao_service.listar(auth.restaurant_id)
 
 
+@router.get('/pedidos/pagina')
+def pagina(status:str=Query('gerado',pattern='^(gerado|recebido|cancelado)$'),
+           limit:int=Query(20,ge=1,le=100),cursor:str|None=None,
+           auth:CurrentAuth=Depends(GESTAO)) -> dict:
+    return reposicao_service.listar_pagina(auth.restaurant_id,status,limit,cursor)
+
+
+@router.get('/pedidos/{pedido_id}')
+def detalhe(pedido_id:str,auth:CurrentAuth=Depends(GESTAO)) -> dict:
+    return reposicao_service.obter(auth.restaurant_id,pedido_id)
+
+
 @router.post('/pedidos', status_code=201)
 def criar(payload: PedidoReposicaoCreate, auth: CurrentAuth = Depends(GESTAO)) -> dict:
     return reposicao_service.criar(auth.restaurant_id, auth.uid, payload)
@@ -26,7 +38,7 @@ def criar(payload: PedidoReposicaoCreate, auth: CurrentAuth = Depends(GESTAO)) -
 
 @router.post('/pedidos/{pedido_id}/receber')
 def receber(pedido_id: str, payload: ReceberPedidoReposicao, auth: CurrentAuth = Depends(GESTAO)) -> dict:
-    return reposicao_service.receber(auth.restaurant_id, auth.uid, pedido_id, payload)
+    return reposicao_service.receber(auth.restaurant_id, auth.uid, pedido_id, payload, usuario_nome=auth.nome)
 
 
 @router.post('/pedidos/{pedido_id}/cancelar')

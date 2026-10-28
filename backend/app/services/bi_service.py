@@ -12,6 +12,14 @@ _CACHE = OrderedDict()
 _LOCK = RLock()
 
 
+def invalidar(rid):
+    """Invalida somente dados deste restaurante após commit confirmado."""
+    with _LOCK:
+        for key in list(_CACHE):
+            if (key[0] == 'fonte' and key[1] == rid) or key[0] == rid:
+                del _CACHE[key]
+
+
 def periodo(inicio, fim):
     if fim < inicio or (fim-inicio).days > 365:
         raise HTTPException(422, 'Período deve ter entre 1 e 366 dias')
