@@ -15,7 +15,7 @@ from collections import defaultdict, deque
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from app.services import produtos_service
-from app.services.base import config_doc, items_col, list_items
+from app.services.base import config_doc, items_col, list_items, restaurant_doc
 
 router = APIRouter(prefix="/publico", tags=["cardapio-digital"])
 
@@ -47,9 +47,16 @@ def cardapio(restaurant_id: str, request: Request) -> dict:
     _rate_limit(request)
     _garantir_cardapio_ativo(restaurant_id)
 
-    raiz = restaurant_doc_exists(restaurant_id)
-    if not raiz:
+    # A leitura da raiz já era necessária para verificar o restaurante.
+    # Reutilizamos o mesmo snapshot para expor somente o nome público.
+    raiz = restaurant_doc(restaurant_id).get()
+    if not raiz.exists:
         raise HTTPException(404, "Restaurante não encontrado")
+    dados_restaurante = raiz.to_dict() or {}
+    nome_restaurante = dados_restaurante.get("nome")
+    if not isinstance(nome_restaurante, str):
+        nome_restaurante = ""
+    nome_restaurante = nome_restaurante.strip()
 
     categorias = [
         {"id": c["id"], "nome": c.get("nome"), "icone": c.get("icone"), "ordem": c.get("ordem", 0)}
@@ -72,7 +79,11 @@ def cardapio(restaurant_id: str, request: Request) -> dict:
         }
         for p in produtos_service.listar(restaurant_id, apenas_ativos=True)
     ]
-    return {"categorias": sorted(categorias, key=lambda c: c["ordem"]), "produtos": produtos}
+    return {
+        "restauranteNome": nome_restaurante,
+        "categorias": sorted(categorias, key=lambda c: c["ordem"]),
+        "produtos": produtos,
+    }
 
 
 @router.get("/{restaurant_id}/imagens/{produto_id}")
