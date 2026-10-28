@@ -342,3 +342,24 @@ def test_reposicao_compra_rejeita_incompatibilidade_e_mistura_de_contratos_sem_m
             ))
         assert exc.value.status_code == 422
         assert db.store.data == antiga
+
+
+def test_fator_da_embalagem_alterado_apos_pedido_impede_recebimento_incorreto(db):
+    preparar(db)
+    db.store.data[doc_path(RID, 'estoque', 'cafe')].update({
+        'unidade': 'g', 'unidadeCompra': 'pct', 'fatorCompra': 500,
+        'quantidadeAtual': 100, 'minimo': 500, 'custoMedio': 0.008,
+    })
+    pedido = criar_pedido(db)
+    db.store.data[doc_path(RID, 'estoque', 'cafe')]['fatorCompra'] = 600
+    antes = deepcopy(db.store.data)
+    with pytest.raises(HTTPException) as exc:
+        rep.receber(RID, 'admin', pedido['id'], ReceberPedidoReposicao(
+            data_recebimento=date(2026, 9, 24),
+            itens=[
+                ItemRecebimentoReposicao(item_id='cafe', quantidade_compra=2, unidade_compra='pct', valor_total_compra=16),
+                ItemRecebimentoReposicao(item_id='leite', quantidade_compra=1, unidade_compra='L', valor_total_compra=8),
+            ],
+        ))
+    assert exc.value.status_code == 409
+    assert db.store.data == antes
