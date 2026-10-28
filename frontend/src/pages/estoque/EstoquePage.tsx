@@ -396,7 +396,8 @@ function Movimentos({
             </p>
           )}
           <p className="text-xs text-slate-500">
-            {dataHora(m.criadoEm)} · {m.observacao ?? 'Sem observação'}
+            {dataHora(m.dataMovimentacao ?? m.criadoEm)} · {m.observacao ?? 'Sem observação'}
+            {m.dataMovimentacao && <span className="block text-xs">Registrado no sistema: {dataHora(m.criadoEm)}</span>}
           </p>
         </li>
       ))}
