@@ -30,9 +30,12 @@ function Assert-Repositorio {
     $mudancas = Get-GitTexto -Argumentos @('status','--porcelain','--untracked-files=normal')
     if ($PermitirStaged) {
         foreach ($linha in @($mudancas -split "`r?`n" | Where-Object { $_ })) {
-            # Somente arquivos conscientemente selecionados com git add:
-            # indice alterado e arvore de trabalho limpa. Nunca inclui ??.
-            if ($linha.Length -lt 3 -or $linha.Substring(0,2) -notmatch '^[AMDRC] 
+            # Permitir apenas paths staged; modificacoes nao staged e ?? bloqueadas.
+            if ($linha.Length -lt 3 -or $linha.Substring(0,2) -notmatch '^[AMDRC] $') {
+                throw 'Ha arquivos nao versionados ou alteracoes fora do stage. Revise git status. Use git add apenas nos arquivos aprovados.'
+            }
+        }
+    } elseif ($mudancas) { throw 'Existem alteracoes ou arquivos nao versionados. Salve/revise seu trabalho antes. O script nao apaga, nao faz stash e nao usa reset.' }
     if ($Master -and (Get-GitTexto -Argumentos @('branch','--show-current')) -ne 'master') {
         throw 'Execute atualizar-master.ps1 primeiro. A publicacao exige a branch master.'
     }
@@ -40,7 +43,7 @@ function Assert-Repositorio {
         Invoke-Programa -Arquivo git -Argumentos @('fetch','origin','master')
         if ($PermitirAhead) {
             & git merge-base --is-ancestor origin/master HEAD
-            if ($LASTEXITCODE -ne 0) { throw 'A master local divergiu da origin/master. Execute atualizar-master.ps1 e reconcilie o historico sem force push.' }
+            if ($LASTEXITCODE -ne 0) { throw 'A master local divergiu da origin/master. Execute atualizar-master.ps1 e reconcilie sem force push.' }
         } elseif ((Get-GitTexto -Argumentos @('rev-parse','HEAD')) -ne (Get-GitTexto -Argumentos @('rev-parse','origin/master'))) {
             throw 'A master local difere do GitHub. Execute atualizar-master.ps1 e tente novamente.'
         }
@@ -120,61 +123,6 @@ function Wait-Backend {
         Start-Sleep -Seconds 15
     } while ([DateTime]::UtcNow -lt $limite)
     throw 'Tempo esgotado na Render. Confira status de /health, /ready e Deploys no painel. Hosting nao foi publicado.'
-}
-
-function Wait-Indices {
-    param([string]$Firebase, [string]$Projeto, [object[]]$Indices, [int]$TimeoutSegundos = 1200)
-    if ($Indices.Count -eq 0) { return }
-    $limite = [DateTime]::UtcNow.AddSeconds($TimeoutSegundos)
-    do {
-        $texto = (Invoke-Programa -Arquivo $Firebase -Argumentos @('firestore:indexes','--pretty','--project',$Projeto,'--non-interactive') | Out-String) -replace '\x1b\[[0-9;]*m',''
-        $todosProntos = $true
-        foreach ($indice in $Indices) {
-            $padrao = '\(' + [regex]::Escape($indice.collectionGroup) + '\).*'
-            foreach ($campo in $indice.fields) {
-                if (-not $campo.PSObject.Properties['order']) { throw 'O verificador suporta indices ordenados. Revise a configuracao antes de publicar.' }
-                $padrao += '\(' + [regex]::Escape($campo.fieldPath + ',' + $campo.order) + '\).*'
-            }
-            $linhas = @($texto -split "`r?`n" | Where-Object { $_ -match $padrao })
-            if ($linhas.Count -eq 0 -or @($linhas | Where-Object { $_ -notmatch '^\s*\[READY\]' }).Count -gt 0) { $todosProntos = $false }
-        }
-        if ($todosProntos) { Write-Host 'Indices correspondentes em estado READY.'; return }
-        Write-Host 'Indices ainda em construcao. O Hosting sera publicado somente depois...'
-        Start-Sleep -Seconds 15
-    } while ([DateTime]::UtcNow -lt $limite)
-    throw 'Indice ainda nao esta READY. Aguarde a construcao no Firebase e execute novamente. O Hosting nao foi publicado.'
-}
-) {
-                throw 'Ha arquivos nao versionados ou alteracoes fora do stage. Revise git status. Use git add apenas nos arquivos aprovados.'
-            }
-        }
-    } elseif ($mudancas) { throw 'Existem alteracoes ou arquivos nao versionados. Salve/revise seu trabalho antes. O script nao apaga, nao faz stash e nao usa reset.' }
-    if ($Master -and (Get-GitTexto -Argumentos @('branch','--show-current')) -ne 'master') {
-        throw 'Execute atualizar-master.ps1 primeiro. A publicacao exige a branch master.'
-    }
-    if ($Sincronizado) {
-        Invoke-Programa -Arquivo git -Argumentos @('fetch','origin','master')
-        if ((Get-GitTexto -Argumentos @('rev-parse','HEAD')) -ne (Get-GitTexto -Argumentos @('rev-parse','origin/master'))) {
-            throw 'A master local difere do GitHub. Execute atualizar-master.ps1 e tente novamente.'
-        }
-    }
-}
-
-function Wait-Backend {
-    param([string]$Url, [string]$Commit, [int]$TimeoutSegundos = 1200)
-    $limite = [DateTime]::UtcNow.AddSeconds($TimeoutSegundos)
-    do {
-        try {
-            $saude = Invoke-RestMethod -Uri ($Url + '/health?v=' + [DateTime]::UtcNow.Ticks) -TimeoutSec 45
-            if ($saude.status -eq 'ok' -and $saude.commit -eq $Commit) {
-                $pronto = Invoke-RestMethod -Uri ($Url + '/ready') -TimeoutSec 45
-                if ($pronto.status -eq 'ready') { Write-Host 'Backend no commit correto e Firestore acessivel.'; return }
-            }
-        } catch { Write-Host 'Backend ainda iniciando ou aguardando atualizacao...' }
-        Write-Host 'Aguardando o auto-deploy da Render para o commit local...'
-        Start-Sleep -Seconds 15
-    } while ([DateTime]::UtcNow -lt $limite)
-    throw 'Tempo esgotado aguardando a Render. Confira o deploy do commit no painel e execute novamente. O Hosting nao foi publicado.'
 }
 
 function Wait-Indices {
