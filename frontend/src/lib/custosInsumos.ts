@@ -76,3 +76,10 @@ export function simularCompra(
     referencia,
   }
 }
+
+/** Conversão ao trocar a unidade de controle no cadastro (sem alterar saldo). */
+export function converterCustoControle(custo: number, origem: string, destino: string): number | null {
+  if (!Number.isFinite(custo) || custo < 0) return null
+  const qtdNova = converterQuantidade(1, origem, destino)
+  return qtdNova && qtdNova > 0 ? custo / qtdNova : null
+}
