@@ -16,7 +16,7 @@ function Get-GitTexto {
 }
 
 function Assert-Repositorio {
-    param([string]$Raiz, [switch]$Master, [switch]$Sincronizado)
+    param([string]$Raiz, [switch]$Master, [switch]$Sincronizado, [switch]$PermitirStaged, [switch]$PermitirAhead)
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw 'Instale o Git e abra novamente o terminal.' }
     if (-not (Test-Path (Join-Path $Raiz 'firebase.json'))) { throw 'Execute os arquivos na raiz Git do projeto (pasta python), junto de firebase.json.' }
     $gitRaiz = Get-GitTexto -Argumentos @('rev-parse','--show-toplevel')
@@ -27,34 +27,104 @@ function Assert-Repositorio {
     if ($origem -notmatch '(?i)github\.com[:/]gabrielabrahaodev/pdv-lanchonete(?:\.git)?/?$') {
         throw 'O origin nao corresponde ao repositorio pdv-lanchonete esperado.'
     }
-    $mudancas = Get-GitTexto -Argumentos @('status','--porcelain','--untracked-files=normal')
-    if ($mudancas) { throw 'Existem alteracoes ou arquivos nao versionados. Salve/revise seu trabalho antes. O script nao apaga, nao faz stash e nao usa reset.' }
+    # Preservar o primeiro caractere de porcelain (espaco = NAO staged).
+    $mudancas = ((& git status --porcelain --untracked-files=normal) -join "`n")
+    if ($LASTEXITCODE -ne 0) { throw 'Falha ao ler estado Git.' }
+    if ($PermitirStaged) {
+        foreach ($linha in @($mudancas -split "`r?`n" | Where-Object { $_ })) {
+            # Permitir apenas paths staged; modificacoes nao staged e ?? bloqueadas.
+            if ($linha.Length -lt 3 -or $linha.Substring(0,2) -notmatch '^[AMDRC] $') {
+                throw 'Ha arquivos nao versionados ou alteracoes fora do stage. Revise git status. Use git add apenas nos arquivos aprovados.'
+            }
+        }
+    } elseif ($mudancas) { throw 'Existem alteracoes ou arquivos nao versionados. Salve/revise seu trabalho antes. O script nao apaga, nao faz stash e nao usa reset.' }
     if ($Master -and (Get-GitTexto -Argumentos @('branch','--show-current')) -ne 'master') {
         throw 'Execute atualizar-master.ps1 primeiro. A publicacao exige a branch master.'
     }
     if ($Sincronizado) {
         Invoke-Programa -Arquivo git -Argumentos @('fetch','origin','master')
-        if ((Get-GitTexto -Argumentos @('rev-parse','HEAD')) -ne (Get-GitTexto -Argumentos @('rev-parse','origin/master'))) {
+        if ($PermitirAhead) {
+            & git merge-base --is-ancestor origin/master HEAD
+            if ($LASTEXITCODE -ne 0) { throw 'A master local divergiu da origin/master. Execute atualizar-master.ps1 e reconcilie sem force push.' }
+        } elseif ((Get-GitTexto -Argumentos @('rev-parse','HEAD')) -ne (Get-GitTexto -Argumentos @('rev-parse','origin/master'))) {
             throw 'A master local difere do GitHub. Execute atualizar-master.ps1 e tente novamente.'
         }
+    }
+}
+
+function Test-RenderSemMudancaDeBackend {
+    param([string]$Publicado, [string]$Atual)
+    # Falha fechada se o commit da Render nao for conhecido ou nao ancestral.
+    if ($Publicado -notmatch '^[0-9a-f]{40}$' -or $Atual -notmatch '^[0-9a-f]{40}$') { return $false }
+    & git cat-file -e "$Publicado^{commit}" 2>$null
+    if ($LASTEXITCODE -ne 0) { return $false }
+    & git merge-base --is-ancestor $Publicado $Atual
+    if ($LASTEXITCODE -ne 0) { return $false }
+    & git diff --quiet $Publicado $Atual -- backend render.yaml
+    return ($LASTEXITCODE -eq 0)
+}
+
+function Invoke-DeployRender {
+    # Segredo configurado SO no Windows. Nunca registrar URL, parametros ou resposta.
+    $hook = [Environment]::GetEnvironmentVariable('RENDER_DEPLOY_HOOK', 'Process')
+    if ([string]::IsNullOrWhiteSpace($hook)) {
+        throw 'Backend mudou, mas Render nao atualizou. Configure RENDER_DEPLOY_HOOK (Settings > Deploy Hook na Render), ou faca Manual Deploy > Deploy latest commit; depois execute novamente.'
+    }
+    $uri = $null
+    if (-not [Uri]::TryCreate($hook, [UriKind]::Absolute, [ref]$uri) -or
+        $uri.Scheme -ne 'https' -or $uri.Host -notin @('api.render.com','deploy.render.com')) {
+        throw 'RENDER_DEPLOY_HOOK invalido. Use a URL HTTPS fornecida pela Render (sem coloca-la no Git).'
+    }
+    try {
+        # Sem ?ref=: Render usa o ultimo commit da branch e MANTEM auto-deploy ligado.
+        $resposta = Invoke-WebRequest -Uri $uri.AbsoluteUri -Method Post -UseBasicParsing -TimeoutSec 45
+        if ([int]$resposta.StatusCode -notin @(200,202)) { throw 'HTTP nao aceito' }
+        Write-Host 'Deploy da Render solicitado com sucesso (latest commit).'
+    } catch {
+        throw 'Nao foi possivel acionar o Deploy Hook da Render. Verifique o hook e o servico no painel, sem compartilhar a URL secreta.'
     }
 }
 
 function Wait-Backend {
     param([string]$Url, [string]$Commit, [int]$TimeoutSegundos = 1200)
     $limite = [DateTime]::UtcNow.AddSeconds($TimeoutSegundos)
+    $hookChamado = $false
     do {
+        $saude = $null
         try {
             $saude = Invoke-RestMethod -Uri ($Url + '/health?v=' + [DateTime]::UtcNow.Ticks) -TimeoutSec 45
-            if ($saude.status -eq 'ok' -and $saude.commit -eq $Commit) {
-                $pronto = Invoke-RestMethod -Uri ($Url + '/ready') -TimeoutSec 45
-                if ($pronto.status -eq 'ready') { Write-Host 'Backend no commit correto e Firestore acessivel.'; return }
+        } catch {
+            Write-Host 'Render inacessivel ou acordando; consultando novamente...'
+        }
+        if ($null -ne $saude -and $saude.status -eq 'ok') {
+            $compativel = $false
+            if ($saude.commit -eq $Commit) {
+                $compativel = $true
+            } elseif (Test-RenderSemMudancaDeBackend -Publicado ([string]$saude.commit) -Atual $Commit) {
+                Write-Host ('Render no commit ' + ([string]$saude.commit).Substring(0,12) + '; sem alteracoes backend/render.yaml ate ' + $Commit.Substring(0,12) + '. Sem redeploy desnecessario.')
+                $compativel = $true
+            } else {
+                if (-not $hookChamado) {
+                    Write-Host 'A API na Render precisa de uma versao mais recente.'
+                    Invoke-DeployRender
+                    $hookChamado = $true
+                }
             }
-        } catch { Write-Host 'Backend ainda iniciando ou aguardando atualizacao...' }
-        Write-Host 'Aguardando o auto-deploy da Render para o commit local...'
+            if ($compativel) {
+                try {
+                    $pronto = Invoke-RestMethod -Uri ($Url + '/ready') -TimeoutSec 45
+                    if ($pronto.status -eq 'ready') {
+                        Write-Host 'Backend compativel e Firestore acessivel.'
+                        return
+                    }
+                } catch { Write-Host 'Backend respondeu, mas /ready ainda nao esta pronto.' }
+            }
+        }
+        if ([DateTime]::UtcNow -ge $limite) { break }
+        Write-Host 'Aguardando Render ficar pronta...'
         Start-Sleep -Seconds 15
     } while ([DateTime]::UtcNow -lt $limite)
-    throw 'Tempo esgotado aguardando a Render. Confira o deploy do commit no painel e execute novamente. O Hosting nao foi publicado.'
+    throw 'Tempo esgotado na Render. Confira status de /health, /ready e Deploys no painel. Hosting nao foi publicado.'
 }
 
 function Wait-Indices {

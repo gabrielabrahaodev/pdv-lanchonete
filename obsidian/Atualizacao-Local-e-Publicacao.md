@@ -48,3 +48,46 @@ Variáveis VITE_API_URL e NO_COLOR são restauradas no finally; nenhum arquivo .
 Backend passa a informar RENDER_GIT_COMMIT (SHA público de código, sem credenciais) em /health; teste cobre presença e ausência. Fonte: https://render.com/docs/environment-variables . O script não considera health isolado como prova de banco saudável.
 
 Após publicar: testar login, Despesas/período/páginas, Reposição/recebidos, débito em detalhes e atualização do PWA. Sem migração ou alteração manual de dados.
+
+
+## Deploy sem aguardar indefinidamente a Render (2026-10-28)
+
+O deploy atual compara o SHA do `/health` da Render com o commit do Git.
+Se o backend da Render esta em um commit ancestral conhecido e o intervalo nao
+alterou `backend/` ou `render.yaml`, aceita o backend existente somente após
+`/ready` retornar READY. **Nao exige que commits apenas de frontend/docs
+provoquem um redeploy da Render.**
+
+Se houve mudanca no backend, ou o commit da Render nao e ancestral/conhecido,
+o script pode acionar o **Deploy Hook** da Render uma unica vez. Configurar no
+Windows a variavel de ambiente de usuario `RENDER_DEPLOY_HOOK` com a URL
+secreta copiada de Render > servico > Settings > Deploy Hook. Reiniciar CMD
+depois de definir a variavel. A URL nao deve ir para Git, wiki publica, logs
+ou conversas; nao a exiba para diagnostico. Sem hook configurado, o script
+interrompe com mensagem orientando `Manual Deploy > Deploy latest commit`,
+em vez de aguardar 20 minutos sem que nada seja disparado. O hook e invocado
+**sem ref** para manter auto-deploy ligado. `/ready` continua obrigatorio.
+
+### Publicar commits no Git com protecao
+
+**Modo padrao:** `deploy-prd.bat` exige master limpa/sincronizada,
+nao cria commits nem faz push. Mantem publicacao apenas do commit revisado
+e integrado na master.
+
+**Modo opcional:** `deploy-prd.bat -PublicarGit -MensagemCommit "mensagem"`
+executa testes, cria commit apenas dos arquivos que o operador ja selecionou
+explicitamente via `git add <arquivos>`, e faz `git push origin master` normal.
+Se nao houver arquivos staged, nao cria commit vazio; permite publicar commits
+locais que estejam a frente de origin/master. A branch remota deve ser ancestral
+da branch local; divergencia bloqueia o push. Untracked, modificacoes fora do
+stage e arquivos de credenciais staged sao bloqueados. Nunca executa `git
+add -A`, stash, reset ou force push. A publicacao no Git somente ocorre
+apos testes basicos. O CI e a politica de PR continuam recomendados.
+
+**Atenção:** o modo `-PublicarGit` escreve diretamente em master. Use apenas
+se suas regras de protecao GitHub permitirem e apos revisar `git diff --cached`.
+O modo normal permanece recomendado para features integradas por PR.
+
+O script nao edita dados de producao ate as etapas Firebase; backend e validado
+antes das regras/indices e Hosting. Falha no meio da publicacao nao reverte
+etapas anteriores automaticamente.

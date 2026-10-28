@@ -102,6 +102,18 @@ function Wait-Backend { param($Url,$Commit,$TimeoutSegundos) Add-Content -Litera
     try { Wait-Backend -Url 'https://teste.invalid' -Commit outro -TimeoutSegundos 0 } catch { $bloqueou=$true }
     Assert $bloqueou 'Deveria interromper com commit incorreto'
     Write-Host 'PASS: aguardou READY, bloqueou timeout e conferiu commit/readiness sem acesso externo.'
+    # Regressao de frontend-only: Render em commit ancestral, sem mudanca backend.
+    # Fixture possui alteracoes apenas no README e scripts.
+    $historico = @(git rev-list --max-count=3 HEAD)
+    Assert ($historico.Count -ge 2) 'Fixture sem historico suficiente'
+    Assert (Test-RenderSemMudancaDeBackend -Publicado $historico[-1] -Atual $historico[0]) 'Frontend/docs nao podem exigir redeploy do backend'
+    Assert (-not (Test-RenderSemMudancaDeBackend -Publicado ('a' * 40) -Atual $historico[0])) 'SHA desconhecido deve bloquear a compatibilidade'
+    Assert (-not (Test-RenderSemMudancaDeBackend -Publicado $historico[0] -Atual $historico[-1])) 'Commit Render futuro nao pode ser aceito'
+    Write-Host 'PASS: commit ancestral sem alteracao do backend e aceito; desconhecido/futuro e bloqueado.'
+    # PowerShell usa o ultimo exit code nativo como retorno do script.
+    # O git merge-base negativo era esperado nos asserts acima.
+    & git --version > $null
+    Assert ($LASTEXITCODE -eq 0) 'Falha ao restaurar status nativo do teste'
 } finally {
     Set-Location -LiteralPath $inicial.Path
     Remove-Item -LiteralPath $temporario -Recurse -Force
