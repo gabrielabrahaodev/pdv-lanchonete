@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { conteudoIgual } from './wiki-indice-comparacao.mjs'
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dir = path.join(raiz, 'src/wiki')
 const manifesto = JSON.parse(fs.readFileSync(path.join(dir, 'manifesto.json')))
@@ -26,7 +27,7 @@ const entradas = manifesto.artigos.map((m) => {
 const esperado = JSON.stringify(entradas) + '\n'
 const arquivo = path.join(dir, 'indice/busca.json')
 if (process.argv.includes('--check')) {
-  if (fs.readFileSync(arquivo, 'utf8') !== esperado)
+  if (!conteudoIgual(fs.readFileSync(arquivo, 'utf8'), esperado))
     throw Error('Indice desatualizado: npm run wiki:indice')
 } else fs.writeFileSync(arquivo, esperado)
 
@@ -49,6 +50,6 @@ const compacto = {
 const mapa = path.join(dir, 'navegacao/mapa.json'),
   esperadoMapa = JSON.stringify(compacto) + '\n'
 if (process.argv.includes('--check')) {
-  if (fs.readFileSync(mapa, 'utf8') !== esperadoMapa)
+  if (!conteudoIgual(fs.readFileSync(mapa, 'utf8'), esperadoMapa))
     throw Error('Mapa desatualizado: npm run wiki:indice')
 } else fs.writeFileSync(mapa, esperadoMapa)

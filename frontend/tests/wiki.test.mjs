@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 import { execFileSync } from 'node:child_process'
+import { conteudoIgual } from '../scripts/wiki-indice-comparacao.mjs'
 import { buscar, destacar, normalizar } from '../.test-build/busca/busca.js'
 import {
   artigoDaSecao,
@@ -304,4 +305,13 @@ test('query privada da origem e efemera, limitada a sessao/tenant/rota',()=>{
  assert.equal(consultaDaOrigem({...o,uid:'outro'}),'')
  assert.equal(consultaDaOrigem({...o,rid:'outro'}),'')
  assert.equal(consultaDaOrigem({...o,pathname:'/estoque'}),'')
+})
+
+test('indice da Wiki aceita somente diferencas LF/CRLF no Windows', () => {
+  const exemplo = '{"artigos":[{"id":"inicio"}]}\n'
+  assert.equal(conteudoIgual(exemplo, exemplo.replace(/\n/g, '\r\n')), true)
+  assert.equal(conteudoIgual('linha1\r\nlinha2\n', 'linha1\nlinha2\n'), true)
+  assert.equal(conteudoIgual(exemplo, exemplo.replace('inicio', 'outra')), false)
+  assert.equal(conteudoIgual(exemplo, exemplo.trimEnd()), false)
+  assert.equal(conteudoIgual(exemplo, exemplo + ' '), false)
 })
