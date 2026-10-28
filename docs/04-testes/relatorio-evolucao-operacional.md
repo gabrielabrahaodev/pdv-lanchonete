@@ -138,3 +138,10 @@ com TypeScript validado. A correção integra a mesma branch/PR de evolução.
 - Cabeçalho, divisórias, hover e indicadores com contraste no tema escuro; ações com nomes acessíveis e área de toque de 44 px.
 - Build/TypeScript aprovados. Verificação local com dados simulados em 320, 390, 768, 1024 e 1440 px, temas claro/escuro, sem overflow horizontal; busca, categoria, status, destino de edição e cancelamento da exclusão conferidos. Não substitui homologação autenticada com o cliente.
 - Sem deploy ou mudança de regras de negócio.
+
+### Usabilidade das mesas
+
+- Cartão abre/inicia pedido; menu de opções separa QR e exclusão. Gestão visível para admin, gerente e caixa, conforme autorização existente da API; mesa ocupada/com pedido não pode ser excluída na interface.
+- Contadores, filtros por estado, busca por número e modos grade/lista. Ordem numérica estável, foco visível, áreas de toque de 44 px e contraste nos dois temas.
+- Mesa ocupada mostra total do pedido aberto vinculado e tempo desde a abertura, atualizado por minuto; ausência/erro dos dados não inventa valor. Apenas pedidos abertos em tempo real, sem busca do histórico.
+- Build/TypeScript aprovados. Verificação local com dados simulados em 320, 390, 768, 1024 e 1440 px: claro/escuro, sem overflow, filtros, lista, QR, bloqueio de exclusão e navegação. Homologação autenticada permanece necessária. Sem deploy.
