@@ -6,7 +6,7 @@ fica na camada de serviços.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -540,4 +540,7 @@ class ItemRecebimentoReposicao(CamelModel):
 
 
 class ReceberPedidoReposicao(CamelModel):
+    # Data de competência escolhida pelo usuário, aceita YYYY-MM-DD.
+    # Retroativo permitido; data futura é recusada no service.
+    data_recebimento: date
     itens: list[ItemRecebimentoReposicao] = Field(min_length=1, max_length=80)
