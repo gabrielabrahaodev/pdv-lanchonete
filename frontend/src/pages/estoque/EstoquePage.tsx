@@ -26,7 +26,7 @@ import {
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl, dataHora, custoUnitario } from '../../lib/format'
 import { numeroDecimal } from '../../lib/precificacao'
-import { custoPorUnidadeControle, precoPorReferencia, unidadeReferencia, formatarPrecoReferencia, simularCompra } from '../../lib/custosInsumos'
+import { custoPorUnidadeControle, precoPorReferencia, unidadeReferencia, formatarPrecoReferencia, simularCompra, converterCustoControle } from '../../lib/custosInsumos'
 import {
   converterQuantidade,
   UNIDADES,
@@ -450,11 +450,10 @@ function Cadastro({
     const anterior = { unidade: form.unidade, unidadeCompra: form.unidadeCompra, fatorCompra: numeroDecimal(form.fatorCompra) }
     const custoAtual = custoPorUnidadeControle(numeroDecimal(form.custoMedio), unidadeReferencia(anterior), anterior)
     const proximo = { ...form, ...modificacoes }
-    const conversaoControle = converterQuantidade(1, anterior.unidade, proximo.unidade)
-    // Alterar g ↔ kg ou ml ↔ L precisa converter também o custo unitário.
-    // Unidades incompatíveis não devem herdar um preço incorreto.
-    const custoConvertido = custoAtual == null || conversaoControle === null || conversaoControle <= 0
-      ? 0 : custoAtual / conversaoControle
+    // Converter também o custo na troca g ↔ kg ou ml ↔ L.
+    // Não aproveitar preço de unidades incompatíveis.
+    const custoConvertido = custoAtual == null
+      ? 0 : converterCustoControle(custoAtual, anterior.unidade, proximo.unidade) ?? 0
     const refProxima = {
       unidade: proximo.unidade, unidadeCompra: proximo.unidadeCompra,
       fatorCompra: numeroDecimal(proximo.fatorCompra), custoMedio: custoConvertido,
