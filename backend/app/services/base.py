@@ -170,7 +170,7 @@ def list_items_paginado(
         col = col.where(field, ">=", inicio if inicio.tzinfo else _ensure_utc(inicio))
     if fim is not None:
         col = col.where(field, "<=", fim if fim.tzinfo else _ensure_utc(fim))
-    q = col.order_by(field, Query.DESCENDING if desc else Query.ASCENDING)
+    q = col.order_by(field, direction=Query.DESCENDING if desc else Query.ASCENDING)
     if snap_cursor is not None:
         q = q.start_after(snap_cursor)
     docs = [doc_to_dict(s) for s in q.limit(limit).stream()]
