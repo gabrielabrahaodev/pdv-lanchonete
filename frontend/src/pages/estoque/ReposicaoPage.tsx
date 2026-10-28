@@ -337,7 +337,7 @@ function dadosIniciais(item: PedidoReposicao['itens'][number]): LinhaCompra {
     fatorCompra: item.fatorCompra,
   }
   const unidade = unidadeReferencia(conversao)
-  const fator = converterQuantidade(1, unidade, item.unidade, conversao.unidadeCompra ?? undefined, conversao.fatorCompra)
+  const fator = converterQuantidade(1, unidade, item.unidade, conversao.unidadeCompra ?? undefined, conversao.fatorCompra ?? undefined)
   const qtd = fator && fator > 0 ? item.quantidade / fator : item.quantidade
   const custoPrevisto = item.quantidade * (item.custoUnitarioPrevisto ?? 0)
   return {
@@ -434,14 +434,14 @@ function ReceberPedido({ pedido, onClose, onSuccess }: {
                     onChange={(e) => {
                       const novo = e.target.value
                       const antes = prev.resumo?.quantidadeControle ??
-                        converterQuantidade(Number(linha.quantidadeCompra), linha.unidadeCompra, item.unidade, prev.referencia.unidadeCompra ?? undefined, prev.referencia.fatorCompra)
-                      const porUnidade = converterQuantidade(1, novo, item.unidade, prev.referencia.unidadeCompra ?? undefined, prev.referencia.fatorCompra)
+                        converterQuantidade(Number(linha.quantidadeCompra), linha.unidadeCompra, item.unidade, prev.referencia.unidadeCompra ?? undefined, prev.referencia.fatorCompra ?? undefined)
+                      const porUnidade = converterQuantidade(1, novo, item.unidade, prev.referencia.unidadeCompra ?? undefined, prev.referencia.fatorCompra ?? undefined)
                       alterar(item.itemId, {
                         unidadeCompra: novo,
                         quantidadeCompra: antes != null && porUnidade ? String(Number((antes / porUnidade).toFixed(3))) : linha.quantidadeCompra,
                       })
                     }}>
-                    {unidadesCompativeis(item.unidade, item.unidadeCompra, item.fatorCompra).map(u =>
+                    {unidadesCompativeis(item.unidade, item.unidadeCompra, item.fatorCompra ?? undefined).map(u =>
                       <option key={u} value={u}>{u}</option>
                     )}
                   </Select>
