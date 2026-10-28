@@ -131,3 +131,10 @@ arquivamento permanecem acessíveis. Sem mudança nas regras do backend.
 Verificação visual adicional: 320/390/1024/1440 px, claro/escuro, distinção de cor
 entre saldo normal e baixo, sem overflow e abertura/fechamento da edição. Build
 com TypeScript validado. A correção integra a mesma branch/PR de evolução.
+
+### Lista de produtos compacta
+
+- Tabela de produtos alinhada ao estoque: espaçamentos menores, ações por ícones no desktop e lista compacta no celular, preservando imagem, categoria, preço, variações e status.
+- Cabeçalho, divisórias, hover e indicadores com contraste no tema escuro; ações com nomes acessíveis e área de toque de 44 px.
+- Build/TypeScript aprovados. Verificação local com dados simulados em 320, 390, 768, 1024 e 1440 px, temas claro/escuro, sem overflow horizontal; busca, categoria, status, destino de edição e cancelamento da exclusão conferidos. Não substitui homologação autenticada com o cliente.
+- Sem deploy ou mudança de regras de negócio.
