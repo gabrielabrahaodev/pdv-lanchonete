@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Plus, ShoppingCart, UtensilsCrossed, X } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
@@ -8,6 +9,7 @@ import type { Category, Order, Product, ProductVariation } from '../../types'
 import { Badge, Button, Card, ErrorState, Input, LoadingScreen, Select } from '../../components/ui'
 import ProdutoCustomModal from '../../components/ProdutoCustomModal'
 import { brl } from '../../lib/format'
+import { urlImagemProduto } from '../../lib/imagem'
 
 interface CartItem {
   key: string
@@ -28,6 +30,9 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
   const rid = me?.restaurantId
 
   const [cart, setCart] = useState<CartItem[]>([])
+  const [comandaAberta, setComandaAberta] = useState(false)
+  const botaoComanda = useRef<HTMLButtonElement>(null)
+  const painelComanda = useRef<HTMLElement>(null)
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>('')
   const [busca, setBusca] = useState('')
   const [customizando, setCustomizando] = useState<{ p: Product; variacaoId?: string } | null>(null)
@@ -121,13 +126,56 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
   }, [produtos.data, categoriaFiltro, busca])
 
   const total = cart.reduce((s, i) => s + i.precoUnitario * i.qtd, 0)
+  const quantidadeItens = cart.reduce((s, i) => s + i.qtd, 0)
+  const bloqueado = envioPendente || criarPedido.isPending
+
+  function fecharComanda() {
+    setComandaAberta(false)
+    botaoComanda.current?.focus()
+  }
+
+  // O painel móvel pode ser fechado com Escape, sem perder o foco no botão de abertura.
+  useEffect(() => {
+    if (!comandaAberta) return
+    const painel = painelComanda.current
+    painel?.querySelector<HTMLButtonElement>('[data-fechar-comanda]')?.focus()
+    const aoTeclar = (event: KeyboardEvent) => {
+      if (window.matchMedia('(min-width: 1024px)').matches) return
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setComandaAberta(false)
+        botaoComanda.current?.focus()
+      } else if (event.key === 'Tab' && painel) {
+        const botoes = Array.from(painel.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])',
+        )).filter((el) => el.getClientRects().length > 0)
+        if (!botoes.length) return
+        if (event.shiftKey && document.activeElement === botoes[0]) {
+          event.preventDefault()
+          botoes[botoes.length - 1].focus()
+        } else if (!event.shiftKey && document.activeElement === botoes[botoes.length - 1]) {
+          event.preventDefault()
+          botoes[0].focus()
+        }
+      }
+    }
+    const media = window.matchMedia('(min-width: 1024px)')
+    const aoMudarTamanho = () => { if (media.matches) setComandaAberta(false) }
+    document.addEventListener('keydown', aoTeclar)
+    media.addEventListener('change', aoMudarTamanho)
+    return () => {
+      document.removeEventListener('keydown', aoTeclar)
+      media.removeEventListener('change', aoMudarTamanho)
+    }
+  }, [comandaAberta])
 
   function addToCart(produto: Product, variacao?: ProductVariation, qtd = 1, observacoes?: string) {
-    if (envio.current) return
+    if (envio.current || criarPedido.isPending) return
     if (produto.modoEstoque === 'antecipado' && (lotes.isLoading || lotes.isError || qtd > disponivel(produto.id))) {
       setErro('Quantidade indisponível na estufa. Confira os lotes e a validade.'); return
     }
     const key = `${produto.id}|${variacao?.id ?? ''}|${observacoes ?? ''}`
+    setErro(null)
     setCart((prev) => {
       const idx = prev.findIndex((i) => i.key === key)
       if (idx >= 0) {
@@ -159,12 +207,13 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
   }
 
   function changeQtd(key: string, delta: number) {
-    if (envio.current) return
+    if (envio.current || criarPedido.isPending) return
     const item = cart.find((i) => i.key === key)
     const produto = produtos.data?.find((p) => p.id === item?.produtoId)
     if (delta > 0 && produto?.modoEstoque === 'antecipado' && disponivel(produto.id) < delta) {
       setErro('Saldo disponível da estufa insuficiente.'); return
     }
+    setErro(null)
     setCart((prev) =>
       prev
         .map((i) => (i.key === key ? { ...i, qtd: i.qtd + delta } : i))
@@ -181,7 +230,7 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
   return (
     <div className="flex min-h-full min-w-0 flex-col lg:h-full lg:min-h-0 lg:flex-row">
       {/* Catálogo */}
-      <div id="catalogo-pedido" className="min-w-0 p-3 sm:p-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+      <div id="catalogo-pedido" className="min-w-0 flex-1 p-3 pb-32 sm:p-6 sm:pb-32 lg:min-h-0 lg:overflow-y-auto lg:pb-6">
         <div className="min-w-0 pl-14 md:pl-0">
         <Link to={adicionando ? `/caixa/mesa/${mesaId}` : '/caixa'} className="text-xs font-semibold text-brand-600 hover:underline">
           ← Voltar
@@ -190,9 +239,6 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
           {balcao ? 'Venda direta — balcão' : `Mesa ${mesa.data?.numero} — ${adicionando ? 'adicionar itens' : 'novo pedido'}`}
         </h1>
         </div>
-        <a href="#comanda-pedido" className="mt-3 inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-brand-600 underline lg:hidden">
-          Ver comanda ({cart.reduce((qtd, item) => qtd + item.qtd, 0)} itens) · {brl(total)}
-        </a>
 
         {balcao && <p className="mt-3 text-sm text-slate-500">Escolha os produtos e prossiga para o pagamento. Nenhuma mesa será ocupada.</p>}
         {balcao && !sessao.isLoading && !sessao.data && <p role="alert" className="mt-3 text-rose-600">Abra o caixa para iniciar uma venda direta.</p>}
@@ -214,60 +260,137 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
           </Select>
         </div>
 
-        <div className="mt-4 grid min-w-0 grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {produtosFiltrados.map((p) => (
-            <Card key={p.id} className="flex min-w-0 flex-col p-4 transition hover:shadow-md">
-              <button
-                type="button"
-                disabled={envioPendente || (p.modoEstoque === 'antecipado' && (lotes.isLoading || lotes.isError || disponivel(p.id) <= 0))}
-                onClick={() => setCustomizando({ p })}
-                className="min-w-0 break-words text-left"
-                title="Personalizar e adicionar"
-              >
-                <p className="font-semibold text-slate-800 dark:text-slate-100">{p.nome}</p>
-                <p className="text-sm text-brand-600">
-                  {p.variacoes?.some((v) => v.ativo) ? `a partir de ${brl(p.preco)}` : brl(p.preco)}
-                </p>
-              </button>
-              {p.modoEstoque === 'antecipado' && <p className="mt-2 text-xs text-slate-500">Estufa: {lotes.isError ? 'saldo indisponível' : lotes.isLoading ? 'consultando…' : `${disponivel(p.id)} disponíveis`}</p>}
-              <div className="mt-auto pt-3">
-                <div className="flex flex-wrap gap-1.5">
-                  <Button disabled={envioPendente || (p.modoEstoque === 'antecipado' && (lotes.isLoading || lotes.isError || disponivel(p.id) <= 0))} variant="secondary" className="!px-2 !py-1 !text-xs min-h-11" onClick={() => setCustomizando({ p })}>
+        <div className="mt-4 grid min-w-0 grid-cols-1 gap-3 min-[860px]:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
+          {produtosFiltrados.map((p) => {
+            const semEstoque = p.modoEstoque === 'antecipado' && (lotes.isLoading || lotes.isError || disponivel(p.id) <= 0)
+            const temVariacoes = (p.variacoes ?? []).some((v) => v.ativo !== false)
+            return (
+              <Card key={p.id} className="flex min-w-0 flex-col p-3 transition hover:shadow-md">
+                <div className="flex min-w-0 items-start gap-3">
+                  {p.temImagem && rid ? (
+                    <img src={urlImagemProduto(rid, p.id)} alt="" loading="lazy" className="h-20 w-20 shrink-0 rounded-lg object-cover" />
+                  ) : (
+                    <span className="grid h-20 w-20 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600 dark:bg-slate-800 dark:text-brand-400">
+                      <UtensilsCrossed className="h-8 w-8" aria-hidden="true" />
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words text-sm font-bold text-slate-800 dark:text-slate-100">{p.nome}</p>
+                    <p className="mt-1 text-sm font-bold text-brand-600 dark:text-brand-400">
+                      {temVariacoes ? `A partir de ${brl(p.preco)}` : brl(p.preco)}
+                    </p>
+                    {p.modoEstoque === 'antecipado' && (
+                      <p className="mt-1 text-xs text-slate-500">
+                        Estufa: {lotes.isError ? 'saldo indisponível' : lotes.isLoading ? 'consultando…' : `${disponivel(p.id)} disponíveis`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-auto grid grid-cols-2 gap-2 pt-3">
+                  <Button
+                    disabled={bloqueado || semEstoque}
+                    className="min-w-0 !px-2 !text-xs"
+                    onClick={() => temVariacoes ? setCustomizando({ p }) : addToCart(p)}
+                    aria-label={temVariacoes ? `Escolher opção de ${p.nome}` : `Adicionar ${p.nome} à comanda`}
+                  >
+                    {!semEstoque && !temVariacoes && <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                    {semEstoque ? 'Indisponível' : temVariacoes ? 'Escolher opção' : 'Adicionar'}
+                  </Button>
+                  <Button
+                    disabled={bloqueado || semEstoque}
+                    variant="secondary"
+                    className="min-w-0 !px-2 !text-xs"
+                    onClick={() => setCustomizando({ p })}
+                    aria-label={`Personalizar ${p.nome}`}
+                  >
                     Personalizar
                   </Button>
                 </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
         {produtosFiltrados.length === 0 && <p className="mt-10 text-center text-sm text-slate-500">Nenhum produto encontrado.</p>}
       </div>
 
-      {/* Carrinho */}
-      <aside id="comanda-pedido" aria-label="Comanda" className="flex w-full min-w-0 shrink-0 scroll-mt-16 flex-col border-t border-slate-200 bg-white lg:min-h-0 lg:w-80 lg:scroll-mt-0 lg:border-t-0 lg:border-l dark:border-slate-700 dark:bg-slate-900">
-        <div className="border-b border-slate-100 px-5 py-4">
-          <h2 className="font-bold text-slate-700 dark:text-slate-100">Comanda</h2>
-          <a href="#catalogo-pedido" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-600 underline lg:hidden">Voltar aos produtos</a>
-          {adicionando && pedidoAberto && <Badge value="aberto" label={`pedido ${pedidoAberto.id.slice(0, 8)}…`} />}
+      {/* Barra móvel fixa: o usuário acessa a comanda sem rolar o catálogo. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-[0_-8px_32px_rgba(15,23,42,0.15)] lg:hidden dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex min-w-0 items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2" aria-live="polite">
+            <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600 dark:bg-slate-800 dark:text-brand-400">
+              <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+              {quantidadeItens > 0 && <span className="absolute -right-1 -top-1 rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{quantidadeItens}</span>}
+            </span>
+            <span className="min-w-0 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <span className="block">{quantidadeItens} {quantidadeItens === 1 ? 'item' : 'itens'}</span>
+              <span className="block whitespace-nowrap font-bold text-brand-600 dark:text-brand-400">{brl(total)}</span>
+            </span>
+          </div>
+          <button
+            ref={botaoComanda}
+            type="button"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            onClick={() => setComandaAberta(true)}
+            aria-label={`Ver comanda, ${quantidadeItens} itens, total ${brl(total)}`}
+            aria-haspopup="dialog"
+            aria-expanded={comandaAberta}
+          >
+            Ver comanda
+          </button>
+        </div>
+      </div>
+
+      {comandaAberta && (
+        <button type="button" className="fixed inset-0 z-40 bg-black/50 lg:hidden" aria-label="Fechar comanda" onClick={fecharComanda} />
+      )}
+
+      {/* Painel lateral no desktop; gaveta acessível no celular. */}
+      <aside
+        ref={painelComanda}
+        id="comanda-pedido"
+        aria-label="Comanda"
+        role={comandaAberta ? 'dialog' : undefined}
+        aria-modal={comandaAberta ? true : undefined}
+        className={`${comandaAberta ? 'fixed inset-x-0 bottom-0 z-50 flex max-h-[88dvh] rounded-t-2xl shadow-2xl' : 'hidden'} w-full min-w-0 shrink-0 flex-col border-t border-slate-200 bg-white lg:relative lg:inset-auto lg:z-auto lg:flex lg:h-full lg:max-h-none lg:w-80 lg:rounded-none lg:border-t-0 lg:border-l lg:shadow-none dark:border-slate-700 dark:bg-slate-900`}
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+          <div>
+            <h2 className="font-bold text-slate-700 dark:text-slate-100">Comanda</h2>
+            {adicionando && pedidoAberto && <Badge value="aberto" label={`pedido ${pedidoAberto.id.slice(0, 8)}…`} />}
+          </div>
+          <button data-fechar-comanda type="button" onClick={fecharComanda} className="grid h-11 w-11 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 lg:hidden dark:hover:bg-slate-800" aria-label="Fechar comanda">
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
         </div>
 
-        <ul className="divide-y divide-slate-50 lg:min-h-0 lg:flex-1 lg:overflow-y-auto dark:divide-slate-800">
-          {cart.map((item) => (
-            <li key={item.key} className="px-5 py-3">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0 flex-1 basis-32">
+        <ul className="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800">
+          {cart.map((item) => {
+            const produto = produtos.data?.find((p) => p.id === item.produtoId)
+            return (
+              <li key={item.key} className="flex items-start gap-3 px-4 py-3">
+                {produto?.temImagem && rid ? (
+                  <img src={urlImagemProduto(rid, produto.id)} alt="" loading="lazy" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+                ) : (
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800">
+                    <UtensilsCrossed className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
                   <p className="break-words text-sm font-semibold text-slate-700 dark:text-slate-200">{item.nome}</p>
-                  <p className="text-xs text-brand-600">{brl(item.precoUnitario)}</p>
-                  {item.observacoes && <p className="mt-0.5 break-words text-xs italic text-slate-500">✏️ {item.observacoes}</p>}
+                  <p className="text-xs font-bold text-brand-600">{brl(item.precoUnitario)}</p>
+                  {item.observacoes && <p className="mt-1 break-words text-xs italic text-slate-500">✏️ {item.observacoes}</p>}
+                  <div className="mt-2">
+                    <QtyStepper disabled={bloqueado} onDec={() => changeQtd(item.key, -1)} onInc={() => changeQtd(item.key, 1)} qtd={item.qtd} />
+                  </div>
                 </div>
-                <QtyStepper disabled={envioPendente} onDec={() => changeQtd(item.key, -1)} onInc={() => changeQtd(item.key, 1)} qtd={item.qtd} />
-              </div>
-            </li>
-          ))}
-          {cart.length === 0 && <li className="px-5 py-10 text-center text-sm text-slate-500">Toque nos produtos para adicionar</li>}
+              </li>
+            )
+          })}
+          {cart.length === 0 && <li className="px-5 py-10 text-center text-sm text-slate-500">Adicione produtos para montar a comanda.</li>}
         </ul>
 
-        <div className="shrink-0 space-y-3 border-t border-slate-100 p-4 sm:p-5 dark:border-slate-800">
+        <div className="shrink-0 space-y-3 border-t border-slate-100 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] lg:pb-5 dark:border-slate-800">
+          {erro && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{erro}</p>}
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-slate-500">Total</span>
             <span className="text-xl font-bold text-brand-600">{brl(total)}</span>
@@ -287,6 +410,7 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
         key={customizando?.p.id ?? 'none'}
         produto={customizando?.p ?? null}
         variacaoInicial={customizando?.variacaoId}
+        imagemUrl={customizando?.p.temImagem && rid ? urlImagemProduto(rid, customizando.p.id) : undefined}
         onClose={() => setCustomizando(null)}
         onConfirm={confirmarCustomizacao}
       />
