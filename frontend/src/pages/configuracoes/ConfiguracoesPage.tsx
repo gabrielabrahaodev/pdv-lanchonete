@@ -1,3 +1,4 @@
+import { VersaoAppCard } from '../../components/AtualizacaoPwa'
 import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -46,6 +47,7 @@ export default function ConfiguracoesPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <AparenciaCard />
+        <VersaoAppCard />
         <Card className="space-y-3 p-5">
           <h2 className="font-bold">Seu login e perfil</h2>
           <Link
