@@ -11,9 +11,16 @@
     "limpar-onboarding-qa": "ts-node limpar-onboarding-qa.ts",
     "limpar-historico-vendas": "ts-node limpar-historico-vendas.ts",
     "promover-dono": "ts-node promover-dono.ts",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "limpar-cafe-anis": "ts-node limpar-cafe-anis.ts",
+    "test:limpar-cafe-anis": "ts-node tests/limpeza-cafe-anis.test.ts"
   },
-  "keywords": ["firebase", "firestore", "pdv", "lanchonete"],
+  "keywords": [
+    "firebase",
+    "firestore",
+    "pdv",
+    "lanchonete"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {

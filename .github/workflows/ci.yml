@@ -89,3 +89,19 @@ jobs:
       - name: PowerShell - atualizacao e deploy simulados
         shell: pwsh
         run: ./scripts/tests/publicacao.ps1
+
+  scripts-limpeza:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scripts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: scripts/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run test:limpar-cafe-anis
