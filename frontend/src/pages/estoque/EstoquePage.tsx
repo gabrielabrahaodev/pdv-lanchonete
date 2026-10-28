@@ -426,6 +426,27 @@ function Cadastro({
     fatorCompra: String(item?.fatorCompra ?? 1),
   })
   const [erro, setErro] = useState('')
+  const qc = useQueryClient()
+  const [novoFornecedor, setNovoFornecedor] = useState(false)
+  const [fornecedorForm, setFornecedorForm] = useState({ nome: '', telefone: '' })
+  const [cadastrado, setCadastrado] = useState<Fornecedor | null>(null)
+  const cadastrarFornecedor = useMutation({
+    mutationFn: () => api<Fornecedor>('/fornecedores', {
+      method: 'POST',
+      body: {
+        nome: fornecedorForm.nome.trim(),
+        telefone: fornecedorForm.telefone.trim(),
+      },
+    }),
+    onSuccess: (fornecedor) => {
+      setCadastrado(fornecedor)
+      setForm(prev => ({ ...prev, fornecedorId: fornecedor.id }))
+      setNovoFornecedor(false)
+      setErro('')
+      void qc.invalidateQueries({ queryKey: ['fornecedores'] })
+    },
+    onError: (e) => setErro(e instanceof Error ? e.message : 'Não foi possível cadastrar o fornecedor'),
+  })
   const salvar = useMutation({
     mutationFn: () =>
       api(item ? `/estoque/itens/${item.id}` : '/estoque/itens', {
@@ -469,14 +490,37 @@ function Cadastro({
             onChange={(e) => setForm({ ...form, nome: e.target.value })}
           />
         </Field>
-        <Field label="Fornecedor habitual" hint="Cadastre novos fornecedores em Financeiro → Fornecedores.">
+        <Field label="Fornecedor habitual" hint="Selecione um fornecedor cadastrado ou crie um novo nesta tela.">
           <Select value={form.fornecedorId} onChange={(e) => setForm({ ...form, fornecedorId: e.target.value })}>
             <option value="">Sem fornecedor definido</option>
-            {fornecedores.filter(f => f.ativo !== false || f.id === form.fornecedorId).map(f => (
-              <option key={f.id} value={f.id}>{f.nome}{f.ativo === false ? ' (inativo)' : ''}</option>
-            ))}
+            {[...fornecedores, ...(cadastrado && !fornecedores.some(f => f.id === cadastrado.id) ? [cadastrado] : [])]
+              .filter(f => f.ativo !== false || f.id === form.fornecedorId).map(f => (
+                <option key={f.id} value={f.id}>{f.nome}{f.ativo === false ? ' (inativo)' : ''}</option>
+              ))}
           </Select>
         </Field>
+        <button type="button" className="text-xs font-semibold text-brand-600 underline dark:text-brand-400"
+          onClick={() => setNovoFornecedor(v => !v)}>
+          {novoFornecedor ? 'Cancelar novo fornecedor' : '+ Cadastrar fornecedor'}
+        </button>
+        {novoFornecedor && (
+          <div className="space-y-3 rounded-xl border border-brand-200 bg-brand-50/60 p-3 dark:border-brand-800 dark:bg-slate-800">
+            <Field label="Nome do fornecedor">
+              <Input value={fornecedorForm.nome} maxLength={150}
+                onChange={e => setFornecedorForm(prev => ({ ...prev, nome: e.target.value }))} />
+            </Field>
+            <Field label="Telefone / WhatsApp com DDD" hint="Necessário para enviar pedidos de reposição pelo wa.me.">
+              <Input value={fornecedorForm.telefone} inputMode="tel" type="tel" maxLength={22}
+                placeholder="(11) 99999-9999"
+                onChange={e => setFornecedorForm(prev => ({ ...prev, telefone: e.target.value }))} />
+            </Field>
+            <Button type="button" variant="secondary" loading={cadastrarFornecedor.isPending}
+              disabled={fornecedorForm.nome.trim().length < 2 || fornecedorForm.telefone.replace(/\D/g, '').length < 10}
+              onClick={() => cadastrarFornecedor.mutate()}>
+              Salvar e selecionar fornecedor
+            </Button>
+          </div>
+        )}
         <div className="grid gap-3 sm:grid-cols-2">
           <Field
             label="Unidade de controle / consumo"
