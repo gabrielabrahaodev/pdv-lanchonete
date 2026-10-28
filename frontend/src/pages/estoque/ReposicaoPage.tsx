@@ -102,6 +102,10 @@ export default function ReposicaoPage() {
     await Promise.all([
       qc.invalidateQueries({ queryKey: ['reposicao-candidatos', me?.restaurantId] }),
       qc.invalidateQueries({ queryKey: ['reposicao-pedidos', me?.restaurantId] }),
+      qc.invalidateQueries({ queryKey: ['despesas'] }),
+      qc.invalidateQueries({ queryKey: ['resumo-financeiro'] }),
+      qc.invalidateQueries({ queryKey: ['movimentos'] }),
+      qc.invalidateQueries({ queryKey: ['estoque'] }),
     ])
   }
 
@@ -252,6 +256,12 @@ export default function ReposicaoPage() {
                   <h2 className="text-lg font-bold">{pedido.fornecedorNome}</h2>
                   <p className="text-xs text-slate-500">{dataHora(pedido.criadoEm)} · {pedido.itens.length} insumo(s)</p>
                   <p className="mt-1 break-words text-xs text-slate-500">Entrega: {pedido.enderecoEntrega}</p>
+                  {pedido.status === 'recebido' && (
+                    <p className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                      Recebido em {pedido.dataRecebimentoLocal ?? (pedido.dataRecebimento ? pedido.dataRecebimento.slice(0, 10) : 'data não informada')}
+                      {pedido.valorTotalRecebido != null && ` · Despesa gerada: ${brl(pedido.valorTotalRecebido)}`}
+                    </p>
+                  )}
                 </div>
                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${pedido.status === 'gerado' ? 'bg-amber-100 text-amber-800' : pedido.status === 'recebido' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
                   {pedido.status === 'gerado' ? 'Aguardando recebimento' : pedido.status === 'recebido' ? 'Recebido' : 'Cancelado'}
@@ -268,6 +278,9 @@ export default function ReposicaoPage() {
                   </li>
                 ))}
               </ul>
+              {pedido.status === 'recebido' && pedido.despesaId && (
+                <Link to="/financeiro" className="action-button text-sm">Ver débito no Financeiro</Link>
+              )}
               {pedido.status === 'gerado' && (
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={() => setPedidoReceber(pedido)}><PackageCheck className="h-4 w-4" /> Reabastecer estoque</Button>
