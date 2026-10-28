@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { converterQuantidade as c, unidadesCompativeis } from '../.test-build/lib/unidades.js'
 import { precificar } from '../.test-build/lib/precificacao.js'
-import { precoPorReferencia, custoPorUnidadeControle, formatarPrecoReferencia, simularCompra, unidadeReferencia } from '../.test-build/lib/custosInsumos.js'
+import { precoPorReferencia, custoPorUnidadeControle, formatarPrecoReferencia, simularCompra, unidadeReferencia, converterCustoControle } from '../.test-build/lib/custosInsumos.js'
 test('kg/g e L/ml em ambas direções',()=>{assert.equal(c(1,'kg','g'),1000);assert.equal(c(150,'g','kg'),.15);assert.equal(c(2,'L','ml'),2000);assert.equal(c(200,'ml','L'),.2)})
 test('embalagens são configuráveis por insumo',()=>{assert.equal(c(1,'cx','un','cx',100),100);assert.equal(c(2,'pct','un','pct',12),24);assert.equal(c(1,'cx','un'),null);assert.equal(c(1,'kg','L'),null);assert.equal(c(1,'ml','g'),null)})
 test('unidades incompatíveis não são oferecidas',()=>{assert.deepEqual(unidadesCompativeis('kg'),['kg','g']);assert.ok(unidadesCompativeis('un','cx',100).includes('cx'))})
@@ -44,4 +44,11 @@ test('rejeita unidade incompatível e compra de valor zero', () => {
   assert.equal(simularCompra({unidade:'kg'},1,'L',12),null)
   assert.equal(simularCompra({unidade:'g'},100,'g',0),null)
   assert.equal(custoPorUnidadeControle(8,'L',{unidade:'g'}),null)
+})
+
+test('trocar unidade de controle converte também o custo e não mistura grandezas', () => {
+  assert.equal(converterCustoControle(0.008, 'g', 'kg'), 8)
+  assert.equal(converterCustoControle(8, 'kg', 'g'), 0.008)
+  assert.equal(converterCustoControle(0.006, 'ml', 'L'), 6)
+  assert.equal(converterCustoControle(8, 'kg', 'un'), null)
 })
