@@ -68,7 +68,7 @@ test('rota publica nao importa provedores privados nem inicializa autenticacao',
   assert.match(privado, /<AuthProvider>/)
   assert.match(privado, /<ThemeProvider>/)
   assert.doesNotMatch(privado, /<Route path="\/m\//)
-  assert.match(privado, /queryClient\.clear\(\)/, { negate: true })
+  assert.doesNotMatch(privado, /queryClient\.clear\(\)/)
 })
 
 test('cardapio guarda somente dados publicos e nao tem estado de login', () => {
