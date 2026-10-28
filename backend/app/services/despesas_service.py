@@ -94,31 +94,18 @@ def listar_paginado(
     """
     if categoria and categoria not in CATEGORIAS:
         raise HTTPException(422, f"Categoria deve ser uma de: {', '.join(sorted(CATEGORIAS))}")
-    outros_filtros = any((status, categoria, fornecedor_id, usuario_id))
-    if limit is not None and not outros_filtros:
-        if limit <= 0:
-            raise HTTPException(422, "limit deve ser maior que zero")
-        return list_items_paginado(
-            restaurant_id,
-            "despesas",
-            limit=limit,
-            cursor_id=cursor_id,
-            field="data",
-            inicio=inicio,
-            fim=fim,
-        )
-    return (
-        listar(
-            restaurant_id,
-            inicio=inicio,
-            fim=fim,
-            status=status,
-            categoria=categoria,
-            fornecedor_id=fornecedor_id,
-            usuario_id=usuario_id,
-        ),
-        None,
-    )
+    if limit is None:
+        return listar(restaurant_id, inicio=inicio, fim=fim, status=status, categoria=categoria,
+                      fornecedor_id=fornecedor_id, usuario_id=usuario_id), None
+    if not 1 <= limit <= 200:
+        raise HTTPException(422, 'limit deve estar entre 1 e 200')
+    docs, cursor = list_items_paginado(restaurant_id, 'despesas', limit=limit,
+                                     cursor_id=cursor_id, field='data', inicio=inicio, fim=fim)
+    docs = [d for d in docs if (not status or d.get('status') == status)
+            and (not categoria or d.get('categoria') == categoria)
+            and (not fornecedor_id or d.get('fornecedorId') == fornecedor_id)
+            and (not usuario_id or d.get('usuarioId') == usuario_id)]
+    return docs, cursor
 
 
 def obter(restaurant_id: str, despesa_id: str) -> dict:
@@ -145,6 +132,10 @@ def criar(restaurant_id: str, payload: DespesaCreate) -> dict:
 
     @transactional
     def _exec(t) -> None:
+        if data.get('fornecedorId'):
+            fornecedor = next(iter(t.get(item_doc(restaurant_id, 'fornecedores', data['fornecedorId']))), None)
+            if not fornecedor or not fornecedor.exists or (fornecedor.to_dict() or {}).get('ativo') is False:
+                raise HTTPException(422, 'Fornecedor inválido ou inativo neste restaurante')
         # Agregado PRIMEIRO (leitura + escrita), doc da despesa por último
         # (Firestore proíbe leitura após escrita na transação).
         agregados_service.ajustar_despesa_tx(
@@ -178,6 +169,10 @@ def atualizar(restaurant_id: str, despesa_id: str, payload: DespesaUpdate) -> di
                 raise HTTPException(
                     409, 'Despesa vinculada a reposição: os dados de compra são imutáveis. É possível marcar como paga ou reabrir.'
                 )
+        if payload.fornecedor_id and payload.fornecedor_id != anterior.get('fornecedorId'):
+            fornecedor = next(iter(t.get(item_doc(restaurant_id, 'fornecedores', payload.fornecedor_id))), None)
+            if not fornecedor or not fornecedor.exists or (fornecedor.to_dict() or {}).get('ativo') is False:
+                raise HTTPException(422, 'Fornecedor inválido ou inativo neste restaurante')
         dump = payload.model_dump(by_alias=True)
         reabrir = dump.pop("ativoPago", None)  # True=marca pago agora; False=reabre
         changes = {k: v for k, v in dump.items() if v is not None}

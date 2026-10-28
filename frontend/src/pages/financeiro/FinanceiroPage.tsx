@@ -33,10 +33,10 @@ function mesAtual(): { inicio: string; fim: string } {
 export default function FinanceiroPage() {
   return (
     <div className="min-w-0 w-full max-w-full overflow-x-hidden p-3 sm:p-6">
-      <PageHeader title="Financeiro" subtitle="Fornecedores, despesas e resultado do mês" />
+      <PageHeader title="Financeiro" subtitle="Despesas e resultado do mês" />
       <div className="grid min-w-0 w-full max-w-full gap-4 sm:gap-6 lg:grid-cols-2">
         <ResumoMesCard />
-        <FornecedoresCard />
+
         <div className="min-w-0 lg:col-span-2">
           <DespesasCard />
         </div>
@@ -47,9 +47,10 @@ export default function FinanceiroPage() {
 
 // ------------------------------------------------------------------ resumo
 function ResumoMesCard() {
+  const {me} = useAuth()
   const { inicio, fim } = mesAtual()
   const resumo = useQuery({
-    queryKey: ['resumo-financeiro', inicio],
+    queryKey: ['resumo-financeiro', me?.restaurantId, me?.papel, inicio],
     queryFn: () =>
       api<{ financeiro: ResumoFinanceiro }>(
         `/relatorios/resumo?inicio=${encodeURIComponent(inicio)}&fim=${encodeURIComponent(fim)}`,
@@ -123,6 +124,9 @@ function despesaVazia(): DespesaForm {
 
 function DespesasCard() {
   const qc = useQueryClient()
+  const { me } = useAuth()
+  const [cursores, setCursores] = useState<(string | null)[]>([null])
+  const cursor = cursores[cursores.length - 1]
   const [filtroStatus, setFiltroStatus] = useState('')
   const [filtroCat, setFiltroCat] = useState('')
   const [aberto, setAberto] = useState(false)
@@ -130,9 +134,9 @@ function DespesasCard() {
   const [form, setForm] = useState<DespesaForm>(despesaVazia())
   const [erro, setErro] = useState<string | null>(null)
 
-  const despesas = useQuery({ queryKey: ['despesas'], queryFn: () => api<Despesa[]>('/despesas') })
-  const fornecedores = useQuery({ queryKey: ['fornecedores'], queryFn: () => api<Fornecedor[]>('/fornecedores') })
-  const usuarios = useQuery({ queryKey: ['usuarios'], queryFn: () => api<AppUser[]>('/usuarios') })
+  const despesas = useQuery({queryKey:['despesas', me?.restaurantId, me?.papel, filtroStatus, filtroCat, cursor], queryFn:()=>api<{items:Despesa[];nextCursor:string|null}>(`/despesas/pagina?limit=50&status=${filtroStatus}&categoria=${filtroCat}${cursor ? '&cursor='+encodeURIComponent(cursor) : ''}`), staleTime:30000})
+  const fornecedores = useQuery({ queryKey: ['fornecedores', me?.restaurantId, me?.papel], queryFn: () => api<Fornecedor[]>('/fornecedores'), enabled:aberto && form.categoria === 'insumo', staleTime:120000 })
+  const usuarios = useQuery({ queryKey: ['usuarios', me?.restaurantId, me?.papel], queryFn: () => api<AppUser[]>('/usuarios'), enabled:aberto && form.categoria === 'folha', staleTime:120000 })
 
   function abrirNova() {
     setEditandoId(null)
@@ -207,7 +211,7 @@ function DespesasCard() {
     },
   })
 
-  const lista = (despesas.data ?? []).filter(
+  const lista = (despesas.data?.items ?? []).filter(
     (d) =>
       (!filtroStatus || d.status === filtroStatus) && (!filtroCat || d.categoria === filtroCat),
   )
@@ -216,12 +220,12 @@ function DespesasCard() {
     <Card className="overflow-hidden">
       <div className="flex min-w-0 flex-col items-stretch gap-2 border-b border-slate-100 px-3 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:px-5 sm:py-4 dark:border-slate-800">
         <h3 className="mr-auto font-bold text-slate-700 dark:text-slate-200">Despesas</h3>
-        <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} className="w-full !py-2 !text-xs sm:!w-auto sm:!py-1.5">
+        <Select value={filtroStatus} onChange={(e) => {setFiltroStatus(e.target.value); setCursores([null])}} className="w-full !py-2 !text-xs sm:!w-auto sm:!py-1.5">
           <option value="">Todos os status</option>
           <option value="pendente">Pendentes</option>
           <option value="pago">Pagas</option>
         </Select>
-        <Select value={filtroCat} onChange={(e) => setFiltroCat(e.target.value)} className="w-full !py-2 !text-xs sm:!w-auto sm:!py-1.5">
+        <Select value={filtroCat} onChange={(e) => {setFiltroCat(e.target.value); setCursores([null])}} className="w-full !py-2 !text-xs sm:!w-auto sm:!py-1.5">
           <option value="">Todas as categorias</option>
           {CATEGORIAS.map((c) => (
             <option key={c.valor} value={c.valor}>{c.label}</option>
@@ -263,8 +267,8 @@ function DespesasCard() {
                   ) : (
                     <button onClick={() => reabrir.mutate(d.id)} disabled={reabrir.isPending} className="min-h-11 text-xs font-semibold text-sky-600 action-button disabled:opacity-50">Reabrir</button>
                   )}
-                  <button onClick={() => abrirEdicao(d)} className="min-h-11 text-xs font-semibold text-brand-600 action-button">Editar</button>
-                  <button onClick={() => window.confirm(`Excluir "${d.descricao}"?`) && excluir.mutate(d.id)} className="min-h-11 text-xs font-semibold text-rose-400 action-button hover:text-rose-600">Excluir</button>
+                  <button disabled={!!d.pedidoReposicaoId} onClick={() => abrirEdicao(d)} className="min-h-11 text-xs font-semibold text-brand-600 action-button">Editar</button>
+                  <button disabled={!!d.pedidoReposicaoId} onClick={() => window.confirm(`Excluir "${d.descricao}"?`) && excluir.mutate(d.id)} className="min-h-11 text-xs font-semibold text-rose-400 action-button hover:text-rose-600">Excluir</button>
                 </div>
               </div>
             </li>
@@ -272,6 +276,7 @@ function DespesasCard() {
         </ul>
       )}
 
+      <div className="flex flex-wrap gap-2 p-3"><Button variant="secondary" disabled={cursores.length===1} onClick={()=>setCursores(c=>c.slice(0,-1))}>Anterior</Button><Button variant="secondary" disabled={!despesas.data?.nextCursor} onClick={()=>setCursores(c=>[...c,despesas.data!.nextCursor])}>Próxima página</Button><span className="text-xs text-slate-500">CSV exporta somente esta página. Páginas filtradas podem ficar vazias.</span></div>
       <Modal title={editandoId ? 'Editar despesa' : 'Nova despesa'} open={aberto} onClose={() => setAberto(false)}>
         <div className="space-y-3">
           <Field label="Categoria">
@@ -363,120 +368,3 @@ function exportarDespesas(lista: Despesa[]) {
   }
 }
 
-// ------------------------------------------------------------------ fornecedores
-function FornecedoresCard() {
-  const qc = useQueryClient()
-  const [aberto, setAberto] = useState(false)
-  const [editandoId, setEditandoId] = useState<string | null>(null)
-  const [form, setForm] = useState({ nome: '', documento: '', telefone: '', email: '', observacoes: '' })
-  const [erro, setErro] = useState<string | null>(null)
-
-  const fornecedores = useQuery({ queryKey: ['fornecedores'], queryFn: () => api<Fornecedor[]>('/fornecedores') })
-
-  const salvar = useMutation({
-    mutationFn: () => {
-      const body = {
-        nome: form.nome.trim(),
-        documento: form.documento || null,
-        telefone: form.telefone || null,
-        email: form.email || null,
-        observacoes: form.observacoes || null,
-      }
-      return editandoId
-        ? api(`/fornecedores/${editandoId}`, { method: 'PATCH', body })
-        : api('/fornecedores', { method: 'POST', body })
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['fornecedores'] })
-      setAberto(false)
-    },
-    onError: (e) => setErro(e instanceof Error ? e.message : 'Erro ao salvar fornecedor'),
-  })
-
-  const excluir = useMutation({
-    mutationFn: (id: string) => api(`/fornecedores/${id}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['fornecedores'] }),
-  })
-
-  return (
-    <Card className="overflow-hidden">
-      <div className="flex flex-col gap-2 border-b border-slate-100 px-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5 dark:border-slate-800">
-        <h3 className="font-bold text-slate-700 dark:text-slate-200">Fornecedores</h3>
-        <Button
-          variant="secondary"
-          className="!px-3 !py-1.5 !text-xs"
-          onClick={() => {
-            setEditandoId(null)
-            setForm({ nome: '', documento: '', telefone: '', email: '', observacoes: '' })
-            setErro(null)
-            setAberto(true)
-          }}
-        >
-          + Fornecedor
-        </Button>
-      </div>
-
-      {fornecedores.isLoading ? (
-        <LoadingScreen />
-      ) : fornecedores.isError ? (
-        <div className="p-5"><ErrorState error={fornecedores.error} /></div>
-      ) : (fornecedores.data ?? []).length === 0 ? (
-        <p className="px-5 py-10 text-center text-sm text-slate-500">Nenhum fornecedor cadastrado.</p>
-      ) : (
-        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-          {(fornecedores.data ?? []).map((f) => (
-            <li key={f.id} className="flex min-w-0 flex-wrap items-center gap-3 px-3 py-3 sm:flex-nowrap sm:px-5">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{f.nome}</p>
-                <p className="truncate text-xs text-slate-500">
-                  {[f.documento, f.telefone].filter(Boolean).join(' · ') || '—'}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setEditandoId(f.id)
-                  setForm({
-                    nome: f.nome,
-                    documento: f.documento ?? '',
-                    telefone: f.telefone ?? '',
-                    email: f.email ?? '',
-                    observacoes: f.observacoes ?? '',
-                  })
-                  setErro(null)
-                  setAberto(true)
-                }}
-                className="text-xs font-semibold text-brand-600 action-button"
-              >
-                Editar
-              </button>
-              <button
-                onClick={() => window.confirm(`Excluir fornecedor "${f.nome}"?`) && excluir.mutate(f.id)}
-                className="text-xs font-semibold text-rose-400 action-button hover:text-rose-600"
-              >
-                Excluir
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <Modal title={editandoId ? 'Editar fornecedor' : 'Novo fornecedor'} open={aberto} onClose={() => setAberto(false)}>
-        <div className="space-y-3">
-          <Field label="Nome"><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></Field>
-          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
-            <Field label="CPF/CNPJ"><Input value={form.documento} onChange={(e) => setForm({ ...form, documento: e.target.value })} /></Field>
-            <Field label="Telefone"><Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></Field>
-          </div>
-          <Field label="E-mail"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
-          <Field label="Observações"><Input value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} /></Field>
-          {erro && (
-            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{erro}</p>
-          )}
-          <Button className="w-full" loading={salvar.isPending} disabled={!form.nome.trim()} onClick={() => salvar.mutate()}>
-            Salvar fornecedor
-          </Button>
-        </div>
-      </Modal>
-    </Card>
-  )
-}

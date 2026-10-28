@@ -165,7 +165,7 @@ class TestRotas:
         assert r3.json() == []
         assert "X-Next-Cursor" not in r3.headers
 
-    def test_despesas_com_outro_filtro_sem_cursor(self, db, api):
+    def test_despesas_com_outro_filtro_paginado(self, db, api):
         """Filtro NÃƒO-server-side (status) devolve tudo â€” sem header."""
         for i in range(3):
             seed(db, RID, "despesas", f"dz{i}", {
@@ -175,8 +175,8 @@ class TestRotas:
                 "createdAt": _ts(26 + i, 12), "updatedAt": _ts(26 + i, 12),
             })
         r = api.get("/api/despesas", params={"status": "pendente", "limit": 2})
-        assert len(r.json()) == 3
-        assert "X-Next-Cursor" not in r.headers
+        assert len(r.json()) == 2
+        assert "X-Next-Cursor" in r.headers
 
     def test_sessoes_caixa_paginadas(self, db, api):
         for i in range(4):

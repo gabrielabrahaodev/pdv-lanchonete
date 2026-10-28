@@ -220,6 +220,11 @@ export interface Configuracoes {
 }
 
 export interface Fornecedor {
+  nomeFantasia?: string | null
+  whatsapp?: string | null
+  endereco?: string | null
+  condicaoPagamento?: string | null
+  prazoEntregaDias?: number | null
   id: string
   nome: string
   documento?: string | null
@@ -232,6 +237,7 @@ export interface Fornecedor {
 export type DespesaCategoria = 'insumo' | 'folha' | 'conta_fixa' | 'outra'
 
 export interface Despesa {
+  pedidoReposicaoId?: string | null
   id: string
   categoria: DespesaCategoria
   descricao: string

@@ -37,8 +37,18 @@ def atualizar(restaurant_id: str, fornecedor_id: str, payload: FornecedorUpdate)
 
 
 def remover(restaurant_id: str, fornecedor_id: str) -> None:
-    obter(restaurant_id, fornecedor_id)
-    # Insumos e pedidos precisam preservar a referência e o nome histórico.
-    if any(i.get('fornecedorId') == fornecedor_id for i in list_items(restaurant_id, 'estoque')) or any(p.get('fornecedorId') == fornecedor_id for p in list_items(restaurant_id, 'pedidos_reposicao')):
-        raise HTTPException(409, 'Fornecedor vinculado a insumos ou pedidos: desative em vez de excluir')
-    item_doc(restaurant_id, "fornecedores", fornecedor_id).delete()
+    from google.cloud.firestore import transactional
+    from app.services.base import executar_transacao
+    ref = item_doc(restaurant_id, 'fornecedores', fornecedor_id)
+
+    @transactional
+    def executar(t):
+        snap = next(iter(t.get(ref)), None)
+        if not snap or not snap.exists:
+            raise HTTPException(404, 'Fornecedor não encontrado')
+        for colecao in ('estoque', 'pedidos_reposicao', 'despesas', 'movimentacoes_estoque'):
+            vinculados = t.get(items_col(restaurant_id, colecao).where('fornecedorId', '==', fornecedor_id).limit(1))
+            if any(d.exists for d in vinculados):
+                raise HTTPException(409, 'Fornecedor com vínculos ou histórico: desative em vez de excluir')
+        t.delete(ref)
+    executar_transacao(executar)

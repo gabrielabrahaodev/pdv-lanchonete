@@ -26,6 +26,7 @@ const CozinhaPage = lazy(() => import('./pages/cozinha/CozinhaPage'))
 const DeliveryPage = lazy(() => import('./pages/delivery/DeliveryPage'))
 const RelatoriosPage = lazy(() => import('./pages/relatorios/RelatoriosPage'))
 const FechamentoCaixaPage = lazy(() => import('./pages/relatorios/FechamentoCaixaPage'))
+const FornecedoresPage = lazy(() => import('./pages/fornecedores/FornecedoresPage'))
 const FinanceiroPage = lazy(() => import('./pages/financeiro/FinanceiroPage'))
 const ConfiguracoesPage = lazy(() => import('./pages/configuracoes/ConfiguracoesPage'))
 
@@ -131,6 +132,7 @@ export default function AppAutenticado() {
           <Route path="delivery" element={<DeliveryPage />} />
           <Route path="relatorios" element={<RequireFinanceiro><RelatoriosPage /></RequireFinanceiro>} />
           <Route path="relatorios/fechamento-caixa" element={<RequireFinanceiro><FechamentoCaixaPage /></RequireFinanceiro>} />
+          <Route path="fornecedores" element={<RequireFinanceiro><FornecedoresPage /></RequireFinanceiro>} />
           <Route path="financeiro" element={<RequireFinanceiro><FinanceiroPage /></RequireFinanceiro>} />
           <Route path="configuracoes" element={<ConfiguracoesPage />} />
           <Route path="minha-conta" element={<MinhaContaPage />} />

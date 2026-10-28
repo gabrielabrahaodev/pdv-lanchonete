@@ -112,11 +112,14 @@ def criar_item(
     if data["unidade"] not in UNIDADES:
         raise HTTPException(422, "Unidade de controle inválida")
     _validar_cadastro(data)
-    _validar_fornecedor(restaurant_id, data.get('fornecedorId'))
     ref = items_col(restaurant_id, "estoque").document()
 
     @transactional
     def executar(t):
+        if data.get('fornecedorId'):
+            fornecedor = next(iter(t.get(item_doc(restaurant_id, 'fornecedores', data['fornecedorId']))), None)
+            if not fornecedor or not fornecedor.exists or (fornecedor.to_dict() or {}).get('ativo') is False:
+                raise HTTPException(422, 'Fornecedor inválido ou inativo neste restaurante')
         t.set(
             ref,
             stamp_create(

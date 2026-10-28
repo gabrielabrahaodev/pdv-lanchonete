@@ -416,7 +416,15 @@ class Configuracoes(CamelModel):
 
 
 # ---------------------------------------------------------------- Financeiro
-class Fornecedor(CamelModel):
+class DadosFornecedor(CamelModel):
+    nome_fantasia: Optional[str] = Field(default=None, max_length=200)
+    whatsapp: Optional[str] = Field(default=None, max_length=30)
+    endereco: Optional[str] = Field(default=None, max_length=1000)
+    condicao_pagamento: Optional[str] = Field(default=None, max_length=200)
+    prazo_entrega_dias: Optional[int] = Field(default=None, ge=0, le=365)
+
+
+class Fornecedor(DadosFornecedor):
     id: str
     restaurant_id: str
     nome: str
@@ -429,7 +437,7 @@ class Fornecedor(CamelModel):
     atualizado_em: datetime
 
 
-class FornecedorCreate(CamelModel):
+class FornecedorCreate(DadosFornecedor):
     nome: str = Field(min_length=2)
     documento: Optional[str] = None
     telefone: Optional[str] = None
@@ -438,8 +446,8 @@ class FornecedorCreate(CamelModel):
     ativo: bool = True
 
 
-class FornecedorUpdate(CamelModel):
-    nome: Optional[str] = None
+class FornecedorUpdate(DadosFornecedor):
+    nome: Optional[str] = Field(default=None, min_length=2, max_length=200)
     documento: Optional[str] = None
     telefone: Optional[str] = None
     email: Optional[str] = None

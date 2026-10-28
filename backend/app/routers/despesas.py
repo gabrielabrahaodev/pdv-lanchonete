@@ -43,6 +43,16 @@ def listar(
     return docs
 
 
+@router.get('/pagina')
+def pagina(inicio: datetime | None = None, fim: datetime | None = None,
+           status: str | None = None, categoria: str | None = None,
+           fornecedor_id: str | None = None, limit: int = Query(50, ge=1, le=200),
+           cursor: str | None = None, auth: CurrentAuth = Depends(ESCRITA)) -> dict:
+    docs, proximo = despesas_service.listar_paginado(auth.restaurant_id, inicio=inicio, fim=fim,
+        status=status, categoria=categoria, fornecedor_id=fornecedor_id, limit=limit, cursor_id=cursor)
+    return {'items': docs, 'nextCursor': proximo}
+
+
 @router.get("/{despesa_id}")
 def obter(despesa_id: str, restaurant_id: str = Depends(ESCRITA)) -> dict:
     return despesas_service.obter(restaurant_id.restaurant_id, despesa_id)
