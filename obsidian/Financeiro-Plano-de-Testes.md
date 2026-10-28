@@ -18,3 +18,10 @@ As suítes existentes cobrem compras kg/g/ml/L/pacote, recebimento retroativo, d
 10. Validar Android/iOS/PWA, teclado/Tab/Escape, 320–1440 px, claro/escuro. Desconectar rede e verificar erros visíveis, sem indicadores fictícios.
 
 Não executar backfill ou dados reais antes de aprovação. PR #17 é dependência. Ordem de revisão: fornecedores → captura por produto → BI. Sem merge/deploy automático.
+
+## Regressão de navegação e período
+- Visão geral tem resumo executivo, Resultados tem demonstrativo e percentuais; não são telas iguais. Contar chamadas ao painel ao alternar.
+- Em Despesas, aplicar um dia e registrar despesas antes/depois da meia-noite São Paulo: somente a competência selecionada deve vir da API paginada. Paginar sem eliminar datas no frontend.
+- Criar/editar/excluir valor/data/categoria → retornar ao executivo e conferir totais atualizados; pagar/reabrir só muda situação e resumos de contas, não o resultado por competência.
+- Ranking de 62 produtos: comparar receita/volume/contribuição/margem coberta, abrir detalhes e filtrar variação; nenhuma reconstrução com custo atual.
+- Previsibilidade mostra resumo e acesso a contas, sem repetir lista completa. Histórico insuficiente continua bloqueando projeção.

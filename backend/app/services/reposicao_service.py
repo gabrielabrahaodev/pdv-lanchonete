@@ -280,4 +280,6 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
         }))
 
     executar_transacao(_exec)
+    from app.services.bi_service import invalidar
+    invalidar(rid)
     return obter(rid, pedido_id)

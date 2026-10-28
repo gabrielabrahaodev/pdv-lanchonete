@@ -22,3 +22,10 @@ Comparação anterior + previsão compartilham histórico: 7 dias → até 56 re
 Fonte oficial conferida: https://firebase.google.com/docs/firestore/quotas (28/10/2026): free tier com 50 mil leituras/dia, 20 mil escritas/dia, 1 GiB armazenado e documento até 1 MiB, compartilhados pelo projeto. Não há quota separada por restaurante. O dimensionamento aqui não mede uso produtivo.
 
 `firestore.indexes.json`: isenta mapas de métricas de produto/variação/compras de índices automáticos no collection group `items`, pois são lidos integralmente pelos agregados. Revisar e publicar separadamente somente após homologação; nenhuma configuração real foi aplicada. Transformações numéricas dos mapas BI são consolidadas usando o snapshot já lido da transação, evitando o limite de 500 transforms por documento em vendas com muitas linhas.
+
+## Ajuste de usabilidade
+Visão geral ↔ Resultados: zero novas consultas por troca de seção, mesma chave React Query e payload do painel. Indicadores novos são cálculos sobre os agregados já obtidos: incremento de leituras zero. Contas no resumo executivo são opt-in pelo botão Consultar compromissos; reutilizam a consulta existente, não carregam por cartão. Previsibilidade reaproveita apenas resumo, sem repetir listagem de contas.
+
+Despesas recebem `data_inicio`/`data_fim` civis na rota paginada, convertidos no backend ao início/fim inclusivos do dia no fuso configurado. Filtro temporal no mesmo campo `data` ordenado, sem novo índice composto. Parâmetros antigos inicio/fim datetime continuam aceitos.
+
+Criar/editar campos econômicos/excluir despesa invalida cache Python somente do tenant após commit; React invalida despesas/BI/contas/resumo do tenant. Pagar/reabrir afeta despesas/contas, não exige recalcular receita/CMV por competência. Recebimento de reposição também invalida BI após commit. Não invalida outros restaurantes. Cache de 30s e fontes existentes preservados, sem polling.

@@ -146,6 +146,8 @@ def criar(restaurant_id: str, payload: DespesaCreate) -> dict:
         t.set(ref, stamp_create(data))
 
     _exec(get_db().transaction())
+    from app.services.bi_service import invalidar
+    invalidar(restaurant_id)
     return obter(restaurant_id, ref.id)
 
 
@@ -214,6 +216,9 @@ def atualizar(restaurant_id: str, despesa_id: str, payload: DespesaUpdate) -> di
         t.update(ref, stamp_update(changes))
 
     _exec(db.transaction())
+    from app.services.bi_service import invalidar
+    if payload.model_fields_set & {'categoria','valor','data','fornecedor_id'}:
+        invalidar(restaurant_id)
     return obter(restaurant_id, despesa_id)
 
 
@@ -254,3 +259,5 @@ def remover(restaurant_id: str, despesa_id: str) -> None:
         t.delete(ref)
 
     _exec(db.transaction())
+    from app.services.bi_service import invalidar
+    invalidar(restaurant_id)
