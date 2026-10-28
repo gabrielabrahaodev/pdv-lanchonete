@@ -37,7 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setFbUser(user)
       if (user) {
         try {
-          const data = await api<AuthMe>('/auth/me')
+          let data = await api<AuthMe>('/auth/me')
+          if(data.restaurantId && user.emailVerified && data.perfil?.email !== user.email){await api('/usuarios/me/sincronizar-login',{method:'POST'});data=await api<AuthMe>('/auth/me')}
           if (auth.currentUser?.uid === user.uid) setMe(data)
         } catch (err) {
           console.error('Falha ao carregar contexto /auth/me', err)

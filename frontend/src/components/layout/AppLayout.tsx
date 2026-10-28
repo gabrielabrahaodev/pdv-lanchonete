@@ -34,6 +34,7 @@ const NAV: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/delivery', label: 'Delivery', icon: <Bike className="h-5 w-5" aria-hidden="true" /> },
   { to: '/relatorios', label: 'Relatórios', icon: <ChartColumn className="h-5 w-5" aria-hidden="true" /> },
   { to: '/financeiro', label: 'Financeiro', icon: <Wallet className="h-5 w-5" aria-hidden="true" /> },
+  { to: '/minha-conta', label: 'Minha conta', icon: <Settings className="h-5 w-5" aria-hidden="true" /> },
   { to: '/configuracoes', label: 'Configurações', icon: <Settings className="h-5 w-5" aria-hidden="true" /> },
 ]
 
@@ -43,7 +44,7 @@ export default function AppLayout() {
   const { me, logout } = useAuth()
   const navigate = useNavigate()
   const estoque = useEstoque(me?.restaurantId)
-  const alertasCount = (estoque.data ?? []).filter((i) => (i.quantidadeAtual ?? 0) <= (i.minimo ?? 0)).length
+  const alertasCount = (estoque.data ?? []).filter((i) => i.ativo !== false && (i.quantidadeAtual ?? 0) <= (i.minimo ?? 0)).length
   const realtimeOk = useRealtimeStatus()
   const [online, setOnline] = useState(navigator.onLine)
 

@@ -1,3 +1,4 @@
+import { recuperarSenha } from '../lib/conta'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Eye, EyeOff, UtensilsCrossed } from 'lucide-react'
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [criando, setCriando] = useState(convidado)
   const [erro, setErro] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [recuperacao,setRecuperacao] = useState('')
   const [mostrarSenha, setMostrarSenha] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -117,6 +119,9 @@ export default function LoginPage() {
             {criando ? 'Criar conta' : 'Entrar'}
           </Button>
         </form>
+
+        {!criando && <Button variant="ghost" className="mt-3 w-full" disabled={loading || !email.trim()} onClick={async()=>{setLoading(true);setErro(null);setRecuperacao(await recuperarSenha(email));setLoading(false)}}>Esqueci minha senha</Button>}
+        {recuperacao && <p role="status" className="mt-3 text-sm text-slate-600 dark:text-slate-300">{recuperacao}</p>}
 
         <button
           type="button"

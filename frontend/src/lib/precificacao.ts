@@ -1,3 +1,4 @@
+import { converterQuantidade } from './unidades.js'
 import type { InventoryItem } from '../types/index'
 
 export function numeroDecimal(valor: string): number {
@@ -7,7 +8,7 @@ export function numeroDecimal(valor: string): number {
 
 /** Quantidades e custos usam a mesma unidade do estoque (ex.: 0,15 kg). */
 export function precificar(
-  ingredientes: { itemId: string; qtd: string }[],
+  ingredientes: { itemId: string; qtd: string; unidade?: string }[],
   estoque: InventoryItem[],
   percentual: string,
   rendimento = 1,
@@ -15,7 +16,8 @@ export function precificar(
   const acrescimo = numeroDecimal(percentual)
   const linhas = ingredientes.map((ingrediente) => {
     const item = estoque.find((item) => item.id === ingrediente.itemId)
-    const qtd = numeroDecimal(ingrediente.qtd)
+    const informado = numeroDecimal(ingrediente.qtd)
+    const qtd = item ? converterQuantidade(informado, ingrediente.unidade || item.unidade, item.unidade, item.unidadeCompra, item.fatorCompra) ?? NaN : NaN
     const valido = !!item && Number.isFinite(item.custoMedio) && item.custoMedio > 0
       && Number.isFinite(qtd) && qtd > 0
     return { item, qtd, custo: valido ? item!.custoMedio * qtd : null }
