@@ -15,23 +15,23 @@ export type SelecaoItem = {
   observacoes: string | null
 }
 
-const SUGESTOES = ['sem cebola', 'sem tomate', 'sem alface', 'sem maionese', 'sem picles', 'bem passado']
-
 /** Modal de customização do produto no momento do pedido:
  *  escolhe variação, quantidade e o que retirar/adicionar (observações). */
 export default function ProdutoCustomModal({
   produto,
   variacaoInicial,
+  imagemUrl,
   onClose,
   onConfirm,
 }: {
   produto: ProdutoCustomizavel | null
   /** Id da variação já selecionada ao abrir (quando o atalho veio de um chip de variação). */
   variacaoInicial?: string
+  imagemUrl?: string
   onClose: () => void
   onConfirm: (sel: SelecaoItem) => void
 }) {
-  const [variacaoId, setVariacaoId] = useState(variacaoInicial ?? '')
+  const [variacaoId, setVariacaoId] = useState<string | null>(variacaoInicial ?? null)
   const [qtd, setQtd] = useState(1)
   const [obs, setObs] = useState('')
 
@@ -42,18 +42,8 @@ export default function ProdutoCustomModal({
   const variacaoSel = variacoesAtivas.find((v) => v.id === variacaoId)
   const unitario = produto.preco + (variacaoSel?.precoAdicional ?? 0)
 
-  const partesObs = obs.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
-
-  function toggleSugestao(s: string) {
-    setObs((o) => {
-      const partes = o.split(',').map((x) => x.trim()).filter(Boolean)
-      const existe = partes.some((p) => p.toLowerCase() === s)
-      const novas = existe ? partes.filter((p) => p.toLowerCase() !== s) : [...partes, s]
-      return novas.join(', ')
-    })
-  }
-
   function confirmar() {
+    if (temVariacoes && variacaoId === null) return
     onConfirm({
       variacaoId: variacaoId || null,
       qtd,
@@ -64,12 +54,14 @@ export default function ProdutoCustomModal({
   return (
     <Modal title={produto.nome} open onClose={onClose}>
       <div className="space-y-4">
+        {imagemUrl && <img src={imagemUrl} alt="" className="h-24 w-24 rounded-xl object-cover" />}
         {temVariacoes && (
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Variação</p>
+            <p className="mb-2 text-sm text-slate-500">Escolha uma opção para adicionar à comanda.</p>
             <div className="space-y-1.5">
               <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
-                <input type="radio" name="variacao" checked={!variacaoId} onChange={() => setVariacaoId('')} className="accent-brand-600" />
+                <input type="radio" name="variacao" checked={variacaoId === ''} onChange={() => setVariacaoId('')} className="accent-brand-600" />
                 <span className="flex-1 font-medium text-slate-700 dark:text-slate-200">Padrão</span>
                 <span className="font-semibold text-brand-600">{brl(produto.preco)}</span>
               </label>
@@ -85,30 +77,14 @@ export default function ProdutoCustomModal({
         )}
 
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Retirar / adicionar</p>
-          <div className="mb-2 flex flex-wrap gap-1.5">
-            {SUGESTOES.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => toggleSugestao(s)}
-                className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 transition ${
-                  partesObs.includes(s)
-                    ? 'bg-brand-600 text-white ring-brand-600'
-                    : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700'
-                }`}
-              >
-                {partesObs.includes(s) ? '✓ ' : '+ '}
-                {s}
-              </button>
-            ))}
-          </div>
+          <label htmlFor="observacoes-personalizacao" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">Observação do item (opcional)</label>
           <textarea
+            id="observacoes-personalizacao"
             value={obs}
             onChange={(e) => setObs(e.target.value)}
             maxLength={200}
             rows={2}
-            placeholder="Ex.: sem cebola, adicionar bacon…"
+            placeholder="Ex.: sem molho, ponto da carne, etc."
             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
           />
         </div>
@@ -126,7 +102,7 @@ export default function ProdutoCustomModal({
           <Button variant="secondary" className="flex-1" onClick={onClose}>
             Cancelar
           </Button>
-          <Button className="flex-[2]" onClick={confirmar}>
+          <Button className="flex-[2]" disabled={temVariacoes && variacaoId === null} onClick={confirmar}>
             Adicionar
           </Button>
         </div>
