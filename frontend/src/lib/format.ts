@@ -30,3 +30,8 @@ export const diasAtrasISO = (dias: number): string => {
   d.setHours(0, 0, 0, 0)
   return d.toISOString()
 }
+
+/** Custos de g/ml podem exigir mais casas que um preço de venda. */
+export const custoUnitario = (valor: number) => valor.toLocaleString('pt-BR', {
+  style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 8,
+})

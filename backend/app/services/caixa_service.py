@@ -1,5 +1,6 @@
 """Sessões de caixa e registro de pagamentos."""
 from __future__ import annotations
+from app.services.base import executar_transacao
 from typing import Any
 import hashlib
 import json
@@ -246,6 +247,18 @@ def registrar_pagamento(
             for item in prontos:
                 item["status"] = "entregue"
 
+        # Encerramento administrativo da mesa não afirma preparo/entrega física.
+        encerra_mesa = quitado and bool(mesa_id) and pedido.get("tipo", "local") == "local"
+        if encerra_mesa:
+            pedido["itens"] = deepcopy(pedido.get("itens", []))
+            for item in pedido["itens"]:
+                if item.get("status") in {"cancelado", "entregue"}:
+                    continue
+                item["encerramentoOperacional"] = {"motivo": "mesa_quitada", "em": fechado_em, "usuarioId": usuario_id}
+                if item.get("modoEstoque") == "antecipado" and item.get("lotesReservados") and not item.get("estoqueEntregueEm") and not item.get("reservaLiberadaEm"):
+                    # Não devolve disponibilidade nem baixa uma entrega não comprovada.
+                    item["reservaConferenciaPendente"] = True
+
         # Agregados ainda fazem suas leituras antes de qualquer escrita.
         pagamento = {
             "id": new_id("pag_"),
@@ -257,10 +270,15 @@ def registrar_pagamento(
         }
         pagamentos = [*pedido.get("pagamentos", []), pagamento]
         updates: dict[str, Any] = {"pagamentos": pagamentos}
-        if entregar_prontos:
+        if entregar_prontos or encerra_mesa:
             updates["itens"] = pedido["itens"]
         if quitado:
             updates |= {"status": "pago", "fechadoEm": fechado_em, "cozinhaPendente": any(i.get("status") in {"pendente", "preparo", "pronto"} for i in pedido.get("itens", []))}
+
+        if encerra_mesa:
+            updates.update({"encerramentoOperacional": {"motivo": "mesa_quitada", "em": fechado_em, "usuarioId": usuario_id},
+                            "cozinhaPendente": False,
+                            "reservaConferenciaPendente": any(i.get("reservaConferenciaPendente") for i in pedido["itens"])})
 
         # Agregado PRIMEIRO (faz leituras prórias — Firestore proíbe leitura
         # após escrita na transação); pedido/evento/sessão/mesa vêm depois.
@@ -316,5 +334,5 @@ def registrar_pagamento(
                 if mesa.get("pedidoAtivoId") == pedido_id:  # condicional
                     mesas_service.liberar_transacional(t, restaurant_id, mesa_id)
 
-    _exec(db.transaction())
+    executar_transacao(_exec)
     return get_item(restaurant_id, "pedidos", pedido_id)  # type: ignore[return-value]

@@ -15,7 +15,7 @@
 - Produção explícita consome ingredientes mesmo se a baixa automática de pedidos estiver desligada. Saldo negativo dos ingredientes continua permitido pela regra existente; produtos prontos nunca podem ser reservados acima do disponível.
 - Lotes vencidos não podem ser reservados, entregues nem convertidos. Reservas vencidas podem ser atualizadas na mesa ou no KDS, se houver novo lote disponível. Depois registre a perda do lote antigo.
 - Cancelar antes da entrega libera a reserva. Produtos entregues não voltam automaticamente ao estoque, e ingredientes consumidos não são estornados.
-- Pagamento e fechamento de caixa não movimentam lotes. Pedidos pagos ainda podem concluir preparo e entrega, preservando total e pagamentos. Cancelamento/remoção seguem bloqueados após pagamento.
+- Pagamento e fechamento de caixa não movimentam lotes. Balcão pago ainda pode concluir preparo e entrega. Mesa quitada agora recebe encerramento operacional, sai do KDS e mantém reservas sem entrega para conferência explícita na Estufa. Ver evolucao-operacional.md. Cancelamento/remoção seguem bloqueados após pagamento.
 - O custo dos prontos vendidos entra no CMV informativo na quitação. Produção não registra saída com pedidoId, evitando dupla contagem. O custo reconhecido é preservado em trocas de reserva posteriores à quitação. A fórmula existente de resultado gerencial não foi alterada.
 - Admin, gerente, caixa e cozinha podem produzir, converter e registrar perdas. Garçom consulta disponibilidade e confirma entrega. Escritas diretas no Firestore são negadas.
 - Histórico da interface exibe os últimos 100 movimentos; API oferece paginação por cursor.

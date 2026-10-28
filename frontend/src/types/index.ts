@@ -49,6 +49,8 @@ export interface ProductVariation {
 }
 
 export interface ProductIngredient {
+  qtdInformada?: number
+  unidadeInformada?: string
   itemId: string
   qtd: number
 }
@@ -83,6 +85,9 @@ export interface Mesa {
 }
 
 export interface OrderItem {
+  encerramentoOperacional?: {motivo: string; em: string; usuarioId: string}
+  reservaConferenciaPendente?: boolean
+  conferenciaReserva?: {acao: string; motivo: string; em: string; usuarioId: string}
   produtoNome?: string
   id: string
   produtoId: string
@@ -107,6 +112,8 @@ export interface Payment {
 }
 
 export interface Order {
+  encerramentoOperacional?: {motivo: string; em: string; usuarioId: string}
+  reservaConferenciaPendente?: boolean
   id: string
   mesaId: string | null
   tipo: 'local' | 'delivery' | 'balcao'
@@ -119,6 +126,9 @@ export interface Order {
 }
 
 export interface InventoryItem {
+  ativo?: boolean
+  unidadeCompra?: string
+  fatorCompra?: number
   id: string
   nome: string
   unidade: string
@@ -128,8 +138,10 @@ export interface InventoryItem {
 }
 
 export interface StockMovement {
+  custoAnterior?: number
+  custoUnitario?: number
   id: string
-  tipo: 'entrada' | 'saida' | 'ajuste'
+  tipo: 'entrada' | 'saida' | 'ajuste' | 'custo'
   itemId: string
   qtd: number
   saldoApos?: number
@@ -256,7 +268,7 @@ export interface LoteProducao {
 
 export interface MovimentoProducao {
   id: string
-  tipo: 'producao' | 'reserva' | 'entrega' | 'liberacao' | 'perda' | 'conversao_saida' | 'conversao_entrada'
+  tipo: 'consumo_conferencia' | 'producao' | 'reserva' | 'entrega' | 'liberacao' | 'perda' | 'conversao_saida' | 'conversao_entrada'
   loteId: string
   produtoId: string
   quantidade: number

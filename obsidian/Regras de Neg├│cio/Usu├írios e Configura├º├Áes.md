@@ -17,7 +17,7 @@ tags: [regras, usuarios, configuracao]
 - Papéis: admin, gerente, caixa, garcom, cozinha.
 - Criar usuário requer Firebase Auth, custom claims e documento Firestore no tenant.
 - Gestão exige admin/gerente, com regra extra para contas admin.
-- Remoção documentada desativa conta no Auth e exclui documento de perfil; histórico de venda preserva os IDs históricos.
+- Desativação preserva o documento de perfil e autoria histórica; o último admin ativo não pode ser desativado/rebaixado. Senha e novo e-mail próprios usam reautenticação/verificação do Firebase. Ver [[Evolucao-Operacional]].
 
 ## Configurações do restaurante
 

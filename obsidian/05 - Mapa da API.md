@@ -25,7 +25,7 @@ Todos os routers de negócio são montados com prefixo `/api`. O corpo/JSON usa 
 | Público | `GET /api/publico/{rid}/cardapio`, `GET /imagens/{produto_id}`; `POST /mesas/{mesa_id}/pedido` retorna 410 | sem token nos endpoints públicos; gate/rate limit no cardápio |
 | Relatórios | `GET /api/relatorios/resumo?inicio&fim`; `GET /api/relatorios/agregado?tipo=dia\|mes&ref=` | admin/gerente/caixa |
 | Configurações | `GET/PUT /api/configuracoes` | PUT admin/gerente |
-| Usuários | `GET/PATCH /api/usuarios/me`, CRUD `/api/usuarios` | self-service para tema; gestão admin/gerente |
+| Usuários | `GET/PATCH /api/usuarios/me`, CRUD `/api/usuarios` | self-service para nome/tema e credenciais verificadas; gestão admin/gerente |
 | Plataforma | `POST/GET /api/sistema/convites`, `DELETE /api/sistema/convites/{token}` | dono da plataforma |
 | Saúde | `/health`, `/ready` (fora do prefixo `/api`) | públicos |
 
@@ -43,3 +43,13 @@ Todos os routers de negócio são montados com prefixo `/api`. O corpo/JSON usa 
 - 422: payload/regra de valor inválido.
 - 429: limite de requisição do cardápio público atingido.
 - 500: exceção não tratada; consultar logs do backend, não adivinhar pela mensagem de browser.
+
+## Contratos da evolução operacional
+
+- Conferência de reserva: `POST /api/pedidos/{pid}/itens/{iid}/conferir-reserva`.
+- Compras: `POST /api/estoque/movimentacoes` aceita unidade/valor total e Idempotency-Key.
+- Login verificado: `POST /api/usuarios/me/sincronizar-login`.
+- Auditoria de solicitação própria: `POST /api/usuarios/me/seguranca`.
+- Recuperação administrativa autorizada: `POST /api/usuarios/{id}/recuperacao`.
+
+Ver [[Evolucao-Operacional]] para campos, permissões e compatibilidade.

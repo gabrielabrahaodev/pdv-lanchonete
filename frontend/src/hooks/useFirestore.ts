@@ -183,6 +183,7 @@ export function useCozinhaFila(rid: string | null | undefined): SnapshotResult<F
   const data = useMemo(
     () =>
       [...new Map([...(q.data ?? []), ...(pagosPendentes.data ?? [])].map((p) => [p.id, p])).values()]
+        .filter((p) => !p.encerramentoOperacional)
         .map((p) => ({
           id: p.id,
           mesaId: p.mesaId,
@@ -266,3 +267,6 @@ export function useVendasBalcao(rid: string | null | undefined) {
     isLoading: abertos.isLoading || pendentes.isLoading || recentes.isLoading,
     error: abertos.error ?? pendentes.error ?? recentes.error }
 }
+
+export const useReservasConferencia = (rid: string | null | undefined) =>
+  useDocs<Order>(rid, 'pedidos', 'reservas-conferencia', c => query(c, where('reservaConferenciaPendente', '==', true)))

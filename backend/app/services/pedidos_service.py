@@ -1,5 +1,6 @@
 """Pedidos: criação, itens e fechamento — preços sempre resolvidos no servidor."""
 from __future__ import annotations
+from app.services.base import executar_transacao
 
 import hashlib
 import json
@@ -92,7 +93,6 @@ def criar(restaurant_id: str, usuario_id: str, mesa_id: str, tipo: str, itens_pa
 
     db = get_db()
     mesa_ref = item_doc(restaurant_id, "mesas", mesa_id)
-    saidas_aplicadas: dict[str, float] = {}
 
     # Transação: evita corrida de dois pedidos simultâneos na mesma mesa
     @transactional
@@ -106,10 +106,10 @@ def criar(restaurant_id: str, usuario_id: str, mesa_id: str, tipo: str, itens_pa
         ref = items_col(restaurant_id, "pedidos").document()
         gravar_reservas = producao_service.planejar_reservas(t, restaurant_id, ref.id, itens, usuario_id)
         if consumo_inicial:
-            # Baixa dos itens sem preparo DENTRO da transação; o agregado
-            # vai pós-commit (fase só-escrita não admite o get de existência).
-            _, aplicadas = _aplicar_consumo(t, restaurant_id, ref.id, consumo_inicial, usuario_id)
-            saidas_aplicadas.update(aplicadas)
+            gravar, aplicadas = _planejar_consumo(t, restaurant_id, ref.id, consumo_inicial, usuario_id)
+            from app.services import agregados_service
+            agregados_service.registrar_saidas_tx(t, restaurant_id, aplicadas)
+            gravar()
         gravar_reservas()
         t.set(ref, stamp_create(pedido_data))
         t.update(
@@ -118,8 +118,7 @@ def criar(restaurant_id: str, usuario_id: str, mesa_id: str, tipo: str, itens_pa
         )
         return ref.id
 
-    pedido_id = _exec(db.transaction())
-    _publicar_saidas_agregado(restaurant_id, saidas_aplicadas)
+    pedido_id = executar_transacao(_exec)
     return obter(restaurant_id, pedido_id)
 
 
@@ -157,7 +156,7 @@ def criar_balcao(restaurant_id: str, usuario_id: str, itens_payload: list[OrderI
         t.set(evento, stamp_create({"fingerprint": fingerprint, "pedidoId": ref.id}))
         return ref.id
 
-    pedido_id = executar(get_db().transaction())
+    pedido_id = executar_transacao(executar)
     return obter(restaurant_id, pedido_id)
 
 
@@ -213,10 +212,8 @@ def adicionar_itens(restaurant_id: str, usuario_id: str, pedido_id: str,
         [p.model_dump(by_alias=True) for p in payloads], sort_keys=True
     ).encode()).hexdigest()
     evento = item_doc(restaurant_id, "eventos_itens", f"{pedido_id}:{idempotency_key}") if idempotency_key else None
-    saidas_adicionadas: dict[str, float] = {}
 
     def txn(transaction, doc_ref):
-        saidas_adicionadas.clear()
         if evento:
             anterior = next(iter(transaction.get(evento)), None)
             if anterior and anterior.exists:
@@ -235,24 +232,17 @@ def adicionar_itens(restaurant_id: str, usuario_id: str, pedido_id: str,
         consumo = _consumo_itens_entregues(restaurant_id, novos)
         gravar_reservas = producao_service.planejar_reservas(transaction, restaurant_id, pedido_id, novos, usuario_id)
         if consumo:
-            _, aplicadas = _aplicar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
-            saidas_adicionadas.update(aplicadas)
+            gravar, aplicadas = _planejar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
+            from app.services import agregados_service
+            agregados_service.registrar_saidas_tx(transaction, restaurant_id, aplicadas)
+            gravar()
         gravar_reservas()
         transaction.update(doc_ref, stamp_update({"itens": itens, "total": _total(itens)}))
         if evento:
             transaction.set(evento, stamp_create({"fingerprint": fingerprint, "pedidoId": pedido_id}))
 
     pedido = _run_txn(restaurant_id, pedido_id, txn)
-    _publicar_saidas_agregado(restaurant_id, saidas_adicionadas)
     return pedido
-
-
-def _publicar_saidas_agregado(restaurant_id: str, saidas: dict[str, float]) -> None:
-    """Agregado pós-commit (fora da transação — ver agregados_service._gravar)."""
-    if saidas:
-        from app.services import agregados_service
-
-        agregados_service.registrar_saidas(restaurant_id, saidas)
 
 
 def _consumo_itens_entregues(restaurant_id: str, itens: list[dict]) -> dict[str, float]:
@@ -324,13 +314,14 @@ def atualizar_status_itens(
     if novo_status not in STATUS_ITEM_VALIDOS:
         raise HTTPException(422, f"Status inválido. Use: {', '.join(sorted(STATUS_ITEM_VALIDOS))}")
     ids = list(dict.fromkeys(item_ids))
-    saidas_transicao: dict[str, float] = {}
 
     def txn(transaction, doc_ref):
         snap = next(iter(transaction.get(doc_ref)), None)
         if not snap or not snap.exists:
             raise HTTPException(404, "Pedido não encontrado")
         pedido = doc_to_dict_local(snap)
+        if pedido.get("encerramentoOperacional"):
+            raise HTTPException(409, "Mesa encerrada. Use a conferência de reservas na estufa.")
         if pedido.get("status") not in {"aberto", "pago"}:
             raise HTTPException(409, "Pedido não está aberto")
         if novo_status == "cancelado" and (pedido.get("status") == "pago" or pedido.get("pagamentos")):
@@ -380,14 +371,15 @@ def atualizar_status_itens(
             "entrega" if novo_status == "entregue" else "liberacao", usuario_id,
         ) if novo_status in {"entregue", "cancelado"} else lambda: None
         if consumo:
-            _, aplicadas = _aplicar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
-            saidas_transicao.update(aplicadas)
+            gravar, aplicadas = _planejar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
+            from app.services import agregados_service
+            agregados_service.registrar_saidas_tx(transaction, restaurant_id, aplicadas)
+            gravar()
         gravar_lotes()
         transaction.update(doc_ref, stamp_update({"itens": itens, "total": pedido["total"] if pedido.get("status") == "pago" else _total(itens),
             "cozinhaPendente": any(i.get("status") in {"pendente", "preparo", "pronto"} for i in itens)}))
 
     pedido = _run_txn(restaurant_id, pedido_id, txn)
-    _publicar_saidas_agregado(restaurant_id, saidas_transicao)
     return pedido
 
 
@@ -432,7 +424,7 @@ def _planejar_consumo(
         if not (cfg_snap.to_dict() or {}).get("baixaEstoqueAutomatica", True):
             return (lambda: None), {}  # controle desativado pelo admin
 
-    pendentes: list[tuple[str, object, float, float]] = []  # (itemId, doc_ref, qtd_consumida, novo_saldo)
+    pendentes: list[tuple[str, object, float, float, float]] = []  # (itemId, doc_ref, qtd_consumida, novo_saldo)
     for iid, total in sorted(consumo.items()):
         total = round(total, 3)
         if total <= 0:
@@ -442,12 +434,12 @@ def _planejar_consumo(
         if not snap or not snap.exists:
             continue  # ingrediente removido do estoque: ignora sem travar o preparo
         atual = float((snap.to_dict() or {}).get("quantidadeAtual", 0) or 0)
-        pendentes.append((iid, ref, total, round(atual - total, 3)))
+        pendentes.append((iid, ref, total, round(atual - total, 3), float((snap.to_dict() or {}).get("custoMedio", 0))))
 
     def gravar():
         # -------- fase 2: TODAS as escritas --------
         observacao = f"Baixa automática — preparo do pedido {pedido_id}"
-        for iid, ref, qtd, novo_saldo in pendentes:
+        for iid, ref, qtd, novo_saldo, custo_unitario in pendentes:
             mov_ref = items_col(restaurant_id, "movimentacoes_estoque").document()
             transaction.set(
                 mov_ref,
@@ -457,6 +449,7 @@ def _planejar_consumo(
                         "itemId": iid,
                         "qtd": qtd,
                         "saldoApos": novo_saldo,
+                        "custoUnitario": custo_unitario,
                         "observacao": observacao,
                         "pedidoId": pedido_id,
                         "usuarioId": usuario_id,
@@ -465,7 +458,7 @@ def _planejar_consumo(
                 ),
             )
             transaction.update(ref, stamp_update({"quantidadeAtual": novo_saldo}))
-    aplicadas = {iid: qtd for (iid, _, qtd, _) in pendentes}
+    aplicadas = {iid: qtd for (iid, _, qtd, _, _) in pendentes}
     return gravar, aplicadas
 
 
@@ -505,7 +498,7 @@ def cancelar(restaurant_id: str, pedido_id: str) -> dict:
                 t, restaurant_id, pedido.get("mesaId")
             )
 
-    _exec(db.transaction())
+    executar_transacao(_exec)
     return obter(restaurant_id, pedido_id)
 
 
@@ -534,6 +527,8 @@ def renovar_reserva(restaurant_id: str, pedido_id: str, item_id: str, usuario_id
         if not snap or not snap.exists:
             raise HTTPException(404, "Pedido não encontrado")
         pedido = snap.to_dict() or {}
+        if pedido.get("encerramentoOperacional"):
+            raise HTTPException(409, "Mesa encerrada. Use a conferência da estufa.")
         if pedido.get("status") not in {"aberto", "pago"}:
             raise HTTPException(409, "Pedido cancelado")
         itens = deepcopy(pedido.get("itens", []))
@@ -553,3 +548,32 @@ def renovar_reserva(restaurant_id: str, pedido_id: str, item_id: str, usuario_id
         gravar_reserva()
         t.update(ref, stamp_update({"itens": itens}))
     return _run_txn(restaurant_id, pedido_id, txn)
+
+
+def conferir_reserva(rid, uid, pedido_id, item_id, payload):
+    """Conferência física explícita após fechamento; decisão única por item."""
+    @transactional
+    def executar(t):
+        ref = item_doc(rid, "pedidos", pedido_id)
+        pedido = producao_service._ler(t, ref, "Pedido não encontrado")
+        if not pedido.get("encerramentoOperacional"):
+            raise HTTPException(409, "Pedido não possui encerramento de mesa")
+        itens = deepcopy(pedido.get("itens", []))
+        item = next((i for i in itens if i["id"] == item_id), None)
+        if not item:
+            raise HTTPException(404, "Item não encontrado")
+        anterior = item.get("conferenciaReserva")
+        if anterior:
+            if anterior["acao"] == payload.acao and anterior["motivo"] == payload.motivo:
+                return
+            raise HTTPException(409, "Reserva já conferida com outra decisão")
+        if not item.get("reservaConferenciaPendente"):
+            raise HTTPException(409, "Item não possui reserva pendente")
+        gravar = producao_service.planejar_destino(t, rid, pedido_id, [item],
+            "consumo_conferencia" if payload.acao == "consumido" else "liberacao", uid)
+        item["reservaConferenciaPendente"] = False
+        item["conferenciaReserva"] = {"acao": payload.acao, "motivo": payload.motivo, "em": now_utc(), "usuarioId": uid}
+        gravar()
+        t.update(ref, stamp_update({"itens": itens, "reservaConferenciaPendente": any(i.get("reservaConferenciaPendente") for i in itens)}))
+    executar_transacao(executar)
+    return obter(rid, pedido_id)

@@ -7,6 +7,7 @@ import { AtualizacaoPwa } from './components/AtualizacaoPwa'
 import { LoadingScreen } from './components/ui'
 
 // Code-splitting por rota: cada página vira um chunk carregado sob demanda.
+const MinhaContaPage = lazy(() => import('./pages/conta/MinhaContaPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const SelectRestaurantPage = lazy(() => import('./pages/SelectRestaurantPage'))
 const PlataformaPage = lazy(() => import('./pages/plataforma/PlataformaPage'))
@@ -126,6 +127,7 @@ export default function App() {
           <Route path="relatorios/fechamento-caixa" element={<RequireFinanceiro><FechamentoCaixaPage /></RequireFinanceiro>} />
           <Route path="financeiro" element={<RequireFinanceiro><FinanceiroPage /></RequireFinanceiro>} />
           <Route path="configuracoes" element={<ConfiguracoesPage />} />
+          <Route path="minha-conta" element={<MinhaContaPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/caixa" replace />} />
         </Routes>

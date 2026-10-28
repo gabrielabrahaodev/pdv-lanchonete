@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, Query, Response, Header
 
 from app.core.security import CurrentAuth, require_restaurant, require_roles
-from app.models.models import OrderItemAdd
+from app.models.models import OrderItemAdd, ConferenciaReserva
 from app.services import pedidos_service
 
 router = APIRouter(prefix="/pedidos", tags=["pedidos"])
@@ -102,3 +102,9 @@ def cancelar(pedido_id: str, auth: CurrentAuth = Depends(require_roles("admin", 
 @router.post("/{pedido_id}/itens/{item_id}/renovar-reserva")
 def renovar_reserva(pedido_id: str, item_id: str, auth: CurrentAuth = Depends(STATUS)):
     return pedidos_service.renovar_reserva(auth.restaurant_id, pedido_id, item_id, auth.uid)
+
+
+@router.post("/{pedido_id}/itens/{item_id}/conferir-reserva")
+def conferir_reserva(pedido_id: str, item_id: str, payload: ConferenciaReserva,
+    auth: CurrentAuth = Depends(require_roles("admin", "gerente", "caixa"))):
+    return pedidos_service.conferir_reserva(auth.restaurant_id, auth.uid, pedido_id, item_id, payload)

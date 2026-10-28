@@ -235,10 +235,10 @@ def planejar_destino(t, rid, pedido_id, itens, acao, uid):
             if lote.get('reservado', 0) < a['qtd'] or lote['saldo'] < a['qtd']:
                 raise HTTPException(409, 'Saldo reservado inconsistente; revise o lote')
             lote['reservado'] -= a['qtd']
-            if acao == 'entrega':
+            if acao in {'entrega', 'consumo_conferencia'}:
                 lote['saldo'] -= a['qtd']
             movimentos.append((lid, item['produtoId'], a['qtd']))
-        item['estoqueEntregueEm' if acao == 'entrega' else 'reservaLiberadaEm'] = now_utc()
+        item['estoqueEntregueEm' if acao == 'entrega' else 'baixaConferenciaEm' if acao == 'consumo_conferencia' else 'reservaLiberadaEm'] = now_utc()
     def gravar():
         for ref, l in lotes.values():
             t.update(ref, stamp_update({'saldo':l['saldo'], 'reservado':l['reservado'], 'aberto':l['saldo'] > 0}))

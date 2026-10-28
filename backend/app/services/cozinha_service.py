@@ -11,6 +11,8 @@ def fila(restaurant_id: str) -> list[dict]:
     pedidos.reverse()  # mais antigo primeiro
     resultado = []
     for p in pedidos:
+        if p.get("encerramentoOperacional"):
+            continue
         itens = [i for i in p.get("itens", []) if i.get("status") in {"pendente", "preparo", "pronto"}]
         if itens:
             resultado.append(

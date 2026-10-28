@@ -199,3 +199,15 @@ def ensure_parent(restaurant_id: str, kind: str) -> None:
     doc_ref = parent_doc(restaurant_id, kind)
     if not doc_ref.get().exists:
         doc_ref.set({"nome": kind.capitalize(), "createdAt": now_utc(), "updatedAt": now_utc()})
+
+
+def executar_transacao(operacao):
+    """Contenção esgotada é conflito recuperável, sem simular sucesso."""
+    from google.api_core.exceptions import Aborted
+    from fastapi import HTTPException
+    try:
+        return operacao(get_db().transaction())
+    except (Aborted, ValueError) as exc:
+        if isinstance(exc, Aborted) or isinstance(exc.__cause__, Aborted):
+            raise HTTPException(409, 'Outra operação alterou estes dados. Confira o estado e repita a mesma solicitação.') from exc
+        raise

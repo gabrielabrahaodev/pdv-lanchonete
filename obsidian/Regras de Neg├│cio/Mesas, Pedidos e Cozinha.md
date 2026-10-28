@@ -39,3 +39,7 @@ Estados usuais: `pendente → preparo → pronto → entregue`, com cancelamento
 O ciclo operacional da mesa normalmente começa com pedido aberto e itens no KDS, mas pagamento só fecha o pedido quando soma de pagamentos atinge o total dentro da tolerância. A mesa não deve ser liberada apenas por mudar status de item de cozinha.
 
 Fontes: `pedidos_service.py`, `mesas_service.py`, `cozinha_service.py`, `calculos.py`, `routers/pedidos.py`, `routers/cozinha.py`, `docs/02-modelagem/diagrama-estados.md`.
+
+## Encerramento operacional de mesa
+
+Mesa local totalmente quitada sai do KDS por `encerramentoOperacional`, preservando estados físicos. Reservas não entregues ficam bloqueadas até conferência na Estufa. Balcão pago pode continuar em preparo. Ver [[Evolucao-Operacional]].

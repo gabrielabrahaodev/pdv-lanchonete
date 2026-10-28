@@ -7,7 +7,7 @@ tags: [regras, estoque, receita]
 
 ## Item de estoque
 
-Campos: `nome`, `unidade`, `quantidadeAtual`, `minimo`, `custoMedio`. Unidades são texto (por exemplo `kg`, `g`, `un`, `L`, `ml`); o código de consumo soma quantidades numericamente, portanto a unidade usada na ficha técnica precisa ser coerente com a unidade do item. Não presumir conversão universal automática entre g/kg ou ml/L.
+Campos: `nome`, `unidade`, `quantidadeAtual`, `minimo`, `custoMedio`. Cadastros novos usam unidades validadas e conversão kg/g, L/ml e embalagens com fator por insumo. A receita é normalizada para a unidade de controle no backend; registros legados sem unidade informada continuam na unidade de controle. Ver [[Evolucao-Operacional]].
 
 ## Movimentação manual
 

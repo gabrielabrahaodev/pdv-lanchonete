@@ -15,7 +15,7 @@ tags: [regras, pagamentos, financeiro, caixa]
 - Quitação: total pago acumulado alcança total do pedido, dentro da tolerância; grava status `pago` e `fechadoEm`.
 - Ao quitar: agrega venda diária/mensal, credita sessão de caixa aberta (se existe) e libera mesa na mesma operação transacional do fluxo principal.
 - Pedido sem sessão de caixa aberta ainda pode ser quitado, mas não soma na sessão inexistente.
-- `X-Idempotency-Key` é opcional; repetição da mesma chave deve retornar conflito e não duplicar pagamento. Eventos de agregação de venda também têm marcador determinístico `venda:{pedidoId}`.
+- `X-Idempotency-Key` é opcional; repetição da mesma chave em mesa retorna conflito sem duplicar; balcão aceita replay com mesmo corpo. Eventos de agregação de venda também têm marcador determinístico `venda:{pedidoId}`.
 
 ## Sessão de caixa
 
@@ -33,3 +33,5 @@ tags: [regras, pagamentos, financeiro, caixa]
 - Uma venda quitada deve gerar só um evento de agregação.
 
 Fontes: `backend/app/services/caixa_service.py`, `mesas_service.py`, `agregados_service.py`, routers `pagamentos.py`/`caixa.py`.
+
+Quitação de mesa encerra a operação no KDS sem marcar entrega física; reservas ficam para conferência. Balcão permanece independente. Ver [[Evolucao-Operacional]].

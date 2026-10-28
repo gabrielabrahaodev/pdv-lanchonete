@@ -1,269 +1,740 @@
-import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import { Package } from 'lucide-react'
-import { api } from '../../lib/api'
-import { baixarCsv } from '../../lib/csv'
+import {
+  AlertTriangle,
+  Archive,
+  ArrowUpDown,
+  History,
+  Pencil,
+  ArchiveRestore,
+} from 'lucide-react'
+import { useRef, useState } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { api, ApiError } from '../../lib/api'
 import { useEstoque, useMovimentacoes } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
-import type { InventoryItem } from '../../types'
-import { Badge, Button, Card, EmptyState, ErrorState, Field, Input, LoadingScreen, Modal, Select } from '../../components/ui'
+import type { InventoryItem, StockMovement } from '../../types'
+import {
+  Button,
+  Card,
+  ErrorState,
+  Field,
+  Input,
+  LoadingScreen,
+  Modal,
+  Select,
+} from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
-import { brl, dataHora } from '../../lib/format'
+import { brl, dataHora, custoUnitario } from '../../lib/format'
+import { numeroDecimal } from '../../lib/precificacao'
+import {
+  converterQuantidade,
+  UNIDADES,
+  unidadesCompativeis,
+} from '../../lib/unidades'
+import { baixarCsv } from '../../lib/csv'
 
 export default function EstoquePage() {
   const { me } = useAuth()
-  const [apenasAlertas, setApenasAlertas] = useState(false)
-  const [novoAberto, setNovoAberto] = useState(false)
+  const gestao = ['admin', 'gerente'].includes(me?.papel ?? '')
+  const estoque = useEstoque(me?.restaurantId)
+  const movimentos = useMovimentacoes(me?.restaurantId)
+  const [busca, setBusca] = useState('')
+  const [arquivados, setArquivados] = useState(false)
+  const [alertas, setAlertas] = useState(false)
+  const [editar, setEditar] = useState<InventoryItem | 'novo' | null>(null)
   const [movItem, setMovItem] = useState<InventoryItem | null>(null)
-
-  const estoqueQ = useEstoque(me?.restaurantId)
-  const movimentacoes = useMovimentacoes(me?.restaurantId)
-  const nomesEstoque = new Map<string, string>((estoqueQ.data ?? []).map((item) => [item.id, `${item.nome} (${item.unidade})`] as const))
-
-  // Índice local para exibir o nome do insumo em cada movimentação.
-  // Movimentos antigos guardam apenas itemId; assim também são legíveis.
-  const itemPorId = new Map((estoqueQ.data ?? []).map((item) => [item.id, item]))
-
-  const itens = {
-    isLoading: estoqueQ.isLoading,
-    isError: estoqueQ.isError,
-    error: estoqueQ.error,
-    data: apenasAlertas
-      ? (estoqueQ.data ?? []).filter((i) => (i.quantidadeAtual ?? 0) <= (i.minimo ?? 0))
-      : (estoqueQ.data ?? []),
+  const [histItem, setHistItem] = useState<InventoryItem | null>(null)
+  const [erro, setErro] = useState('')
+  const arquivar = useMutation({
+    mutationFn: (i: InventoryItem) =>
+      api(`/estoque/itens/${i.id}`, {
+        method: 'PATCH',
+        body: { ativo: i.ativo === false },
+      }),
+    onError: (e) =>
+      setErro(
+        e instanceof Error ? e.message : 'Não foi possível alterar o insumo',
+      ),
+  })
+  const historico = useQuery({
+    queryKey: ['movimentos', me?.restaurantId, histItem?.id],
+    queryFn: () =>
+      api<StockMovement[]>(
+        `/estoque/movimentacoes?item_id=${encodeURIComponent(histItem!.id)}`,
+      ),
+    enabled: !!histItem,
+  })
+  if (estoque.isLoading) return <LoadingScreen />
+  if (estoque.isError) return <ErrorState error={estoque.error} />
+  const itens = (estoque.data ?? []).filter(
+    (i) =>
+      (arquivados || i.ativo !== false) &&
+      i.nome.toLowerCase().includes(busca.toLowerCase()) &&
+      (!alertas || i.quantidadeAtual <= i.minimo),
+  )
+  const emAlerta = (i: InventoryItem) =>
+    i.ativo !== false && i.quantidadeAtual <= i.minimo
+  const corSaldo = (i: InventoryItem) =>
+    i.ativo === false
+      ? 'text-slate-500 dark:text-slate-400'
+      : emAlerta(i)
+        ? 'text-rose-600 dark:text-rose-300'
+        : 'text-emerald-700 dark:text-emerald-400'
+  function acoes(i: InventoryItem, texto = false) {
+    return (
+      <div className="flex flex-wrap items-center gap-1">
+        {gestao && (
+          <>
+            <Button
+              variant="ghost"
+              className="min-w-11 !px-2 !text-xs"
+              aria-label={`Editar ${i.nome}`}
+              title="Editar"
+              onClick={() => setEditar(i)}
+            >
+              <Pencil className="h-4 w-4" aria-hidden="true" />
+              {texto && 'Editar'}
+            </Button>
+            <Button
+              variant="secondary"
+              className="min-w-11 !px-2 !text-xs"
+              aria-label={`Movimentar ${i.nome}`}
+              title="Movimentar"
+              disabled={i.ativo === false}
+              onClick={() => setMovItem(i)}
+            >
+              <ArrowUpDown className="h-4 w-4" aria-hidden="true" />
+              {texto && 'Movimentar'}
+            </Button>
+          </>
+        )}
+        <Button
+          variant="ghost"
+          className="min-w-11 !px-2 !text-xs"
+          aria-label={`Histórico de ${i.nome}`}
+          title="Histórico"
+          onClick={() => setHistItem(i)}
+        >
+          <History className="h-4 w-4" aria-hidden="true" />
+          {texto && 'Histórico'}
+        </Button>
+        {gestao && (
+          <Button
+            variant="ghost"
+            className="min-w-11 !px-2 !text-xs"
+            aria-label={`${i.ativo === false ? 'Reativar' : 'Arquivar'} ${i.nome}`}
+            title={i.ativo === false ? 'Reativar' : 'Arquivar'}
+            disabled={arquivar.isPending}
+            onClick={() =>
+              window.confirm(
+                i.ativo === false
+                  ? `Reativar ${i.nome}?`
+                  : `Arquivar ${i.nome}? Receitas e histórico serão preservados.`,
+              ) && arquivar.mutate(i)
+            }
+          >
+            {i.ativo === false ? (
+              <ArchiveRestore className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Archive className="h-4 w-4" aria-hidden="true" />
+            )}
+            {texto && (i.ativo === false ? 'Reativar' : 'Arquivar')}
+          </Button>
+        )}
+      </div>
+    )
   }
-
-  if (itens.isLoading) return <LoadingScreen />
-  if (itens.isError) return <ErrorState error={itens.error} />
-
   return (
-    <div className="p-3 sm:p-6">
+    <div className="space-y-4 p-3 text-slate-800 sm:p-6 dark:text-slate-200">
       <PageHeader
         title="Estoque"
-        subtitle={`${itens.data?.length ?? 0} item(ns)`}
+        subtitle="Insumos, compras e movimentações"
         actions={
-          <>
-            <label className="flex items-center gap-2 text-sm text-slate-600">
-              <input type="checkbox" checked={apenasAlertas} onChange={(e) => setApenasAlertas(e.target.checked)} className="h-4 w-4 accent-brand-600" />
-              Somente alertas
-            </label>
-            <Button variant="secondary" onClick={() => exportarItens(itens.data ?? [])}>⬇ CSV</Button>
-            <Button onClick={() => setNovoAberto(true)}>+ Novo item</Button>
-          </>
+          gestao && (
+            <Button onClick={() => setEditar('novo')}>Novo insumo</Button>
+          )
         }
       />
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2 overflow-hidden">
-          <div className="hidden overflow-x-auto sm:block">
-            <table className="w-full min-w-[560px] text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+      <div className="flex flex-wrap items-center gap-3">
+        <Input
+          className="sm:max-w-xs"
+          aria-label="Buscar insumo"
+          placeholder="Buscar insumo"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+        />
+        <label className="flex min-h-11 items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+          <input
+            type="checkbox"
+            checked={alertas}
+            onChange={(e) => setAlertas(e.target.checked)}
+          />
+          Somente alertas
+        </label>
+        <label className="flex min-h-11 items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+          <input
+            type="checkbox"
+            checked={arquivados}
+            onChange={(e) => setArquivados(e.target.checked)}
+          />
+          Incluir arquivados
+        </label>
+        <Button
+          variant="secondary"
+          onClick={() =>
+            baixarCsv(
+              'estoque',
+              ['Nome', 'Saldo', 'Unidade', 'Mínimo', 'Custo médio', 'Ativo'],
+              itens.map((i) => [
+                i.nome,
+                i.quantidadeAtual,
+                i.unidade,
+                i.minimo,
+                i.custoMedio,
+                i.ativo !== false ? 'Sim' : 'Não',
+              ]),
+            )
+          }
+        >
+          Exportar CSV
+        </Button>
+      </div>
+      {erro && (
+        <p role="alert" className="text-rose-600">
+          {erro}
+        </p>
+      )}
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_19rem]">
+        <Card className="min-w-0 overflow-hidden">
+          <div className="hidden overflow-x-auto lg:block">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                 <tr>
-                  <th className="px-5 py-3">Item</th>
-                  <th className="px-5 py-3">Saldo</th>
-                  <th className="px-5 py-3">Mínimo</th>
-                  <th className="px-5 py-3">Custo médio</th>
-                  <th className="px-5 py-3 text-right">Movimentar</th>
+                  <th className="px-3 py-2.5">Insumo</th>
+                  <th className="px-3 py-2.5">Saldo</th>
+                  <th className="px-3 py-2.5">Mínimo</th>
+                  <th className="px-3 py-2.5">Custo médio</th>
+                  <th className="px-2 py-2.5">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {(itens.data ?? []).map((item) => {
-                  const alerta = item.quantidadeAtual <= item.minimo
-                  return (
-                    <tr key={item.id} className={alerta ? 'bg-amber-50/60' : ''}>
-                      <td className="px-5 py-3 font-semibold text-slate-800 dark:text-slate-100">{item.nome}</td>
-                      <td className={`px-5 py-3 font-bold ${alerta ? 'text-rose-600' : 'text-emerald-600'}`}>
-                        {item.quantidadeAtual} {item.unidade}
-                        {alerta && ' ⚠️'}
-                      </td>
-                      <td className="px-5 py-3 text-slate-500">{item.minimo}</td>
-                      <td className="px-5 py-3">{brl(item.custoMedio)}</td>
-                      <td className="px-5 py-3 text-right">
-                        <Button variant="secondary" className="!px-3 !py-1 !text-xs" onClick={() => setMovItem(item)}>
-                          Movimentar
-                        </Button>
-                      </td>
-                    </tr>
-                  )
-                })}
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {itens.map((i) => (
+                  <tr
+                    key={i.id}
+                    className={
+                      emAlerta(i) ? 'bg-amber-50 dark:bg-amber-500/10' : ''
+                    }
+                  >
+                    <td className="px-3 py-2">
+                      <span className="block font-semibold text-slate-800 dark:text-slate-100">{i.nome}</span>
+                      {i.ativo === false ? (
+                        <span className="text-xs text-slate-500">
+                          Arquivado
+                        </span>
+                      ) : (
+                        emAlerta(i) && (
+                          <span className="mt-0.5 flex items-center gap-1 text-xs text-amber-800 dark:text-amber-300">
+                            <AlertTriangle
+                              className="h-3.5 w-3.5"
+                              aria-hidden="true"
+                            />
+                            Saldo baixo
+                          </span>
+                        )
+                      )}
+                    </td>
+                    <td
+                      className={`whitespace-nowrap px-3 py-2 font-bold ${corSaldo(i)}`}
+                    >
+                      {i.quantidadeAtual.toLocaleString('pt-BR')} {i.unidade}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2 text-slate-500 dark:text-slate-400">
+                      {i.minimo} {i.unidade}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {custoUnitario(i.custoMedio)}
+                      <span className="text-xs text-slate-500">
+                        {' '}
+                        / {i.unidade}
+                      </span>
+                    </td>
+                    <td className="px-2 py-1">{acoes(i)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-          <div className="space-y-3 p-3 sm:hidden">
-            {(itens.data ?? []).map((item) => {
-              const alerta = item.quantidadeAtual <= item.minimo
-              return (
-                <div key={item.id} className={`rounded-lg border p-3 ${alerta ? 'border-amber-300 bg-amber-50/60 dark:bg-amber-500/5' : 'border-slate-200 dark:border-slate-700'}`}>
-                  <div className="flex min-w-0 items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="break-words font-semibold text-slate-800 dark:text-slate-100">{item.nome}</p>
-                      <p className={`mt-1 text-sm font-bold ${alerta ? 'text-rose-600' : 'text-emerald-600'}`}>
-                        Saldo: {item.quantidadeAtual} {item.unidade}{alerta && ' ⚠️'}
-                      </p>
-                    </div>
-                    <Button variant="secondary" className="shrink-0 !px-3 !text-xs" onClick={() => setMovItem(item)}>
-                      Movimentar
-                    </Button>
+          <ul className="divide-y divide-slate-100 lg:hidden dark:divide-slate-800">
+            {itens.map((i) => (
+              <li
+                key={i.id}
+                className={`min-w-0 border-l-4 px-3 py-2.5 ${emAlerta(i) ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'border-transparent'}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
+                      {i.nome}
+                    </h2>
+                    {i.ativo === false ? (
+                      <p className="text-xs text-slate-500">Arquivado</p>
+                    ) : (
+                      emAlerta(i) && (
+                        <p className="mt-0.5 flex items-center gap-1 text-xs text-amber-800 dark:text-amber-300">
+                          <AlertTriangle
+                            className="h-3.5 w-3.5 shrink-0"
+                            aria-hidden="true"
+                          />
+                          Saldo baixo
+                        </p>
+                      )
+                    )}
                   </div>
-                  <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-slate-500">
-                    <span>Mínimo: {item.minimo} {item.unidade}</span>
-                    <span>Custo médio: {brl(item.custoMedio)}</span>
-                  </div>
+                  <p className={`shrink-0 text-sm font-bold ${corSaldo(i)}`}>
+                    {i.quantidadeAtual.toLocaleString('pt-BR')} {i.unidade}
+                  </p>
                 </div>
-              )
-            })}
-          </div>
-          {(itens.data ?? []).length === 0 && (
-            <EmptyState
-              icon={<Package className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />}
-              message="Nenhum item de estoque."
+                <p className="mt-1 flex flex-wrap gap-x-3 text-xs text-slate-500 dark:text-slate-400">
+                  <span>
+                    Mín.: {i.minimo} {i.unidade}
+                  </span>
+                  <span>
+                    Custo: {custoUnitario(i.custoMedio)} / {i.unidade}
+                  </span>
+                </p>
+                <div className="mt-1">{acoes(i, true)}</div>
+              </li>
+            ))}
+          </ul>
+          {!itens.length && (
+            <p className="p-5 text-sm text-slate-500">
+              Nenhum insumo encontrado.
+            </p>
+          )}
+        </Card>
+        <Card className="min-w-0 p-4">
+          <h2 className="mb-3 font-bold text-slate-800 dark:text-slate-100">Últimas movimentações</h2>
+          {movimentos.isError ? (
+            <ErrorState error={movimentos.error} />
+          ) : (
+            <Movimentos
+              lista={movimentos.data ?? []}
+              itens={estoque.data ?? []}
             />
           )}
         </Card>
-
-        <Card className="overflow-hidden">
-          <p className="border-b border-slate-100 px-5 py-3 text-sm font-bold text-slate-700">Últimas movimentações</p>
-          <ul className="max-h-[60vh] divide-y divide-slate-50 overflow-y-auto">
-            {(movimentacoes.data ?? []).map((m) => {
-              const itemMovimentado = itemPorId.get(m.itemId)
-              const nomeItem = itemMovimentado?.nome ?? m.itemId ?? 'Item sem identificação'
-              const unidadeItem = itemMovimentado?.unidade
-              return (
-                <li key={m.id} className="flex min-w-0 items-start justify-between gap-2 px-3 py-2.5 text-sm sm:items-center sm:px-5">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Badge value={m.tipo} />
-                      <span className="truncate text-xs text-slate-500">{dataHora(m.criadoEm)}</span>
-                    </div>
-                    <p className="mt-1 truncate text-xs font-semibold text-slate-700 dark:text-slate-200" title={nomeItem}>
-                      {nomeItem}
-                    </p>
-                  </div>
-                  <span className={`shrink-0 whitespace-nowrap font-bold ${m.tipo === 'entrada' ? 'text-emerald-600' : m.tipo === 'saida' ? 'text-rose-500' : 'text-sky-600'}`}>
-                    {m.tipo === 'ajuste' ? '=' : m.tipo === 'entrada' ? '+' : '−'}{m.qtd}{unidadeItem ? ` ${unidadeItem}` : ''}
-                  </span>
-                </li>
-              )
-            })}
-            {(movimentacoes.data ?? []).length === 0 && (
-              <li className="px-5 py-8 text-center text-xs text-slate-500">Sem movimentações.</li>
-            )}
-          </ul>
-        </Card>
       </div>
-
-      <NovoItemModal open={novoAberto} onClose={() => setNovoAberto(false)} />
-      {movItem && (
-        <MovimentacaoModal
-          item={movItem}
-          onClose={() => {
-            setMovItem(null)
-          }}
+      {editar && (
+        <Cadastro
+          item={editar === 'novo' ? null : editar}
+          onClose={() => setEditar(null)}
         />
+      )}
+      {movItem && (
+        <Movimentar item={movItem} onClose={() => setMovItem(null)} />
+      )}
+      {histItem && (
+        <Modal
+          open
+          title={`Histórico: ${histItem.nome}`}
+          onClose={() => setHistItem(null)}
+        >
+          {historico.isLoading ? (
+            <LoadingScreen />
+          ) : historico.isError ? (
+            <ErrorState error={historico.error} />
+          ) : (
+            <>
+              <p className="mb-3 text-sm text-slate-500">
+                Até 100 movimentos mais recentes deste insumo.
+              </p>
+              <Movimentos lista={historico.data ?? []} itens={[histItem]} />
+            </>
+          )}
+        </Modal>
       )}
     </div>
   )
 }
-
-function exportarItens(itens: InventoryItem[]) {
-  baixarCsv(
-    'estoque',
-    ['Item', 'Saldo', 'Unidade', 'Mínimo', 'Custo médio'],
-    itens.map((i) => [i.nome, i.quantidadeAtual, i.unidade, i.minimo, i.custoMedio]),
+function Movimentos({
+  lista,
+  itens,
+}: {
+  lista: StockMovement[]
+  itens: InventoryItem[]
+}) {
+  return (
+    <ul className="max-h-[65vh] space-y-3 overflow-y-auto">
+      {lista.map((m) => (
+        <li
+          key={m.id}
+          className="border-b border-slate-200 pb-3 text-sm dark:border-slate-700"
+        >
+          <p className="break-words font-semibold">
+            {itens.find((i) => i.id === m.itemId)?.nome ?? m.itemId}
+          </p>
+          <p>
+            {m.tipo === 'custo'
+              ? 'Correção de custo'
+              : m.tipo === 'entrada'
+                ? 'Entrada'
+                : m.tipo === 'saida'
+                  ? 'Saída'
+                  : 'Ajuste de saldo'}{' '}
+            · {m.qtd} {itens.find((i) => i.id === m.itemId)?.unidade}
+          </p>
+          {m.tipo === 'custo' && (
+            <p>
+              {custoUnitario(m.custoAnterior ?? 0)} →{' '}
+              {custoUnitario(m.custoUnitario ?? 0)} por unidade de controle
+            </p>
+          )}
+          <p className="text-xs text-slate-500">
+            {dataHora(m.criadoEm)} · {m.observacao ?? 'Sem observação'}
+          </p>
+        </li>
+      ))}
+      {!lista.length && (
+        <li className="text-sm text-slate-500">Sem movimentações.</li>
+      )}
+    </ul>
   )
 }
-
-function NovoItemModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [form, setForm] = useState({ nome: '', unidade: 'un', quantidadeAtual: '', minimo: '', custoMedio: '' })
-
-  const criar = useMutation({
+function Cadastro({
+  item,
+  onClose,
+}: {
+  item: InventoryItem | null
+  onClose: () => void
+}) {
+  const [form, setForm] = useState({
+    nome: item?.nome ?? '',
+    unidade: item?.unidade ?? 'un',
+    minimo: String(item?.minimo ?? 0),
+    custoMedio: String(item?.custoMedio ?? 0),
+    quantidadeAtual: '0',
+    unidadeCompra: item?.unidadeCompra ?? item?.unidade ?? 'un',
+    fatorCompra: String(item?.fatorCompra ?? 1),
+  })
+  const [erro, setErro] = useState('')
+  const salvar = useMutation({
     mutationFn: () =>
-      api('/estoque/itens', {
-        method: 'POST',
+      api(item ? `/estoque/itens/${item.id}` : '/estoque/itens', {
+        method: item ? 'PATCH' : 'POST',
         body: {
           nome: form.nome.trim(),
           unidade: form.unidade,
-          quantidadeAtual: Number(form.quantidadeAtual.replace(',', '.')) || 0,
-          minimo: Number(form.minimo.replace(',', '.')) || 0,
-          custoMedio: Number(form.custoMedio.replace(',', '.')) || 0,
+          minimo: numeroDecimal(form.minimo),
+          custoMedio: numeroDecimal(form.custoMedio),
+          unidadeCompra: form.unidadeCompra,
+          fatorCompra: numeroDecimal(form.fatorCompra),
+          ...(!item
+            ? { quantidadeAtual: numeroDecimal(form.quantidadeAtual) }
+            : {}),
         },
       }),
-    onSuccess: () => {
-      setForm({ nome: '', unidade: 'un', quantidadeAtual: '', minimo: '', custoMedio: '' })
-      onClose()
-    },
+    onSuccess: onClose,
+    onError: (e) =>
+      setErro(e instanceof Error ? e.message : 'Não foi possível salvar'),
   })
-
+  const excluir = useMutation({
+    mutationFn: () => api(`/estoque/itens/${item!.id}`, { method: 'DELETE' }),
+    onSuccess: onClose,
+    onError: (e) =>
+      setErro(e instanceof Error ? e.message : 'Não foi possível excluir'),
+  })
   return (
-    <Modal title="Novo item de estoque" open={open} onClose={onClose}>
-      <div className="space-y-3">
-        <Field label="Nome"><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Unidade">
-            <Select value={form.unidade} onChange={(e) => setForm({ ...form, unidade: e.target.value })}>
-              {['un', 'kg', 'g', 'L', 'ml', 'cx', 'pct'].map((u) => <option key={u}>{u}</option>)}
+    <Modal
+      open
+      title={item ? 'Editar insumo' : 'Novo insumo'}
+      onClose={onClose}
+    >
+      <fieldset
+        disabled={salvar.isPending || excluir.isPending}
+        className="space-y-4"
+      >
+        <Field label="Nome">
+          <Input
+            value={form.nome}
+            onChange={(e) => setForm({ ...form, nome: e.target.value })}
+          />
+        </Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field
+            label="Unidade de controle / consumo"
+            hint={
+              item
+                ? 'Mudanças são bloqueadas se houver saldo, receita ou histórico.'
+                : undefined
+            }
+          >
+            <Select
+              value={form.unidade}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  unidade: e.target.value,
+                  ...(!item ? { unidadeCompra: e.target.value } : {}),
+                })
+              }
+            >
+              {[...new Set([form.unidade, ...UNIDADES])].map((u) => (
+                <option key={u}>{u}</option>
+              ))}
             </Select>
           </Field>
-          <Field label="Quantidade inicial">
-            <Input inputMode="decimal" value={form.quantidadeAtual} onChange={(e) => setForm({ ...form, quantidadeAtual: e.target.value })} />
+          <Field label="Quantidade mínima">
+            <Input
+              inputMode="decimal"
+              value={form.minimo}
+              onChange={(e) => setForm({ ...form, minimo: e.target.value })}
+            />
           </Field>
-          <Field label="Mínimo (alerta)">
-            <Input inputMode="decimal" value={form.minimo} onChange={(e) => setForm({ ...form, minimo: e.target.value })} />
+          <Field
+            label={`Custo por ${form.unidade} (R$)`}
+            hint="Correções são registradas no histórico. Compras recalculam o custo médio."
+          >
+            <Input
+              inputMode="decimal"
+              value={form.custoMedio}
+              onChange={(e) => setForm({ ...form, custoMedio: e.target.value })}
+            />
           </Field>
-          <Field label="Custo médio (R$)">
-            <Input inputMode="decimal" value={form.custoMedio} onChange={(e) => setForm({ ...form, custoMedio: e.target.value })} />
+          {!item && (
+            <Field label="Saldo inicial">
+              <Input
+                inputMode="decimal"
+                value={form.quantidadeAtual}
+                onChange={(e) =>
+                  setForm({ ...form, quantidadeAtual: e.target.value })
+                }
+              />
+            </Field>
+          )}
+          <Field label="Unidade habitual de compra">
+            <Select
+              value={form.unidadeCompra}
+              onChange={(e) =>
+                setForm({ ...form, unidadeCompra: e.target.value })
+              }
+            >
+              {UNIDADES.map((u) => (
+                <option key={u}>{u}</option>
+              ))}
+            </Select>
           </Field>
+          {['cx', 'pct'].includes(form.unidadeCompra) && (
+            <Field
+              label={`Quantidade em ${form.unidade} por ${form.unidadeCompra}`}
+            >
+              <Input
+                inputMode="decimal"
+                value={form.fatorCompra}
+                onChange={(e) =>
+                  setForm({ ...form, fatorCompra: e.target.value })
+                }
+              />
+            </Field>
+          )}
         </div>
-        <Button className="w-full" loading={criar.isPending} disabled={!form.nome.trim()} onClick={() => criar.mutate()}>
-          Criar item
+        {erro && (
+          <p role="alert" className="text-sm text-rose-600">
+            {erro}
+          </p>
+        )}
+        <Button
+          loading={salvar.isPending}
+          disabled={
+            !form.nome.trim() ||
+            ![
+              form.minimo,
+              form.custoMedio,
+              form.fatorCompra,
+              ...(!item ? [form.quantidadeAtual] : []),
+            ].every((v) => Number.isFinite(numeroDecimal(v)))
+          }
+          onClick={() => salvar.mutate()}
+        >
+          Salvar insumo
         </Button>
-      </div>
+        {item && (
+          <details className="border-t pt-3">
+            <summary className="cursor-pointer text-sm text-rose-600">
+              Exclusão definitiva
+            </summary>
+            <p className="my-3 text-sm">
+              Permitida somente sem saldo, receitas ou histórico. Prefira
+              arquivar.
+            </p>
+            <Button
+              variant="danger"
+              loading={excluir.isPending}
+              onClick={() =>
+                window.confirm('Excluir definitivamente este cadastro?') &&
+                excluir.mutate()
+              }
+            >
+              Excluir cadastro sem vínculos
+            </Button>
+          </details>
+        )}
+      </fieldset>
     </Modal>
   )
 }
-
-function MovimentacaoModal({ item, onClose }: { item: InventoryItem; onClose: () => void }) {
-  const [tipo, setTipo] = useState<'entrada' | 'saida' | 'ajuste'>('entrada')
-  const [qtd, setQtd] = useState('')
-  const [observacao, setObservacao] = useState('')
-
-  const registrar = useMutation({
+function Movimentar({
+  item,
+  onClose,
+}: {
+  item: InventoryItem
+  onClose: () => void
+}) {
+  const [tipo, setTipo] = useState('entrada'),
+    [qtd, setQtd] = useState(''),
+    [unidade, setUnidade] = useState(item.unidadeCompra || item.unidade),
+    [valor, setValor] = useState(''),
+    [observacao, setObs] = useState(''),
+    [erro, setErro] = useState('')
+  const envio = useRef<{ chave: string; body: unknown } | null>(null)
+  const [travado, setTravado] = useState(false)
+  const convertido = converterQuantidade(
+    numeroDecimal(qtd),
+    unidade,
+    item.unidade,
+    item.unidadeCompra,
+    item.fatorCompra,
+  )
+  const salvar = useMutation({
     mutationFn: () =>
       api('/estoque/movimentacoes', {
         method: 'POST',
-        body: { tipo, itemId: item.id, qtd: Number(qtd.replace(',', '.')), observacao: observacao || null },
+        body: envio.current!.body,
+        idempotencyKey: envio.current!.chave,
       }),
-    onSuccess: () => {
-      onClose()
+    onSuccess: onClose,
+    onError: (e) => {
+      if (e instanceof ApiError && e.status < 500) {
+        envio.current = null
+        setTravado(false)
+      }
+      setErro(e instanceof Error ? e.message : 'Envio não confirmado')
     },
   })
-
+  function confirmar() {
+    if (!envio.current) {
+      envio.current = {
+        chave: crypto.randomUUID(),
+        body: {
+          tipo,
+          itemId: item.id,
+          qtd: numeroDecimal(qtd),
+          unidade,
+          observacao: observacao.trim() || null,
+          ...(tipo === 'entrada' && valor
+            ? { valorTotalCompra: numeroDecimal(valor) }
+            : {}),
+        },
+      }
+      setTravado(true)
+    }
+    salvar.mutate()
+  }
   return (
-    <Modal title={`Movimentar — ${item.nome}`} open onClose={onClose}>
-      <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-2">
-          {(['entrada', 'saida', 'ajuste'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTipo(t)}
-              className={`rounded-lg border px-2 py-2 text-xs font-bold capitalize transition ${
-                tipo === t ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-500'
-              }`}
+    <Modal
+      open
+      title={`Movimentar: ${item.nome}`}
+      onClose={() => !travado && onClose()}
+    >
+      <fieldset disabled={travado} className="space-y-4">
+        <Field label="Operação">
+          <Select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+            <option value="entrada">Entrada / compra</option>
+            <option value="saida">Saída</option>
+            <option value="ajuste">Corrigir saldo para</option>
+          </Select>
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={tipo === 'ajuste' ? 'Novo saldo' : 'Quantidade'}>
+            <Input
+              inputMode="decimal"
+              value={qtd}
+              onChange={(e) => setQtd(e.target.value)}
+            />
+          </Field>
+          <Field label="Unidade informada">
+            <Select
+              value={unidade}
+              onChange={(e) => setUnidade(e.target.value)}
             >
-              {t === 'ajuste' ? '= ajustar para' : t === 'entrada' ? '+ entrada' : '− saída'}
-            </button>
-          ))}
+              {unidadesCompativeis(
+                item.unidade,
+                item.unidadeCompra,
+                item.fatorCompra,
+              ).map((u) => (
+                <option key={u}>{u}</option>
+              ))}
+            </Select>
+          </Field>
         </div>
-        <Field label={tipo === 'ajuste' ? `Novo saldo (${item.unidade})` : `Quantidade (${item.unidade})`}>
-          <Input inputMode="decimal" value={qtd} onChange={(e) => setQtd(e.target.value)} placeholder="0" autoFocus />
+        {tipo === 'entrada' && (
+          <Field
+            label="Valor total da compra (R$)"
+            hint="Opcional. Sem valor, mantém o custo médio atual."
+          >
+            <Input
+              inputMode="decimal"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+            />
+          </Field>
+        )}
+        <p className="rounded-lg bg-slate-100 p-3 text-sm dark:bg-slate-800">
+          Quantidade no controle:{' '}
+          {convertido === null
+            ? 'Unidade/quantidade inválida'
+            : `${convertido.toLocaleString('pt-BR')} ${item.unidade}`}
+          {tipo === 'entrada' &&
+            valor &&
+            convertido !== null &&
+            convertido > 0 && (
+              <>
+                <br />
+                Custo desta compra: {brl(
+                  numeroDecimal(valor) / convertido,
+                )} / {item.unidade}
+              </>
+            )}
+        </p>
+        <Field label="Motivo / observação">
+          <Input
+            value={observacao}
+            onChange={(e) => setObs(e.target.value)}
+            maxLength={300}
+          />
         </Field>
-        <Field label="Observação (opcional)">
-          <Input value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder="Ex.: compra do dia" />
-        </Field>
-        <Button className="w-full" loading={registrar.isPending} disabled={!qtd} onClick={() => registrar.mutate()}>
-          Registrar movimentação
-        </Button>
-      </div>
+      </fieldset>
+      {erro && (
+        <p role="alert" className="my-3 text-sm text-rose-600">
+          {travado
+            ? 'Resposta não confirmada. Repita a mesma operação para conferir sem duplicar. '
+            : ''}
+          {erro}
+        </p>
+      )}
+      <Button
+        className="mt-4 w-full"
+        loading={salvar.isPending}
+        disabled={
+          !travado &&
+          (convertido === null ||
+            convertido < 0 ||
+            (tipo !== 'ajuste' && convertido === 0) ||
+            (!!valor &&
+              (!Number.isFinite(numeroDecimal(valor)) ||
+                numeroDecimal(valor) <= 0)))
+        }
+        onClick={confirmar}
+      >
+        {travado ? 'Conferir o mesmo lançamento' : 'Registrar movimentação'}
+      </Button>
     </Modal>
   )
 }

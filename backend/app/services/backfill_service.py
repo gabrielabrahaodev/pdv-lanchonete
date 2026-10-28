@@ -27,7 +27,7 @@ _TZ = ZoneInfo("America/Sao_Paulo")
 
 _CAMPOS = (
     "faturamento", "totalPedidos", "vendasPorHora", "vendasPorFormaPagamento",
-    "topProdutos", "saidasPorItem", "despesasPorCategoria", "totalDespesas", "cmvProducao",
+    "topProdutos", "saidasPorItem", "despesasPorCategoria", "totalDespesas", "cmvProducao", "saidasComCustoPorItem", "cmvEstoqueCongelado",
 )
 
 
@@ -96,6 +96,9 @@ def reconstruir(restaurant_id: str, *, apply: bool = False) -> dict[str, Any]:
                 qtd = round(float(m.get("qtd", 0) or 0), 3)
                 if qtd > 0:
                     alvo["saidasPorItem"][iid] = round(alvo["saidasPorItem"].get(iid, 0.0) + qtd, 3)
+                    if 'custoUnitario' in m:
+                        alvo['saidasComCustoPorItem'][iid] = round(alvo['saidasComCustoPorItem'].get(iid,0)+qtd,3)
+                        alvo['cmvEstoqueCongelado'] += qtd*float(m['custoUnitario'])
 
     # Uma despesa pode ter mudado de competência ou sido removida. Zera os
     # períodos já existentes que ficaram sem fontes, evitando saldo fantasma.
@@ -145,6 +148,8 @@ def _novo() -> dict[str, Any]:
         "despesasPorCategoria": {},
         "totalDespesas": 0.0,
         "cmvProducao": 0.0,
+        "saidasComCustoPorItem": {},
+        "cmvEstoqueCongelado": 0.0,
     }
     return vals
 
@@ -157,7 +162,7 @@ def _sanitize(doc: dict) -> dict:
             out[campo] = {str(k).zfill(2)[-2:]: round(float(x), 2) for k, x in v.items()}
         elif campo in {"faturamento", "totalDespesas", "vendasPorFormaPagamento", "despesasPorCategoria"}:
             out[campo] = {k: round(float(x), 2) for k, x in v.items()} if isinstance(v, dict) else round(float(v or 0), 2)
-        elif campo == "saidasPorItem":
+        elif campo in {"saidasPorItem", "saidasComCustoPorItem"}:
             out[campo] = {k: round(float(x), 3) for k, x in v.items()}
         elif campo == "totalPedidos":
             out[campo] = int(v or 0)
