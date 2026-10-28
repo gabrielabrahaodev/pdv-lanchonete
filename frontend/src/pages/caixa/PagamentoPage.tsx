@@ -113,7 +113,7 @@ export default function PagamentoPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl p-3 sm:p-6">
-      <Link to="/caixa" className="text-xs font-semibold text-brand-600 hover:underline">
+      <Link to="/caixa" className="text-xs font-semibold text-brand-600 action-button">
         ← Voltar ao caixa
       </Link>
       <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">{balcao ? 'Pagamento — venda direta' : 'Pagamento'}</h1>

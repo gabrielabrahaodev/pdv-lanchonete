@@ -668,7 +668,7 @@ export default function ProducaoPage() {
           {prontos.length === 0 && (
             <p className="mb-4 text-sm">
               Primeiro{' '}
-              <Link className="text-brand-600 underline" to="/produtos/novo">
+              <Link className="text-brand-600 action-button" to="/produtos/novo">
                 cadastre um produto
               </Link>{' '}
               com modo de estoque “Produzido antecipadamente”.

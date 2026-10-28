@@ -43,7 +43,7 @@ export default function MesaDetailPage() {
     <div className="mx-auto w-full max-w-3xl p-3 sm:p-6">
       <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <Link to="/caixa" className="text-xs font-semibold text-brand-600 hover:underline">
+          <Link to="/caixa" className="text-xs font-semibold text-brand-600 action-button">
             ← Voltar ao caixa
           </Link>
           <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">Mesa {m?.numero}</h1>

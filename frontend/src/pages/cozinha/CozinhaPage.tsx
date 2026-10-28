@@ -153,7 +153,7 @@ export default function CozinhaPage() {
                                 {nomeVariacao(item.produtoId, item.variacaoId)}
                               </span>
                             )}
-                            {item.modoEstoque === 'antecipado' && <button className="block min-h-11 text-xs font-semibold text-brand-700" disabled={renovar.isPending || mudarStatus.isPending} onClick={() => renovar.mutate({pedidoId: pedido.id, itemId: item.id})}>Atualizar lotes reservados</button>}
+                            {item.modoEstoque === 'antecipado' && <button className="action-button min-h-11 text-xs font-semibold text-brand-700" disabled={renovar.isPending || mudarStatus.isPending} onClick={() => renovar.mutate({pedidoId: pedido.id, itemId: item.id})}>Atualizar lotes reservados</button>}
                             {item.observacoes && (
                               <span className="block pl-5 text-xs font-semibold italic text-amber-600">
                                 <span aria-hidden="true">✏️ </span>“{item.observacoes}”

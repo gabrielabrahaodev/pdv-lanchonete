@@ -145,3 +145,9 @@ com TypeScript validado. A correção integra a mesma branch/PR de evolução.
 - Contadores, filtros por estado, busca por número e modos grade/lista. Ordem numérica estável, foco visível, áreas de toque de 44 px e contraste nos dois temas.
 - Mesa ocupada mostra total do pedido aberto vinculado e tempo desde a abertura, atualizado por minuto; ausência/erro dos dados não inventa valor. Apenas pedidos abertos em tempo real, sem busca do histórico.
 - Build/TypeScript aprovados. Verificação local com dados simulados em 320, 390, 768, 1024 e 1440 px: claro/escuro, sem overflow, filtros, lista, QR, bloqueio de exclusão e navegação. Homologação autenticada permanece necessária. Sem deploy.
+
+### Proporções e botões arredondados
+
+- Mesas em grade com altura uniforme, colunas mais compactas e botão explícito para abrir/iniciar pedido, separado do menu. Modo lista preservado.
+- Ações antes apresentadas como links receberam superfície, borda, cantos arredondados e foco visível nas telas de produtos, categorias, estoque, caixa, financeiro, produção e cozinha; navegação mantém a semântica de link. Componente Button usa cantos arredondados e variante ghost com superfície visível.
+- Build/TypeScript aprovados. Tela de mesas conferida localmente com dados simulados em cinco larguras (320–1440), nos dois temas: filtros, lista, QR, exclusão bloqueada e navegação. Demais telas requerem conferência visual na homologação. Sem deploy.

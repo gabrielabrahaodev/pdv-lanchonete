@@ -251,7 +251,7 @@ export default function ProdutoFormPage() {
       <div className="pl-14 md:pl-0">
         <Link
           to="/produtos"
-          className="text-xs font-semibold text-brand-600 hover:underline"
+          className="text-xs font-semibold text-brand-600 action-button"
         >
           ← Voltar
         </Link>
@@ -420,7 +420,7 @@ export default function ProdutoFormPage() {
                     <button
                       type="button"
                       onClick={limparImagem}
-                      className="ml-3 text-xs text-rose-500 hover:underline"
+                      className="ml-3 text-xs text-rose-500 action-button"
                     >
                       Remover
                     </button>

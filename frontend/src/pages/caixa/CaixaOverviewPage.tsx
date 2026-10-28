@@ -73,7 +73,7 @@ export default function CaixaOverviewPage() {
         {balcao.error ? <ErrorState error={balcao.error} /> : balcao.isLoading ? <p>Carregando…</p> : balcao.data.length === 0 ? <p className="text-sm text-slate-500">Nenhuma venda de balcão nesta lista.</p> :
           <ul className="divide-y divide-slate-200">{balcao.data.map(p => <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
             <div><p className="text-sm font-semibold">Balcão #{p.id.slice(-6)} · {brl(p.total)} <Badge value={p.status} /></p><p className="text-xs text-slate-500">{dataHora(p.criadoEm)}{p.itens.some(i => ['pendente','preparo','pronto'].includes(i.status)) ? ' · entrega pendente' : ''}</p></div>
-            <Link className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-600" to={`/caixa/pagamento/${p.id}`}>{p.status === 'aberto' ? 'Continuar pagamento' : 'Ver venda / entrega'}</Link>
+            <Link className="action-button text-sm font-semibold text-brand-600" to={`/caixa/pagamento/${p.id}`}>{p.status === 'aberto' ? 'Continuar pagamento' : 'Ver venda / entrega'}</Link>
           </li>)}</ul>}
       </Card>}
 

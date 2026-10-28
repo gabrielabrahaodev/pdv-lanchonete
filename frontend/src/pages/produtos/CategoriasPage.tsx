@@ -127,10 +127,10 @@ export default function CategoriasPage() {
                   </button>
                 </td>
                 <td className="px-5 py-3 text-right">
-                  <button onClick={() => abrirEdicao(c)} className="mr-3 text-xs font-semibold text-brand-600 hover:underline">
+                  <button onClick={() => abrirEdicao(c)} className="mr-3 text-xs font-semibold text-brand-600 action-button">
                     Editar
                   </button>
-                  <button onClick={() => pedirRemocao(c)} disabled={remover.isPending} className="text-xs font-semibold text-rose-500 hover:underline">
+                  <button onClick={() => pedirRemocao(c)} disabled={remover.isPending} className="text-xs font-semibold text-rose-500 action-button">
                     Excluir
                   </button>
                 </td>

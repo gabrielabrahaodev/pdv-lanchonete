@@ -183,14 +183,14 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
       {/* Catálogo */}
       <div id="catalogo-pedido" className="min-w-0 p-3 sm:p-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
         <div className="min-w-0 pl-14 md:pl-0">
-        <Link to={adicionando ? `/caixa/mesa/${mesaId}` : '/caixa'} className="text-xs font-semibold text-brand-600 hover:underline">
+        <Link to={adicionando ? `/caixa/mesa/${mesaId}` : '/caixa'} className="text-xs font-semibold text-brand-600 action-button">
           ← Voltar
         </Link>
         <h1 className="mt-1 break-words text-xl font-bold text-slate-800 dark:text-slate-100">
           {balcao ? 'Venda direta — balcão' : `Mesa ${mesa.data?.numero} — ${adicionando ? 'adicionar itens' : 'novo pedido'}`}
         </h1>
         </div>
-        <a href="#comanda-pedido" className="mt-3 inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-brand-600 underline lg:hidden">
+        <a href="#comanda-pedido" className="mt-3 inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-brand-600 action-button lg:hidden">
           Ver comanda ({cart.reduce((qtd, item) => qtd + item.qtd, 0)} itens) · {brl(total)}
         </a>
 
@@ -247,7 +247,7 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
       <aside id="comanda-pedido" aria-label="Comanda" className="flex w-full min-w-0 shrink-0 scroll-mt-16 flex-col border-t border-slate-200 bg-white lg:min-h-0 lg:w-80 lg:scroll-mt-0 lg:border-t-0 lg:border-l dark:border-slate-700 dark:bg-slate-900">
         <div className="border-b border-slate-100 px-5 py-4">
           <h2 className="font-bold text-slate-700 dark:text-slate-100">Comanda</h2>
-          <a href="#catalogo-pedido" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-600 underline lg:hidden">Voltar aos produtos</a>
+          <a href="#catalogo-pedido" className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-600 action-button lg:hidden">Voltar aos produtos</a>
           {adicionando && pedidoAberto && <Badge value="aberto" label={`pedido ${pedidoAberto.id.slice(0, 8)}…`} />}
         </div>
 

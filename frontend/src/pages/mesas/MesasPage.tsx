@@ -90,24 +90,27 @@ export default function MesasPage() {
       </div>
       {remover.isError && <p role="alert" className="mb-3 text-sm text-rose-600 dark:text-rose-400">{remover.error.message}</p>}
       {pedidos.isError && <p role="status" className="mb-3 text-sm text-amber-700 dark:text-amber-300">Valores e horários dos pedidos indisponíveis no momento.</p>}
-      <div className={visual === 'lista' ? 'space-y-2' : 'grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'}>
+      <div className={visual === 'lista' ? 'space-y-2' : 'grid auto-rows-fr grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6'}>
         {visiveis.map((m) => {
           const pedido = pedidos.data?.find((p) => p.id === m.pedidoAtivoId && p.mesaId === m.id)
           return (
             <div key={m.id} className={`relative min-w-0 overflow-hidden rounded-xl border bg-white dark:bg-slate-900 ${m.status === 'ocupada' ? 'border-amber-400 dark:border-amber-500/60' : 'border-slate-200 dark:border-slate-700'}`}>
-              <button
-                onClick={() => navigate(m.pedidoAtivoId ? `/caixa/mesa/${m.id}` : `/caixa/novo-pedido/${m.id}`)}
-                disabled={m.status === 'inativa'}
-                aria-label={`Mesa ${m.numero}: ${m.pedidoAtivoId ? 'abrir pedido' : 'novo pedido'}`}
-                className={`w-full min-w-0 p-3 pr-12 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-50 ${visual === 'lista' ? 'flex flex-wrap items-center gap-x-6 gap-y-1' : 'space-y-2'}`}
-              >
-                <span className="block text-lg font-bold">Mesa {m.numero}</span>
-                <span className="block"><Badge value={m.status} /></span>
-                {m.status === 'ocupada' && <span className="block text-sm">
-                  {pedido ? <><strong>{brl(pedido.total)}</strong><span className="block text-xs text-slate-500 dark:text-slate-400">Aberta há {tempo(pedido.criadoEm)}</span></> : <span className="text-xs text-slate-500 dark:text-slate-400">{pedidos.isLoading ? 'Carregando conta…' : 'Ver pedido'}</span>}
-                </span>}
-                <span className="block text-xs font-semibold text-brand-600 dark:text-brand-400">{m.status === 'inativa' ? 'Indisponível' : m.pedidoAtivoId ? 'Abrir pedido →' : 'Novo pedido →'}</span>
-              </button>
+              <div className={`flex h-full min-w-0 flex-col gap-2 p-3 ${visual === 'lista' ? 'sm:flex-row sm:items-center sm:gap-4 sm:pr-16' : ''}`}>
+                <div className="min-w-0 pr-10 sm:pr-8">
+                  <h2 className="text-base font-bold">Mesa {m.numero}</h2>
+                  <Badge value={m.status} />
+                </div>
+                <div className={`text-sm ${visual === 'grade' ? 'min-h-10' : 'sm:flex-1'}`}>
+                  {m.status === 'ocupada' ? (pedido ? <><strong>{brl(pedido.total)}</strong><p className="text-xs text-slate-500 dark:text-slate-400">Há {tempo(pedido.criadoEm)}</p></> : <p className="text-xs text-slate-500">{pedidos.isLoading ? 'Carregando…' : 'Ver pedido'}</p>) : <p className="text-xs text-slate-500 dark:text-slate-400">{m.status === 'livre' ? 'Disponível para pedido' : m.status === 'reservada' ? 'Mesa reservada' : 'Mesa indisponível'}</p>}
+                </div>
+                <Button
+                  variant={m.status === 'ocupada' ? 'primary' : 'secondary'}
+                  onClick={() => navigate(m.pedidoAtivoId ? `/caixa/mesa/${m.id}` : `/caixa/novo-pedido/${m.id}`)}
+                  disabled={m.status === 'inativa'}
+                  aria-label={`Mesa ${m.numero}: ${m.pedidoAtivoId ? 'abrir pedido' : 'novo pedido'}`}
+                  className={`!px-2 !text-xs ${visual === 'grade' ? 'mt-auto w-full' : 'sm:shrink-0'}`}
+                >{m.status === 'inativa' ? 'Indisponível' : m.pedidoAtivoId ? 'Abrir pedido' : 'Novo pedido'}</Button>
+              </div>
               <button aria-label={`Opções da mesa ${m.numero}`} onClick={() => setMenu(m)} className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-slate-400 dark:hover:bg-slate-800"><MoreVertical className="h-5 w-5" aria-hidden="true" /></button>
             </div>
           )

@@ -259,12 +259,12 @@ function DespesasCard() {
                 </span>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                   {d.status === 'pendente' ? (
-                    <button onClick={() => pagar.mutate(d.id)} disabled={pagar.isPending} className="min-h-9 text-xs font-semibold text-emerald-600 hover:underline disabled:opacity-50">Marcar paga</button>
+                    <button onClick={() => pagar.mutate(d.id)} disabled={pagar.isPending} className="min-h-11 text-xs font-semibold text-emerald-600 action-button disabled:opacity-50">Marcar paga</button>
                   ) : (
-                    <button onClick={() => reabrir.mutate(d.id)} disabled={reabrir.isPending} className="min-h-9 text-xs font-semibold text-sky-600 hover:underline disabled:opacity-50">Reabrir</button>
+                    <button onClick={() => reabrir.mutate(d.id)} disabled={reabrir.isPending} className="min-h-11 text-xs font-semibold text-sky-600 action-button disabled:opacity-50">Reabrir</button>
                   )}
-                  <button onClick={() => abrirEdicao(d)} className="min-h-9 text-xs font-semibold text-brand-600 hover:underline">Editar</button>
-                  <button onClick={() => window.confirm(`Excluir "${d.descricao}"?`) && excluir.mutate(d.id)} className="min-h-9 text-xs font-semibold text-rose-400 hover:text-rose-600">Excluir</button>
+                  <button onClick={() => abrirEdicao(d)} className="min-h-11 text-xs font-semibold text-brand-600 action-button">Editar</button>
+                  <button onClick={() => window.confirm(`Excluir "${d.descricao}"?`) && excluir.mutate(d.id)} className="min-h-11 text-xs font-semibold text-rose-400 action-button hover:text-rose-600">Excluir</button>
                 </div>
               </div>
             </li>
@@ -445,13 +445,13 @@ function FornecedoresCard() {
                   setErro(null)
                   setAberto(true)
                 }}
-                className="text-xs font-semibold text-brand-600 hover:underline"
+                className="text-xs font-semibold text-brand-600 action-button"
               >
                 Editar
               </button>
               <button
                 onClick={() => window.confirm(`Excluir fornecedor "${f.nome}"?`) && excluir.mutate(f.id)}
-                className="text-xs font-semibold text-rose-400 hover:text-rose-600"
+                className="text-xs font-semibold text-rose-400 action-button hover:text-rose-600"
               >
                 Excluir
               </button>

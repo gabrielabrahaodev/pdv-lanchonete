@@ -62,7 +62,7 @@ export default function ProdutosPage() {
 
   const acoes = (p: Product, mobile = false) => (
     <div className="flex items-center gap-1">
-      <Link to={`/produtos/editar/${p.id}`} title="Editar" aria-label={`Editar ${p.nome}`} className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-brand-600 hover:bg-slate-100 dark:text-brand-300 dark:hover:bg-slate-800">
+      <Link to={`/produtos/editar/${p.id}`} title="Editar" aria-label={`Editar ${p.nome}`} className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 action-button rounded-lg px-2 text-xs font-semibold text-brand-600 hover:bg-slate-100 dark:text-brand-300 dark:hover:bg-slate-800">
         <Pencil className="h-4 w-4" aria-hidden="true" />{mobile && 'Editar'}
       </Link>
       <button
@@ -70,7 +70,7 @@ export default function ProdutosPage() {
         disabled={remover.isPending}
         title="Excluir"
         aria-label={`Excluir ${p.nome}`}
-        className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 action-button rounded-lg px-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
       >
         <Trash2 className="h-4 w-4" aria-hidden="true" />{mobile && 'Excluir'}
       </button>
