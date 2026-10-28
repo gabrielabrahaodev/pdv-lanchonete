@@ -7,10 +7,14 @@ com trilha de movimentações, impedindo reabastecimento duplicado.
 from __future__ import annotations
 
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import datetime, time, timezone
+from zoneinfo import ZoneInfo
 from fastapi import HTTPException
 from google.cloud.firestore import transactional
 
 from app.models.models import PedidoReposicaoCreate, ReceberPedidoReposicao
+from app.core.config import settings
+from app.services import agregados_service
 from app.services import base
 from app.services.base import (
     config_doc, executar_transacao, get_item, item_doc, items_col,
@@ -141,7 +145,16 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
     linhas = {item.item_id: item for item in payload.itens}
     if len(linhas) != len(payload.itens):
         raise HTTPException(422, 'Insumo duplicado no recebimento')
+    # Meio-dia no fuso configurado representa a data civil sem deslocá-la
+    # para ontem/amanhã ao converter para UTC (regra já usada no Financeiro).
+    local_tz = ZoneInfo(settings.timezone)
+    hoje_local = base.now_utc().astimezone(local_tz).date()
+    if payload.data_recebimento > hoje_local:
+        raise HTTPException(422, 'A data do recebimento não pode estar no futuro')
+    competencia = datetime.combine(payload.data_recebimento, time(12, 0), tzinfo=local_tz).astimezone(timezone.utc)
     ref = item_doc(rid, COL, pedido_id)
+    # Referência determinística: a mesma reposição só pode gerar uma despesa.
+    despesa_ref = item_doc(rid, 'despesas', f'reposicao_{pedido_id}')
 
     @transactional
     def _exec(t):
@@ -151,6 +164,9 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
         pedido = pedido_snap.to_dict() or {}
         if pedido.get('status') != 'gerado':
             raise HTTPException(409, 'Pedido já recebido ou cancelado; nenhuma entrada duplicada')
+        despesa_anterior = next(iter(t.get(despesa_ref)), None)
+        if despesa_anterior and despesa_anterior.exists:
+            raise HTTPException(409, 'Despesa da reposição já existe; recebimento não foi duplicado')
         salvos = pedido.get('itens', [])
         ids = [s['itemId'] for s in salvos]
         if len(set(ids)) != len(ids) or set(ids) != set(linhas):
@@ -177,11 +193,40 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
             novo_saldo = round(float(saldo + qtd), 3)
             updates.append((salvo, item_ref, item, linha, novo_saldo, float(novo_custo)))
 
-        # Transação única: uma entrada por insumo, nova média e baixa do pedido.
+        # Total monetário por linha (arredondamento decimal a centavos).
+        # O lançamento de débito exige ao menos um item com valor positivo.
+        total_despesa = sum(
+            (
+                Decimal(str(linha.quantidade)) * Decimal(str(linha.custo_unitario))
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            for _, _, _, linha, _, _ in updates
+        )
+        if total_despesa <= 0:
+            raise HTTPException(422, 'Informe um custo positivo para gerar a despesa do recebimento')
+        dados_despesa = {
+            'restaurantId': rid,
+            'pedidoReposicaoId': pedido_id,
+            'categoria': 'insumo',
+            'descricao': f"Reposição de insumos — {pedido.get('fornecedorNome', 'Fornecedor')} ({pedido_id})",
+            'valor': float(total_despesa),
+            'data': competencia,
+            'fornecedorId': pedido['fornecedorId'],
+            'status': 'pendente',
+            'observacoes': 'Despesa gerada automaticamente ao receber insumos. Marque como paga no Financeiro após efetuar o pagamento.',
+        }
+        # Todas as leituras de agregados/evento ocorrem antes das escritas
+        # de estoque, permitindo rollback único com a despesa e o pedido.
+        agregados_service.ajustar_despesa_tx(
+            t, rid, None, dados_despesa, evento_id=f'despesa:reposicao_{pedido_id}:cria'
+        )
+
+        # Transação única: entradas, média ponderada, pedido e despesa.
         recebidos = []
         for salvo, item_ref, item, linha, saldo, custo in updates:
             mov_ref = items_col(rid, 'movimentacoes_estoque').document()
-            total = round(linha.quantidade * linha.custo_unitario, 2)
+            total = float((
+                Decimal(str(linha.quantidade)) * Decimal(str(linha.custo_unitario))
+            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
             t.set(mov_ref, stamp_create({
                 'tipo': 'entrada', 'itemId': salvo['itemId'], 'qtd': linha.quantidade,
                 'saldoApos': saldo, 'unidade': item['unidade'],
@@ -189,6 +234,7 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
                 'valorTotalCompra': total, 'custoUnitario': item.get('custoMedio', 0),
                 'custoMedioApos': custo, 'usuarioId': uid, 'restaurantId': rid,
                 'pedidoReposicaoId': pedido_id,
+                'despesaId': despesa_ref.id, 'dataMovimentacao': competencia,
                 'observacao': f'Recebimento da reposição {pedido_id}',
             }))
             t.update(item_ref, stamp_update({'quantidadeAtual': saldo, 'custoMedio': custo}))
@@ -198,8 +244,12 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
                 'custoUnitario': linha.custo_unitario, 'valorTotal': total,
                 'movimentacaoId': mov_ref.id,
             })
+        t.set(despesa_ref, stamp_create(dados_despesa))
         t.update(ref, stamp_update({
             'status': 'recebido', 'recebidoEm': base.now_utc(),
+            'dataRecebimento': competencia,
+            'dataRecebimentoLocal': payload.data_recebimento.isoformat(),
+            'despesaId': despesa_ref.id, 'valorTotalRecebido': float(total_despesa),
             'recebidoPor': uid, 'recebimento': recebidos,
         }))
 
