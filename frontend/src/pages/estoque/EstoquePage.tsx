@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
 import { useEstoque, useMovimentacoes } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
