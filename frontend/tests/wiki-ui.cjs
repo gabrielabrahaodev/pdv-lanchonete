@@ -101,7 +101,7 @@ async function abrir(page, rota) {
   )
   try {
     await page
-      .getByRole('link', { name: 'Como usar esta tela?', exact: true })
+      .getByRole('link', { name: /Como usar esta tela\?/ })
       .first()
       .waitFor({ timeout: 10000 })
   } catch (e) {
