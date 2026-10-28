@@ -1,14 +1,34 @@
 import { defineConfig } from 'vite'
+import { execFileSync } from 'node:child_process'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Versão imutável do bundle. O arquivo /version.json é gerado no dist, sem
+// tocar o Git e sem consumir leituras Firestore.
+const versao = (() => {
+  if (process.env.VITE_APP_VERSION?.trim()) return process.env.VITE_APP_VERSION.trim()
+  try { return execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() }
+  catch { return `local-${Date.now()}` }
+})()
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(versao) },
   plugins: [
+    {
+      name: 'versao-publicada',
+      apply: 'build',
+      generateBundle() {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'version.json',
+          source: JSON.stringify({ version: versao, publishedAt: new Date().toISOString() }),
+        })
+      },
+    },
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.ico', 'icons/pdv.svg', 'icons/favicon-32.png', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'NexoComanda',

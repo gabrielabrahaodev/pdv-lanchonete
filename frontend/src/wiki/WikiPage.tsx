@@ -24,7 +24,7 @@ const carregar = import.meta.glob<Artigo>('./conteudo/*/*.json', {
   import: 'default',
 })
 const botao =
-  'inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-slate-700 dark:text-brand-300 dark:hover:bg-slate-800'
+  'inline-flex min-h-9 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500 aria-[current=page]:bg-brand-50 aria-[current=page]:text-brand-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-brand-300 dark:aria-[current=page]:bg-slate-800'
 function Destaque({ texto, consulta }: { texto: string; consulta: string }) {
   return (
     <>

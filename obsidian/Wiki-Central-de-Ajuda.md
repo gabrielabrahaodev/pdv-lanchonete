@@ -104,3 +104,17 @@ Ver `docs/04-testes/wiki-ajuda-contextual.md` para resultados e roteiro.
 Leitor de tela humano, sessão real do cliente e instalação em dispositivo físico requerem
 homologação; testes de UI usam dados simulados e não alteram Firebase. Não declarar
 produção aprovada a partir deles. Acesso offline a artigo nunca visitado não é garantido.
+
+## Ajuda contextual em nova aba e atualização de versão
+
+O controle **Como usar esta tela?** abre /wiki/<artigo> em uma nova aba
+(`target="_blank" rel="noopener noreferrer"`). A tela original não navega,
+preservando pedidos, carrinho, modais e rascunhos em memória. O menu principal
+**Wiki** permanece na aba atual. Links de temas internos são compactos e discretos.
+A sobreposição antiga fica como compatibilidade legada, mas deixa de ser o caminho normal.
+
+Versionamento: veja [[Versionamento-e-Atualizacao-PWA]]. Cada build Vite emite
+`dist/version.json` e embute o SHA do commit no bundle. O Hosting não deve
+cachear `/version.json`. O cliente compara em rede sem consultar o Firestore,
+exibe aviso e disponibiliza **Forçar atualização** em Configurações. A recarga
+depende de confirmação explícita para evitar perda de formulários não salvos.
