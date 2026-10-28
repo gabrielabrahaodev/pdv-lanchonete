@@ -110,7 +110,7 @@ def _resumo_por_agregados(
             top_qtd[pid] = top_qtd.get(pid, 0) + int(qtd)
 
         for iid, qtd in (d.get("saidasPorItem") or {}).items():
-            saidas[iid] = saidas.get(iid, 0.0) + float(qtd)
+            saidas[iid] = saidas.get(iid, 0.0) + max(0, float(qtd)-float((d.get('saidasComCustoPorItem') or {}).get(iid,0)))
 
         for cat, valor in (
             d.get("despesasPorCategoria") or {}
@@ -174,7 +174,7 @@ def _resumo_por_agregados(
         custo_medio_por_item=custo_medio,
         faturamento=faturamento,
     )
-    financeiro["cmvEstimado"] = calculos.round_money(financeiro["cmvEstimado"] + sum(float((s.to_dict() or {}).get("cmvProducao", 0)) for s in snaps))
+    financeiro["cmvEstimado"] = calculos.round_money(financeiro["cmvEstimado"] + sum(float((s.to_dict() or {}).get("cmvProducao", 0)) + float((s.to_dict() or {}).get('cmvEstoqueCongelado',0)) for s in snaps))
     financeiro["totalDespesas"] = total_despesas
     financeiro["despesasPorCategoria"] = dict(
         sorted(

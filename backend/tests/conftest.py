@@ -13,6 +13,7 @@ from tests.fs_stub import patch_firestore_store  # noqa: E402
 # de fs_stub faz o suite falhar estrondoso se algum módulo ficar de fora.
 MODULES = [
     "app.services.base",
+    "app.services.usuarios_service",
     "app.services.producao_service",
     "app.services.pedidos_service",
     "app.services.caixa_service",

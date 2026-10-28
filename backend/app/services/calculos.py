@@ -83,7 +83,7 @@ def resumo_financeiro(
     )
 
     cmv = soma_monet(
-        float(m.get("qtd", 0) or 0) * float(custo_medio_por_item.get(m.get("itemId"), 0.0))
+        float(m.get("qtd", 0) or 0) * float(m.get("custoUnitario", custo_medio_por_item.get(m.get("itemId"), 0.0)))
         for m in saidas_com_pedido_periodo
     )
 

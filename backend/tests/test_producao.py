@@ -11,7 +11,7 @@ from app.models.models import ProducaoCreate, PerdaProducao, ConversaoProducao, 
 from app.services import producao_service as ps, pedidos_service as pedidos, caixa_service, cozinha_service, produtos_service
 from tests.conftest import RID, seed, doc_path
 from tests.fs_stub import fake_dtt
-from tests.test_pagamento_transacional import _mesa
+from tests.test_pagamento_transacional import _mesa, _sessao
 
 
 @pytest.fixture
@@ -33,6 +33,11 @@ def produzir(qtd=30, horas=24, chave='producao1', **kw):
 
 def pedido(qtd=5, mesa='m1'):
     return pedidos.criar(RID,'garcom',mesa,'local',[OrderItemAdd(produtoId='pao',qtd=qtd)])
+
+
+def pedido_balcao(db, qtd=5):
+    _sessao(db)
+    return pedidos.criar_balcao(RID,'u',[OrderItemAdd(produtoId='pao',qtd=qtd)],'balcao-teste')
 
 
 def lote(db,lid):
@@ -138,10 +143,10 @@ def test_lote_itens_reserva_conjunta_e_reenvio_sem_duplicar(ambiente):
     assert lote(db,l['id'])['reservado']==6
 
 
-def test_pagamento_nao_entrega_e_cozinha_conclui_depois_de_pago(ambiente):
+def test_balcao_pagamento_nao_entrega_e_cozinha_conclui_depois_de_pago(ambiente):
     db=ambiente
     db.store.data[doc_path(RID,'produtos','pao')]['precisaPreparar']=True
-    l=produzir(); p=pedido(5); iid=p['itens'][0]['id']
+    l=produzir(); p=pedido_balcao(db,5); iid=p['itens'][0]['id']
     caixa_service.registrar_pagamento(RID,'u',p['id'],tipo='pix',valor=10)
     assert lote(db,l['id'])['saldo']==30 and lote(db,l['id'])['reservado']==5
     assert cozinha_service.fila(RID)[0]['id']==p['id']
@@ -154,10 +159,10 @@ def test_pagamento_nao_entrega_e_cozinha_conclui_depois_de_pago(ambiente):
     assert agg['cmvProducao']==pytest.approx(round(17/30*5,2))
 
 
-def test_sob_pedido_pago_antes_do_preparo_ainda_baixa(ambiente):
+def test_balcao_sob_pedido_pago_antes_do_preparo_ainda_baixa(ambiente):
     db=ambiente
     db.store.data[doc_path(RID,'produtos','pao')].update({'modoEstoque':'sob_pedido','precisaPreparar':True,'ingredientes':[{'itemId':'farinha','qtd':1}]})
-    p=pedido(2); assert estoque(db)==100
+    p=pedido_balcao(db,2); assert estoque(db)==100
     caixa_service.registrar_pagamento(RID,'u',p['id'],tipo='pix',valor=4)
     pedidos.atualizar_status_item(RID,p['id'],p['itens'][0]['id'],'preparo','u')
     assert estoque(db)==98
@@ -184,7 +189,7 @@ def test_converter_bolo_em_fatias_preserva_custo_validade_e_nao_duplica(ambiente
 
 
 def test_entrega_lote_vencido_exige_troca_inclusive_pedido_pago(ambiente):
-    db=ambiente; velho=produzir(10,1,'velho'); p=pedido(5); iid=p['itens'][0]['id']
+    db=ambiente; velho=produzir(10,1,'velho'); p=pedido_balcao(db,5); iid=p['itens'][0]['id']
     caixa_service.registrar_pagamento(RID,'u',p['id'],tipo='pix',valor=10)
     lote(db,velho['id'])['validade']=fake_dtt()-timedelta(seconds=1)
     with pytest.raises(HTTPException): pedidos.atualizar_status_item(RID,p['id'],iid,'entregue','u')

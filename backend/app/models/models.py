@@ -43,7 +43,10 @@ class ProductVariation(CamelModel):
 
 class ProductIngredient(CamelModel):
     item_id: str
-    qtd: float
+    qtd: float = Field(gt=0, allow_inf_nan=False)
+    unidade: Optional[str] = None
+    qtd_informada: Optional[float] = None
+    unidade_informada: Optional[str] = None
 
 
 class Product(CamelModel):
@@ -238,18 +241,24 @@ class InventoryItem(CamelModel):
 
 
 class InventoryItemCreate(CamelModel):
-    nome: str
+    nome: str = Field(min_length=1, max_length=150)
     unidade: str
-    quantidade_atual: float = 0.0
-    minimo: float = 0.0
-    custo_medio: float = 0.0
+    quantidade_atual: float = Field(default=0, ge=0, allow_inf_nan=False)
+    minimo: float = Field(default=0, ge=0, allow_inf_nan=False)
+    custo_medio: float = Field(default=0, ge=0, allow_inf_nan=False)
+    unidade_compra: Optional[str] = None
+    fator_compra: Optional[float] = Field(default=None, gt=0, allow_inf_nan=False)
 
 
 class InventoryItemUpdate(CamelModel):
-    nome: Optional[str] = None
+    nome: Optional[str] = Field(default=None, min_length=1, max_length=150)
     unidade: Optional[str] = None
-    minimo: Optional[float] = None
-    custo_medio: Optional[float] = None
+    minimo: Optional[float] = Field(default=None, ge=0, allow_inf_nan=False)
+    custo_medio: Optional[float] = Field(default=None, ge=0, allow_inf_nan=False)
+    ativo: Optional[bool] = None
+    unidade_compra: Optional[str] = None
+    fator_compra: Optional[float] = Field(default=None, gt=0, allow_inf_nan=False)
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, extra="forbid")
 
 
 class StockMovement(CamelModel):
@@ -266,8 +275,10 @@ class StockMovement(CamelModel):
 class MovementCreate(CamelModel):
     tipo: str  # entrada | saida | ajuste
     item_id: str
-    qtd: float = Field(gt=0)
-    observacao: Optional[str] = None
+    qtd: float = Field(ge=0, allow_inf_nan=False)
+    unidade: Optional[str] = None
+    valor_total_compra: Optional[float] = Field(default=None, gt=0, allow_inf_nan=False)
+    observacao: Optional[str] = Field(default=None, max_length=300)
 
 
 # ---------------------------------------------------------------- Usuários
@@ -298,9 +309,10 @@ class UserUpdate(CamelModel):
 
 
 class PreferenciasUpdate(CamelModel):
-    """Preferências do próprio usuário (self-service, qualquer papel)."""
-
-    tema: Literal["claro", "escuro"]
+    """Somente campos pessoais permitidos; nunca papel ou restaurante."""
+    tema: Optional[Literal["claro", "escuro"]] = None
+    nome: Optional[str] = Field(default=None, min_length=1, max_length=150)
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, extra="forbid")
 
 
 # ---------------------------------------------------------------- Delivery
@@ -494,3 +506,13 @@ class ConversaoProducao(CamelModel):
     quantidade_origem: int = Field(gt=0, le=100000)
     quantidade_destino: int = Field(gt=0, le=100000)
     observacao: str = Field(min_length=3, max_length=300)
+
+
+class ConferenciaReserva(CamelModel):
+    acao: Literal["consumido", "devolver"]
+    motivo: str = Field(min_length=3, max_length=300)
+
+
+class SolicitacaoSeguranca(CamelModel):
+    acao: Literal["solicitar_troca_email", "solicitar_troca_senha"]
+    model_config = ConfigDict(extra="forbid")

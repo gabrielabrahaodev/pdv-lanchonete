@@ -1,5 +1,5 @@
 """Estoque: itens e movimentações."""
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, Query, Response, Header
 
 from app.core.security import CurrentAuth, require_restaurant, require_roles
 from app.models.models import InventoryItemCreate, InventoryItemUpdate, MovementCreate
@@ -25,14 +25,14 @@ def obter_item(item_id: str, restaurant_id: str = Depends(require_restaurant)) -
 
 @router.post("/itens", status_code=201)
 def criar_item(payload: InventoryItemCreate, auth: CurrentAuth = Depends(GESTAO)) -> dict:
-    return estoque_service.criar_item(auth.restaurant_id, payload)
+    return estoque_service.criar_item(auth.restaurant_id, payload, auth.uid)
 
 
 @router.patch("/itens/{item_id}")
 def atualizar_item(
     item_id: str, payload: InventoryItemUpdate, auth: CurrentAuth = Depends(GESTAO)
 ) -> dict:
-    return estoque_service.atualizar_item(auth.restaurant_id, item_id, payload)
+    return estoque_service.atualizar_item(auth.restaurant_id, item_id, payload, auth.uid)
 
 
 @router.delete("/itens/{item_id}", status_code=204)
@@ -43,9 +43,10 @@ def remover_item(item_id: str, auth: CurrentAuth = Depends(GESTAO)) -> None:
 @router.post("/movimentacoes", status_code=201)
 def registrar_movimentacao(
     payload: MovementCreate,
+    chave: str | None = Header(default=None, alias="Idempotency-Key", min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_-]+$"),
     auth: CurrentAuth = Depends(GESTAO),
 ) -> dict:
-    item, mov = estoque_service.registrar_movimentacao(auth.restaurant_id, auth.uid, payload)
+    item, mov = estoque_service.registrar_movimentacao(auth.restaurant_id, auth.uid, payload, chave)
     return {"item": item, "movimentacao": mov}
 
 

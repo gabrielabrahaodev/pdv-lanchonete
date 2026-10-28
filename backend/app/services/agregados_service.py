@@ -144,7 +144,11 @@ def registrar_saidas_tx(
     for iid, qtd in sorted(consumo.items()):
         qtd = round(float(qtd), 3)
         if qtd > 0:
+            snap = next(iter(t.get(get_db().document(f"restaurantes/{restaurant_id}/data/estoque/items/{iid}"))), None)
+            custo = float((snap.to_dict() or {}).get('custoMedio', 0)) if snap and snap.exists else 0
             inc[f"saidasPorItem.{iid}"] = Increment(qtd)
+            inc[f"saidasComCustoPorItem.{iid}"] = Increment(qtd)
+            inc['cmvEstoqueCongelado'] = Increment(round(float(inc.get('cmvEstoqueCongelado', Increment(0)).value) + qtd*custo, 6))
     if len(inc) > 1:
         _aplicar_tx(t, restaurant_id, dia, mes, inc)
         if evento_id:
@@ -382,7 +386,7 @@ def resumo_agregado(restaurant_id: str, tipo: str, ref: str) -> dict[str, Any]:
 
     agg = obter(restaurant_id, tipo, ref)
     saidas = [
-        {"tipo": "saida", "itemId": iid, "qtd": float(qtd)}
+        {"tipo": "saida", "itemId": iid, "qtd": max(0, float(qtd) - float((agg.get('saidasComCustoPorItem') or {}).get(iid, 0)))}
         for iid, qtd in (agg.get("saidasPorItem") or {}).items()
     ]
     despesas = [
@@ -396,7 +400,7 @@ def resumo_agregado(restaurant_id: str, tipo: str, ref: str) -> dict[str, Any]:
         custo_medio_por_item=custo_medio,
         faturamento=float(agg.get("faturamento") or 0),
     )
-    financeiro["cmvEstimado"] = calculos.round_money(financeiro["cmvEstimado"] + float(agg.get("cmvProducao", 0)))
+    financeiro["cmvEstimado"] = calculos.round_money(financeiro["cmvEstimado"] + float(agg.get("cmvProducao", 0)) + float(agg.get('cmvEstoqueCongelado', 0)))
 
     produtos = listar_produtos(restaurant_id)
     nomes = {d["id"]: d.get("nome", d["id"]) for d in produtos}
