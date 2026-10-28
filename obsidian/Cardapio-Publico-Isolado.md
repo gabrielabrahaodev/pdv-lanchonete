@@ -39,3 +39,14 @@ O endpoint público `GET /api/publico/{restaurantId}/cardapio` devolve o campo `
 A página mostra o nome em letras grandes, brancas e laranja, no lado direito do cabeçalho em desktop e abaixo da chamada em celulares. O texto é dinâmico por restaurante; `Café Anis` é apenas exemplo. A última palavra aparece em laranja, sem alterar o valor original. Enquanto o backend anterior ainda não fornecer o campo, o novo bloco é omitido, preservando a compatibilidade durante o deploy.
 
 Teste com nomes de uma palavra, várias palavras e nomes longos, especialmente em larguras de 320, 390, 768, 1024 e 1440 px. A mudança envolve frontend **e backend**; o merge na master pode acionar o deploy automático do Render, portanto deve ocorrer somente após revisão e homologação.
+
+## Aparência pública do cardápio (tema escuro)
+
+O cardápio do QR Code mantém **sempre o tema escuro**, como aprovado visualmente, independente da preferência do usuário do PDV.
+
+- A entrada pública `App.tsx` aplica a classe `dark` à raiz do documento antes da exibição do conteúdo; isso também mantém o fundo escuro durante carregamentos.
+- `temaPublico.ts` restaura a presença anterior da classe ao sair do QR Code, evitando alterar a preferência da sessão privada do operador.
+- A aplicação autenticada mantém o `ThemeProvider` e sua escolha de tema por usuário.
+- O cache de dados públicos e o isolamento de autenticação não mudam.
+
+Verificar o fundo escuro em celulares e desktop, modal de detalhes, recarregamento F5 e navegação de volta ao PDV com usuário em temas claro e escuro.

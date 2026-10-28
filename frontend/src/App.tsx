@@ -1,6 +1,7 @@
 import { lazy, Suspense, useLayoutEffect } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useMatch } from 'react-router-dom'
 import { LoadingScreen } from './components/ui'
+import { ativarTemaEscuroPublico } from './lib/temaPublico'
 
 // O cardápio deve permanecer independente do Firebase Auth, tema do usuário e
 // limpeza dos dados privados do PDV. Os chunks autenticados não são carregados
@@ -8,21 +9,21 @@ import { LoadingScreen } from './components/ui'
 const CardapioPage = lazy(() => import('./pages/cardapio/CardapioPage'))
 const AppAutenticado = lazy(() => import('./AppAutenticado'))
 
-function CardapioPublico() {
-  // O modo escuro pertence à conta do operador, não ao consumidor que abre o QR.
-  // useLayoutEffect evita mostrar a página com o tema administrativo no 1º frame.
-  useLayoutEffect(() => {
-    document.documentElement.classList.remove('dark')
-  }, [])
-
-  return <CardapioPage />
-}
-
 export default function App() {
+  const estaNoCardapio = Boolean(useMatch('/m/:restaurantId/:mesaId'))
+
+  // O cardápio QR tem visual escuro próprio, inclusive durante o carregamento
+  // de seu chunk. Ao sair dele, restauramos o tema anterior do PDV sem
+  // carregar Firebase Auth ou preferências do operador no acesso público.
+  useLayoutEffect(() => {
+    if (!estaNoCardapio) return
+    return ativarTemaEscuroPublico(document.documentElement)
+  }, [estaNoCardapio])
+
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
-        <Route path="/m/:restaurantId/:mesaId" element={<CardapioPublico />} />
+        <Route path="/m/:restaurantId/:mesaId" element={<CardapioPage />} />
         <Route path="/*" element={<AppAutenticado />} />
       </Routes>
     </Suspense>

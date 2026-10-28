@@ -8,6 +8,7 @@ import {
   lerCacheCardapio,
   salvarCacheCardapio,
 } from '../.test-build/cardapioCache.js'
+import { ativarTemaEscuroPublico } from '../.test-build/temaPublico.js'
 
 const exemplo = {
   categorias: [{ id: 'bebidas', nome: 'Bebidas' }],
@@ -97,4 +98,49 @@ test('nome do restaurante usa tipografia com última palavra destacada', () => {
   assert.deepEqual(dividirNomeRestaurante('  Padaria do Centro  '), { inicio: 'Padaria do', destaque: 'Centro' })
   assert.deepEqual(dividirNomeRestaurante('Bistrô'), { inicio: 'Bistrô', destaque: '' })
   assert.deepEqual(dividirNomeRestaurante('   '), { inicio: '', destaque: '' })
+})
+
+test('cardápio QR ativa tema escuro e restaura tema claro ao sair', () => {
+  const classes = new Set()
+  const raiz = {
+    classList: {
+      contains: (x) => classes.has(x),
+      add: (x) => classes.add(x),
+      toggle: (x, force) => {
+        if (force) classes.add(x)
+        else classes.delete(x)
+      },
+    },
+  }
+  const restaurar = ativarTemaEscuroPublico(raiz)
+  assert.equal(classes.has('dark'), true)
+  restaurar()
+  assert.equal(classes.has('dark'), false)
+})
+
+test('cardápio QR mantém tema escuro pré-existente ao voltar para o PDV', () => {
+  const classes = new Set(['dark'])
+  const raiz = {
+    classList: {
+      contains: (x) => classes.has(x),
+      add: (x) => classes.add(x),
+      toggle: (x, force) => {
+        if (force) classes.add(x)
+        else classes.delete(x)
+      },
+    },
+  }
+  const restaurar = ativarTemaEscuroPublico(raiz)
+  assert.equal(classes.has('dark'), true)
+  restaurar()
+  assert.equal(classes.has('dark'), true)
+})
+
+test('rota pública aplica tema antes do carregamento lazy sem AuthProvider', () => {
+  const app = readFileSync('src/App.tsx', 'utf8')
+  assert.match(app, /useMatch\('\/m\/:restaurantId\/:mesaId'\)/)
+  assert.match(app, /useLayoutEffect/)
+  assert.match(app, /ativarTemaEscuroPublico\(document\.documentElement\)/)
+  assert.doesNotMatch(app, /classList\.remove\('dark'\)/)
+  assert.doesNotMatch(app, /<AuthProvider>|<ThemeProvider>/)
 })
