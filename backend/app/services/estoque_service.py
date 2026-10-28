@@ -70,6 +70,7 @@ def _referencias(t, rid, iid):
     # Fontes históricas legadas também impedem excluir/permutar a unidade.
     lotes = list(t.get(items_col(rid, "lotes_producao")))
     pedidos = list(t.get(items_col(rid, "pedidos")))
+    reposicoes = list(t.get(items_col(rid, "pedidos_reposicao")))
     return any(
         any(i.get("itemId") == iid for i in (l.to_dict() or {}).get("ingredientes", []))
         for l in lotes
@@ -79,6 +80,9 @@ def _referencias(t, rid, iid):
             for i in (p.to_dict() or {}).get("itens", [])
         )
         for p in pedidos
+    ) or any(
+        any(i.get("itemId") == iid for i in (r.to_dict() or {}).get("itens", []))
+        for r in reposicoes
     )
 
 
