@@ -304,7 +304,7 @@ def test_reposicao_pacote_convertido_e_custo_pouco_maior_que_zero(db):
     preparar(db)
     db.store.data[doc_path(RID, 'estoque', 'cafe')].update({
         'unidade': 'g', 'unidadeCompra': 'pct', 'fatorCompra': 500,
-        'quantidadeAtual': 100, 'custoMedio': 0.007,
+        'quantidadeAtual': 100, 'minimo': 500, 'custoMedio': 0.007,
     })
     p = criar_pedido(db)
     resultado = rep.receber(RID, 'admin', p['id'], ReceberPedidoReposicao(
