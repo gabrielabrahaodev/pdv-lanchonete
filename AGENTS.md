@@ -169,3 +169,12 @@ Fluxo validado de ponta a ponta: criar categoria/produto QA → abrir pedido em 
 - A restrição de pedidos pagos acima passa a valer para alterações comerciais: preparo/pronto/entrega continuam permitidos, sem alterar total. KDS inclui pagos com cozinhaPendente; cancelamento permanece bloqueado após pagamento.
 - Toda leitura transacional deve preceder escrita. Planejadores de reservas/destino devolvem funções de escrita; chamar somente após todas as leituras do pedido/estoque.
 - Guia, limitações históricas e validação: docs/04-testes/producao-estufa.md. Publicação em produção continua sujeita à homologação localhost.
+
+
+## Evolução operacional (branch de revisão)
+
+- Mesa local quitada recebe encerramentoOperacional, sai do KDS e mantém estados físicos. Balcão permanece independente. Reservas de mesa aguardam conferência, não são liberadas/consumidas pelo pagamento.
+- Compra converte unidades e pode recalcular custo médio. Receita normalizada guarda unidade/quantidade informadas; não converter qtd já normalizada duas vezes.
+- Novas saídas congelam custo e agregados transacionais; leitura antes da escrita continua obrigatória. Campos legados sem custo são estimativas.
+- Último admin ativo é protegido em transação. Perfil é autoridade de acesso; sincronização Auth falha de forma explícita e recuperável.
+- Fonte vigente das mudanças, compatibilidade e homologação: docs/04-testes/evolucao-operacional.md e obsidian/Evolucao-Operacional.md. Sem deploy ou migração real nesta branch.

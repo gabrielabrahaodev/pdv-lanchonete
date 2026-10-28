@@ -45,3 +45,5 @@ Se receita for R$ 7.627,10 e despesas por competência R$ 2.035,00, o resultado 
 - Caixa (pagamentos efetivos) e competência (despesas por data) são métricas diferentes.
 
 Fontes: `despesas_service.py`, `calculos.py`, `relatorios_service.py`, `agregados_service.py`, `FinanceiroPage.tsx`.
+
+Novas saídas de pedidos congelam custo unitário e agregados próprios, mantendo o CMV estável após novas compras. Histórico sem custo persistido continua estimativo. Nenhum custo histórico foi inventado. Ver [[Evolucao-Operacional]].
