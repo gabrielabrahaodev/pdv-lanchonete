@@ -10,7 +10,7 @@
     "test:precificacao": "tsc src/lib/precificacao.ts --outDir .test-build --module esnext --target es2020 --skipLibCheck && node --test tests/precificacao.test.mjs",
     "test:seguranca": "tsc src/lib/impressora.ts src/lib/firestoreData.ts --outDir .test-build --module esnext --target es2020 --skipLibCheck && node --test tests/seguranca.test.mjs",
     "test:unidades": "tsc src/lib/precificacao.ts src/lib/unidades.ts --outDir .test-build --module esnext --target es2020 --skipLibCheck && node --test tests/unidades.test.mjs",
-    "test:cardapio": "tsc src/lib/cardapioCache.ts --outDir .test-build --module esnext --target es2020 --skipLibCheck && node --test tests/cardapio-cache.test.mjs"
+    "test:cardapio": "tsc src/lib/cardapioCache.ts src/lib/temaPublico.ts --outDir .test-build --module esnext --target es2020 --skipLibCheck && node --test tests/cardapio-cache.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",
