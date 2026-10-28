@@ -157,3 +157,14 @@ def test_modelos_rejeitam_quantidades_negativas_e_infinitas():
         ItemReposicao(item_id='a', quantidade=-1)
     with pytest.raises(ValidationError):
         ItemRecebimentoReposicao(item_id='a', quantidade=1, custo_unitario=float('inf'))
+
+
+def test_nao_exclui_insumo_com_pedido_gerado_mesmo_sem_saldo(db):
+    preparar(db)
+    p = criar_pedido(db)
+    db.store.data[doc_path(RID, 'estoque', 'cafe')]['quantidadeAtual'] = 0
+    with pytest.raises(HTTPException) as exc:
+        estoque.remover_item(RID, 'cafe')
+    assert exc.value.status_code == 409
+    assert p['status'] == 'gerado'
+    assert estoque.obter_item(RID, 'cafe')['nome'] == 'Grãos'
