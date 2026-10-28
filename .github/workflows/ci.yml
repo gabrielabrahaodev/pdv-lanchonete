@@ -38,6 +38,7 @@ jobs:
       - run: npm run test:unidades
       - run: npm run test:seguranca
       - run: npm run test:cardapio
+      - run: npm run test:reposicao
       - run: npx tsc --noEmit
       - run: npm run build
 
