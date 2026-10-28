@@ -46,6 +46,9 @@ Os scripts UI/PWA iniciam e encerram o servidor local no próprio processo. Play
 ferramenta de teste, sem dependência de runtime da aplicação. No CI, instalação temporária
 fixa1.51.1 (fora do package.json da aplicação), seguida de Chromium Headless Shell.
 Todos esses testes estão integrados ao job frontend do CI. Resultado remoto será registrado na PR.
+A primeira execução remota revelou que o banner de inicialização do Vite não é uma
+condição de disponibilidade confiável no CI. O runner passou a esperar HTTP local
+(com timeout e logs de erro), também validado com CI=true, sem remover asserções de tela.
 
 ## Bundle e custo
 

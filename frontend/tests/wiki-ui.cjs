@@ -126,33 +126,7 @@ async function ajuda(page, id) {
   assert.equal(new URL(page.url()).pathname, '/wiki/' + id)
 }
 ;(async () => {
-  const servidor = process.env.WIKI_TEST_URL
-    ? null
-    : require('node:child_process').spawn(
-        process.execPath,
-        [
-          'node_modules/vite/bin/vite.js',
-          '--host',
-          '127.0.0.1',
-          '--port',
-          '5173',
-          '--strictPort',
-        ],
-        { stdio: ['ignore', 'pipe', 'pipe'] },
-      )
-  if (servidor)
-    await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(Error('Vite nao iniciou')), 20000)
-      servidor.stdout.on('data', (d) => {
-        if (String(d).includes('Local:')) {
-          clearTimeout(timer)
-          resolve()
-        }
-      })
-      servidor.on('exit', (code) => {
-        if (code) reject(Error('Vite encerrou: ' + code))
-      })
-    })
+  const servidor = process.env.WIKI_TEST_URL ? null : await require('./wiki-servidor.cjs').iniciarServidor()
   const browser = await chromium.launch({
     headless: true,
     args: ['--no-sandbox'],
