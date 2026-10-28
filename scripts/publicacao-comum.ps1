@@ -27,7 +27,9 @@ function Assert-Repositorio {
     if ($origem -notmatch '(?i)github\.com[:/]gabrielabrahaodev/pdv-lanchonete(?:\.git)?/?$') {
         throw 'O origin nao corresponde ao repositorio pdv-lanchonete esperado.'
     }
-    $mudancas = Get-GitTexto -Argumentos @('status','--porcelain','--untracked-files=normal')
+    # Preservar o primeiro caractere de porcelain (espaco = NAO staged).
+    $mudancas = ((& git status --porcelain --untracked-files=normal) -join "`n")
+    if ($LASTEXITCODE -ne 0) { throw 'Falha ao ler estado Git.' }
     if ($PermitirStaged) {
         foreach ($linha in @($mudancas -split "`r?`n" | Where-Object { $_ })) {
             # Permitir apenas paths staged; modificacoes nao staged e ?? bloqueadas.
