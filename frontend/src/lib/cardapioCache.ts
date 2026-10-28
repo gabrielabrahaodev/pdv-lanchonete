@@ -44,8 +44,9 @@ export function cardapioValido(dado: unknown): dado is CardapioPublico {
 }
 
 export function lerCacheCardapio(restaurantId: string, agora = Date.now()): CacheCardapio | null {
-  if (!restaurantId || typeof sessionStorage === 'undefined') return null
+  if (!restaurantId) return null
   try {
+    if (typeof sessionStorage === 'undefined') return null
     const valor = sessionStorage.getItem(chave(restaurantId))
     if (!valor) return null
     const salvo: unknown = JSON.parse(valor)
@@ -73,8 +74,9 @@ export function salvarCacheCardapio(
   data: CardapioPublico,
   atualizadoEm = Date.now(),
 ): void {
-  if (!restaurantId || !cardapioValido(data) || typeof sessionStorage === 'undefined') return
+  if (!restaurantId || !cardapioValido(data)) return
   try {
+    if (typeof sessionStorage === 'undefined') return
     sessionStorage.setItem(chave(restaurantId), JSON.stringify({ data, atualizadoEm }))
   } catch {
     // Cache é uma otimização opcional: jamais bloqueia a exibição do cardápio.
