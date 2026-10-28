@@ -37,6 +37,7 @@ jobs:
       - run: npm run test:precificacao
       - run: npm run test:unidades
       - run: npm run test:seguranca
+      - run: node --test tests/modal-focus.test.mjs
       - run: npm run test:cardapio
       - run: npm run test:reposicao
       - run: npx tsc --noEmit
