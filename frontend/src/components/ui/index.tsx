@@ -174,13 +174,17 @@ export function Modal({
 }) {
   const tituloId = useId()
   const caixaRef = useRef<HTMLDivElement>(null)
+  // Callbacks inline mudam de identidade a cada digitação em formulários.
+  // Referência atualizada sem reexecutar o efeito de foco do modal.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     if (!open) return
     const aoTeclar = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation()
-        onClose()
+        onCloseRef.current()
         return
       }
       // armadilha de foco simples: circula o Tab dentro do diálogo
@@ -218,7 +222,9 @@ export function Modal({
       document.body.style.overflow = anterior
       window.clearTimeout(t)
     }
-  }, [open, onClose])
+  // O foco inicial e o listener pertencem ao ciclo abrir/fechar.
+  // Não reexecutar por alterações de texto no conteúdo do modal.
+  }, [open])
 
   if (!open) return null
   return (
