@@ -295,7 +295,7 @@ class FakeCollection:
     def where(self, field: str, op: str, value: Any) -> FakeQuery:
         return FakeQuery(self.store, self.path).where(field, op, value)
 
-    def order_by(self, field: str, direction: Any = None) -> FakeQuery:
+    def order_by(self, field: str, *, direction: Any = None) -> FakeQuery:
         return FakeQuery(self.store, self.path).order_by(field, direction)
 
     def start_after(self, snapshot) -> FakeQuery:

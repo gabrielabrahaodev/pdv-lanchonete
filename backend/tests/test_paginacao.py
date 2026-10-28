@@ -178,6 +178,18 @@ class TestRotas:
         assert len(r.json()) == 2
         assert "X-Next-Cursor" in r.headers
 
+    def test_pagina_despesas_filtros_vazios_e_cursor(self, db, api):
+        for i in range(3):
+            seed(db, RID, 'despesas', f'd{i}', {
+                'data': _ts(27, 10+i), 'status':'pendente', 'categoria':'insumo', 'valor':10,
+            })
+        r = api.get('/api/despesas/pagina?limit=2&status=&categoria=')
+        assert r.status_code == 200
+        assert [d['id'] for d in r.json()['items']] == ['d2', 'd1']
+        proxima = api.get('/api/despesas/pagina', params={'limit':2, 'cursor':r.json()['nextCursor']})
+        assert [d['id'] for d in proxima.json()['items']] == ['d0']
+        assert proxima.json()['nextCursor'] is None
+
     def test_sessoes_caixa_paginadas(self, db, api):
         for i in range(4):
             seed(db, RID, "sessoes_caixa", f"s{i}", {
