@@ -70,6 +70,8 @@ def _aplicar_tx_multi(t, ops: list[tuple[Any, dict[str, Any]]], restaurant_id: s
     for ref, snap, inc in lidas:
         if not (snap and snap.exists):
             t.set(ref, _base_doc(restaurant_id))
+        if inc.get('biVersao') and not (snap.to_dict() or {}).get('biPrimeiraColeta'):
+            inc = {**inc, 'biPrimeiraColeta': inc['biUltimaColeta']}
         t.update(ref, inc)
 
 
@@ -118,6 +120,9 @@ def registrar_venda_tx(
             key = f"topProdutos.{pid}"
             anterior = inc[key].value if key in inc else 0
             inc[key] = Increment(anterior + int(item.get("qtd", 1)))
+    from app.services.lucratividade import incrementos
+    inc.update(incrementos(pedido))
+    inc['biUltimaColeta'] = ref_time
     _aplicar_tx(t, restaurant_id, dia, mes, inc)
     if evento_id:
         _marcar_evento(t, restaurant_id, evento_id, "venda")

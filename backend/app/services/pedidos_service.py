@@ -66,7 +66,7 @@ def _montar_item(restaurant_id: str, item_id: str, payload: OrderItemAdd) -> dic
             raise HTTPException(422, "Vincule o item de estoque da revenda")
         receita = [{"itemId": produto["itemRevendaId"], "qtd": 1}]
     return {**data, "id": item_id, "precoUnitario": preco, "status": status,
-            "modoEstoque": modo, "produtoNome": produto.get("nome"),
+            "modoEstoque": modo, "produtoNome": produto.get("nome"), "categoriaId": produto.get("categoriaId"), "metaMargem": (100 * float(produto.get("acrescimoLucroPercentual", 0)) / (100 + float(produto.get("acrescimoLucroPercentual", 0)))),
             "consumoEstoque": calculos.agregar_consumo_receita(receita, 1)}
 
 
@@ -106,7 +106,7 @@ def criar(restaurant_id: str, usuario_id: str, mesa_id: str, tipo: str, itens_pa
         ref = items_col(restaurant_id, "pedidos").document()
         gravar_reservas = producao_service.planejar_reservas(t, restaurant_id, ref.id, itens, usuario_id)
         if consumo_inicial:
-            gravar, aplicadas = _planejar_consumo(t, restaurant_id, ref.id, consumo_inicial, usuario_id)
+            gravar, aplicadas = _planejar_consumo(t, restaurant_id, ref.id, consumo_inicial, usuario_id, itens=[i for i in itens if i.get("status") == "entregue"])
             from app.services import agregados_service
             agregados_service.registrar_saidas_tx(t, restaurant_id, aplicadas)
             gravar()
@@ -145,7 +145,7 @@ def criar_balcao(restaurant_id: str, usuario_id: str, itens_payload: list[OrderI
         itens = [_montar_item(restaurant_id, new_id("item_"), i) for i in itens_payload]
         consumo = _consumo_itens_entregues(restaurant_id, itens)
         gravar_lotes = producao_service.planejar_reservas(t, restaurant_id, ref.id, itens, usuario_id)
-        gravar_consumo, aplicadas = _planejar_consumo(t, restaurant_id, ref.id, consumo, usuario_id)
+        gravar_consumo, aplicadas = _planejar_consumo(t, restaurant_id, ref.id, consumo, usuario_id, itens=[i for i in itens if i.get("status") == "entregue"])
         from app.services import agregados_service
         agregados_service.registrar_saidas_tx(t, restaurant_id, aplicadas, evento_id=f"balcao:{ref.id}")
         gravar_consumo()
@@ -232,7 +232,7 @@ def adicionar_itens(restaurant_id: str, usuario_id: str, pedido_id: str,
         consumo = _consumo_itens_entregues(restaurant_id, novos)
         gravar_reservas = producao_service.planejar_reservas(transaction, restaurant_id, pedido_id, novos, usuario_id)
         if consumo:
-            gravar, aplicadas = _planejar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
+            gravar, aplicadas = _planejar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id, itens=[i for i in novos if i.get("status") == "entregue"])
             from app.services import agregados_service
             agregados_service.registrar_saidas_tx(transaction, restaurant_id, aplicadas)
             gravar()
@@ -371,7 +371,7 @@ def atualizar_status_itens(
             "entrega" if novo_status == "entregue" else "liberacao", usuario_id,
         ) if novo_status in {"entregue", "cancelado"} else lambda: None
         if consumo:
-            gravar, aplicadas = _planejar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id)
+            gravar, aplicadas = _planejar_consumo(transaction, restaurant_id, pedido_id, consumo, usuario_id, itens=[i for i in itens if i.get("id") in ids and i.get("status") == "preparo"])
             from app.services import agregados_service
             agregados_service.registrar_saidas_tx(transaction, restaurant_id, aplicadas)
             gravar()
@@ -416,6 +416,7 @@ def _planejar_consumo(
     pedido_id: str,
     consumo: dict[str, float],
     usuario_id: str | None,
+    itens=None,
 ):
     """Le os insumos e devolve a fase de escrita e as quantidades aplicadas."""
     # -------- fase 1: TODAS as leituras --------
@@ -424,6 +425,7 @@ def _planejar_consumo(
         if not (cfg_snap.to_dict() or {}).get("baixaEstoqueAutomatica", True):
             return (lambda: None), {}  # controle desativado pelo admin
 
+    custos = {}
     pendentes: list[tuple[str, object, float, float, float]] = []  # (itemId, doc_ref, qtd_consumida, novo_saldo)
     for iid, total in sorted(consumo.items()):
         total = round(total, 3)
@@ -433,9 +435,21 @@ def _planejar_consumo(
         snap = next(iter(transaction.get(ref)), None)
         if not snap or not snap.exists:
             continue  # ingrediente removido do estoque: ignora sem travar o preparo
+        custo = (snap.to_dict() or {}).get('custoMedio')
+        if custo is not None and float(custo) > 0:
+            custos[iid] = custo
         atual = float((snap.to_dict() or {}).get("quantidadeAtual", 0) or 0)
         pendentes.append((iid, ref, total, round(atual - total, 3), float((snap.to_dict() or {}).get("custoMedio", 0))))
 
+    from app.services.lucratividade import decimal
+    for item in itens or []:
+        if 'custoDiretoSnapshot' in item or item.get('modoEstoque') == 'antecipado':
+            continue
+        receita = item.get('consumoEstoque') or {}
+        if receita and all(iid in custos for iid in receita):
+            valor = sum(decimal(q) * decimal(custos[iid]) for iid, q in receita.items()) * decimal(item.get('qtd', 1))
+            item.update(custoDiretoSnapshot=float(valor), custoDiretoEstado='conhecido',
+                        custoTeoricoSnapshot=float(valor), custoReferenciaEm=now_utc())
     def gravar():
         # -------- fase 2: TODAS as escritas --------
         observacao = f"Baixa automática — preparo do pedido {pedido_id}"

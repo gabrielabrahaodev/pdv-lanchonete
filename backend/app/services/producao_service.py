@@ -94,10 +94,12 @@ def produzir(rid: str, uid: str, payload: ProducaoCreate, chave: str):
         if len(consumo) > 100:
             raise HTTPException(422, 'Receita excede 100 ingredientes')
         estoques, custo, componentes = [], 0.0, []
+        custo_confiavel = True
         for iid, qtd in sorted(consumo.items()):
             er = item_doc(rid, 'estoque', iid)
             e = _ler(t, er, 'Ingrediente não encontrado no estoque')
             unitario = float(e.get('custoMedio', 0))
+            custo_confiavel = custo_confiavel and unitario > 0
             if not 0 <= unitario < float('inf'):
                 raise HTTPException(422, 'Custo do ingrediente inválido')
             qtd = round(qtd, 3)
@@ -116,7 +118,7 @@ def produzir(rid: str, uid: str, payload: ProducaoCreate, chave: str):
         t.set(ref, _lote(rid, produto, payload.produto_id, payload.quantidade, custo,
                         payload.validade, payload.local, uid, receitas=payload.receitas,
                         rendimentoPrevisto=produto.get('rendimentoReceita', 1) * payload.receitas,
-                        ingredientes=componentes, observacao=payload.observacao))
+                        ingredientes=componentes, custoConfiavel=custo_confiavel, custoTeoricoUnitario=custo / (float(produto.get('rendimentoReceita', 1)) * payload.receitas), observacao=payload.observacao))
         _mov(t, rid, uid, 'producao', ref.id, payload.produto_id, payload.quantidade, custoTotal=round(custo, 6))
         t.set(evento, {'fingerprint':fingerprint, 'loteId':ref.id})
         return ref.id
@@ -166,7 +168,7 @@ def converter(rid, uid, lote_id, payload: ConversaoProducao, chave):
         saldo = lote['saldo'] - payload.quantidade_origem
         t.update(origem, stamp_update({'saldo':saldo, 'aberto':saldo > 0}))
         t.set(destino, _lote(rid, produto, payload.produto_destino_id, payload.quantidade_destino,
-                            custo, lote['validade'], lote['local'], uid, loteOrigemId=lote_id))
+                            custo, lote['validade'], lote['local'], uid, loteOrigemId=lote_id, custoConfiavel=lote.get('custoConfiavel', lote.get('custoUnitario', 0) > 0)))
         _mov(t, rid, uid, 'conversao_saida', lote_id, lote['produtoId'], payload.quantidade_origem,
              observacao=payload.observacao, loteDestinoId=destino.id, custoTotal=round(custo, 6))
         _mov(t, rid, uid, 'conversao_entrada', destino.id, payload.produto_destino_id,
@@ -199,7 +201,7 @@ def planejar_reservas(t, rid, pedido_id, itens, uid, liberar=None):
                 continue
             lote['reservado'] = lote.get('reservado', 0) + qtd
             mudancas[ref.id] = (ref, {'reservado':lote['reservado']})
-            alocacoes.append({'loteId':ref.id, 'qtd':qtd, 'custoUnitario':lote['custoUnitario']})
+            alocacoes.append({'loteId':ref.id, 'qtd':qtd, 'custoUnitario':lote['custoUnitario'], 'custoConfiavel':lote.get('custoConfiavel', lote.get('custoUnitario', 0) > 0), 'custoTeoricoUnitario':lote.get('custoTeoricoUnitario')})
             movimentos.append((ref.id, pid, qtd))
             restante -= qtd
             if restante == 0:
@@ -207,7 +209,13 @@ def planejar_reservas(t, rid, pedido_id, itens, uid, liberar=None):
         if restante:
             raise HTTPException(409, f'Estufa: saldo disponível insuficiente para {item.get("produtoNome", pid)}')
         item['lotesReservados'] = alocacoes
+        from app.services.lucratividade import decimal
         item['custoProducao'] = round(sum(a['qtd'] * a['custoUnitario'] for a in alocacoes), 6)
+        if all(a['custoConfiavel'] for a in alocacoes):
+            item.update(custoDiretoSnapshot=float(sum(decimal(a['qtd'])*decimal(a['custoUnitario']) for a in alocacoes)), custoDiretoEstado='conhecido')
+        if all(a.get('custoTeoricoUnitario') is not None for a in alocacoes):
+            item['custoTeoricoSnapshot'] = float(sum(decimal(a['qtd'])*decimal(a['custoTeoricoUnitario']) for a in alocacoes))
+        item['custoReferenciaEm'] = now_utc()
     if len(mudancas) + len(movimentos) > 200:
         raise HTTPException(422, 'Lote de pedido muito grande; divida o lançamento')
     def gravar():

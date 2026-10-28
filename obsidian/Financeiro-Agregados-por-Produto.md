@@ -1,0 +1,9 @@
+# Financeiro — agregados por produto
+
+`registrar_venda_tx` estende a atualização de dia e mês já transacional na quitação. Usa o mesmo evento `venda:{pedidoId}`: repetição não soma novamente. Não cria documento por item nem por produção para BI. Mantém campos legados. `produtosVendidos` consolidado e `variacoesVendidas` detalhado são visões alternativas: nunca somar as duas.
+
+IDs de mapas são SHA256 truncado a 32 caracteres; IDs reais e nome/categoria são metadados internos. Quantidade, receita bruta, líquida, descontos e acréscimos atribuídos, custo, receita coberta e quantidades conhecidas/desconhecidas. Receita em centavos; custo escalado por 100.000.000 (oito casas). `Decimal`, arredondamento half-up no total e maiores restos para rateio proporcional do total efetivo do pedido, desempate pela ordem dos itens. Itens cancelados excluídos; soma atribuída fecha com total. Não existe estorno financeiro no contrato atual; não foi inventado endpoint de estorno.
+
+`biVersao`, `biVendas`, `biPrimeiraColeta`, `biUltimaColeta` permitem distinguir cobertura parcial do legado. Não executar backfill. Mudanças posteriores de nome/categoria/meta substituem apenas metadados descritivos no agregado; valores monetários são snapshots. Categoria histórica reorganizada pode agregar sob última categoria conhecida, limitação explícita.
+
+Escala: cenário 62 produtos, mapas com ~200–400 bytes de números + metadados por entrada, mais variações e campos legados. Estimativa inferior a 1 MiB nesse cenário, não garantia para catálogos ilimitados. Medir tamanho serializado, índices e contenção em pico antes de ampliar a escala; diário/mensal compartilham escrita e mensal pode virar gargalo. Particionar por shards/produto após benchmark real se necessário. Não fazer particionamento ou migração produtiva nesta PR.
