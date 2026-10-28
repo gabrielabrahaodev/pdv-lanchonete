@@ -40,3 +40,8 @@ finally:
             for snap in sub.stream():snap.reference.delete()
         parent.reference.delete()
     client.document(f'restaurantes/{rid}').delete()
+
+# Regressão adicional do painel, usando o mesmo emulador do CI.
+import runpy
+from pathlib import Path
+runpy.run_path(str(Path(__file__).with_name('financeiro_usabilidade_emulator.py')))

@@ -122,7 +122,7 @@ function despesaVazia(): DespesaForm {
   }
 }
 
-export function DespesasCard() {
+export function DespesasCard({periodo}: {periodo?: {inicio:string;fim:string}}) {
   const qc = useQueryClient()
   const { me } = useAuth()
   const [cursores, setCursores] = useState<(string | null)[]>([null])
@@ -134,7 +134,7 @@ export function DespesasCard() {
   const [form, setForm] = useState<DespesaForm>(despesaVazia())
   const [erro, setErro] = useState<string | null>(null)
 
-  const despesas = useQuery({queryKey:['despesas', me?.restaurantId, me?.papel, filtroStatus, filtroCat, cursor], queryFn:()=>api<{items:Despesa[];nextCursor:string|null}>(`/despesas/pagina?limit=50&status=${filtroStatus}&categoria=${filtroCat}${cursor ? '&cursor='+encodeURIComponent(cursor) : ''}`), staleTime:30000})
+  const despesas = useQuery({queryKey:['despesas', me?.restaurantId, me?.papel, filtroStatus, filtroCat, periodo, cursor], queryFn:()=>api<{items:Despesa[];nextCursor:string|null}>(`/despesas/pagina?limit=50${periodo ? '&data_inicio='+periodo.inicio+'&data_fim='+periodo.fim : ''}&status=${filtroStatus}&categoria=${filtroCat}${cursor ? '&cursor='+encodeURIComponent(cursor) : ''}`), staleTime:30000})
   const fornecedores = useQuery({ queryKey: ['fornecedores', me?.restaurantId, me?.papel], queryFn: () => api<Fornecedor[]>('/fornecedores'), enabled:aberto && form.categoria === 'insumo', staleTime:120000 })
   const usuarios = useQuery({ queryKey: ['usuarios', me?.restaurantId, me?.papel], queryFn: () => api<AppUser[]>('/usuarios'), enabled:aberto && form.categoria === 'folha', staleTime:120000 })
 
@@ -180,34 +180,43 @@ export function DespesasCard() {
         : api('/despesas', { method: 'POST', body })
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['despesas'] })
-      qc.invalidateQueries({ queryKey: ['resumo-financeiro'] })
+      qc.invalidateQueries({ queryKey: ['despesas', me?.restaurantId] })
+      qc.invalidateQueries({ queryKey: ['resumo-financeiro', me?.restaurantId] })
+      qc.invalidateQueries({queryKey:['bi', me?.restaurantId]})
+      qc.invalidateQueries({queryKey:['bi-contas', me?.restaurantId]})
+      qc.invalidateQueries({queryKey:['bi-produto', me?.restaurantId]})
       setAberto(false)
     },
     onError: (e) => setErro(e instanceof Error ? e.message : 'Erro ao salvar despesa'),
   })
 
   const pagar = useMutation({
+    onError:(e)=>setErro(e.message),
     mutationFn: (id: string) => api(`/despesas/${id}/pagar`, { method: 'POST' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['despesas'] })
-      qc.invalidateQueries({ queryKey: ['resumo-financeiro'] })
+      qc.invalidateQueries({ queryKey: ['despesas', me?.restaurantId] })
+      qc.invalidateQueries({queryKey:['bi-contas', me?.restaurantId]})
     },
   })
 
   const reabrir = useMutation({
+    onError:(e)=>setErro(e.message),
     mutationFn: (id: string) => api(`/despesas/${id}`, { method: 'PATCH', body: { ativoPago: false } }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['despesas'] })
-      qc.invalidateQueries({ queryKey: ['resumo-financeiro'] })
+      qc.invalidateQueries({ queryKey: ['despesas', me?.restaurantId] })
+      qc.invalidateQueries({queryKey:['bi-contas', me?.restaurantId]})
     },
   })
 
   const excluir = useMutation({
+    onError:(e)=>setErro(e.message),
     mutationFn: (id: string) => api(`/despesas/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['despesas'] })
-      qc.invalidateQueries({ queryKey: ['resumo-financeiro'] })
+      qc.invalidateQueries({ queryKey: ['despesas', me?.restaurantId] })
+      qc.invalidateQueries({ queryKey: ['resumo-financeiro', me?.restaurantId] })
+      qc.invalidateQueries({queryKey:['bi', me?.restaurantId]})
+      qc.invalidateQueries({queryKey:['bi-contas', me?.restaurantId]})
+      qc.invalidateQueries({queryKey:['bi-produto', me?.restaurantId]})
     },
   })
 
@@ -219,7 +228,7 @@ export function DespesasCard() {
   return (
     <Card className="overflow-hidden">
       <div className="flex min-w-0 flex-col items-stretch gap-2 border-b border-slate-100 px-3 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:px-5 sm:py-4 dark:border-slate-800">
-        <h3 className="mr-auto font-bold text-slate-700 dark:text-slate-200">Despesas</h3>
+        <h3 className="mr-auto font-bold text-slate-700 dark:text-slate-200">Despesas</h3>{periodo && <p className="w-full text-xs text-slate-500">Competência de {periodo.inicio} a {periodo.fim} (fuso configurado do restaurante). Vencimento e pagamento são datas distintas.</p>}
         <Select value={filtroStatus} onChange={(e) => {setFiltroStatus(e.target.value); setCursores([null])}} className="w-full !py-2 !text-xs sm:!w-auto sm:!py-1.5">
           <option value="">Todos os status</option>
           <option value="pendente">Pendentes</option>
@@ -239,6 +248,7 @@ export function DespesasCard() {
         </Button>
       </div>
 
+      {erro && !aberto && <p role="alert" className="p-3 text-sm text-rose-600">{erro}</p>}
       {despesas.isLoading ? (
         <LoadingScreen />
       ) : despesas.isError ? (

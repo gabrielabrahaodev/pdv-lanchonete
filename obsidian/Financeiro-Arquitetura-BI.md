@@ -11,3 +11,6 @@ Contas pendentes são consulta separada lazy, status único com máximo 201 docu
 APIs: `/bi/visao-geral`, `/evolucao`, `/despesas`, `/fornecedores`, `/previsao`, `/contas-a-pagar`, `/produtos`, `/produtos/ranking`, `/produtos/{id}`, `/produtos/{id}/evolucao`. Rotas estáticas antes das dinâmicas. Admin, gerente e caixa; tenant sempre deriva do token/perfil validado, nunca de query do usuário. Rules não enfraquecidas.
 
 O cache de fontes também reutiliza um intervalo mais amplo já lido ao consultar evolução de produto dentro dele, segmentado por tenant/papel e TTL. Datas, variação e produto continuam filtros explícitos; nenhuma cache key aceita tenant fornecido pelo cliente.
+
+## Reorganização da navegação
+Base atual `d888359` já inclui PRs #17–#21. Nova navegação: Visão geral (executivo), Resultados (demonstrativo), Receitas, Despesas, Contas a pagar, Lucratividade por produto e Previsibilidade. Visão geral e Resultados compartilham a mesma consulta/chave do painel; trocar abas não cria endpoint/cartão nem releitura de pedidos. Novos campos `indicadores` são calculados em Python, sobre as somas já lidas. Publicar backend/frontend coordenados após homologação.

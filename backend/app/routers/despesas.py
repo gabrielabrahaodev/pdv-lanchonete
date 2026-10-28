@@ -1,5 +1,8 @@
 """Financeiro: CRUD de despesas + marcação de pagamento."""
-from datetime import datetime
+from datetime import date, datetime, time, timezone
+from zoneinfo import ZoneInfo
+from app.core.config import settings
+from fastapi import HTTPException
 
 from fastapi import APIRouter, Depends, Query, Response
 
@@ -47,7 +50,12 @@ def listar(
 def pagina(inicio: datetime | None = None, fim: datetime | None = None,
            status: str | None = None, categoria: str | None = None,
            fornecedor_id: str | None = None, limit: int = Query(50, ge=1, le=200),
-           cursor: str | None = None, auth: CurrentAuth = Depends(ESCRITA)) -> dict:
+           cursor: str | None = None, data_inicio: date | None = None, data_fim: date | None = None, auth: CurrentAuth = Depends(ESCRITA)) -> dict:
+    if data_inicio is not None:inicio=datetime.combine(data_inicio,time.min,ZoneInfo(settings.timezone))
+    if data_fim is not None:fim=datetime.combine(data_fim,time.max,ZoneInfo(settings.timezone))
+    if inicio is not None and inicio.tzinfo is None:inicio=inicio.replace(tzinfo=timezone.utc)
+    if fim is not None and fim.tzinfo is None:fim=fim.replace(tzinfo=timezone.utc)
+    if inicio and fim and inicio>fim:raise HTTPException(422,'Início deve ser anterior ao fim')
     docs, proximo = despesas_service.listar_paginado(auth.restaurant_id, inicio=inicio, fim=fim,
         status=status, categoria=categoria, fornecedor_id=fornecedor_id, limit=limit, cursor_id=cursor)
     return {'items': docs, 'nextCursor': proximo}
