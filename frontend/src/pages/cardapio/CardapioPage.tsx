@@ -6,18 +6,17 @@ import { apiPublico } from '../../lib/apiPublico'
 import { brl } from '../../lib/format'
 import { urlImagemProduto } from '../../lib/imagem'
 import { Modal } from '../../components/ui'
+import {
+  cardapioValido,
+  dividirNomeRestaurante,
+  lerCacheCardapio,
+  salvarCacheCardapio,
+  VALIDADE_CACHE_CARDAPIO_MS,
+  type ProdutoPublico,
+  type CardapioPublico,
+} from '../../lib/cardapioCache'
 
-type Produto = {
-  id: string
-  nome: string
-  categoriaId: string
-  preco: number
-  imagemUrl?: string | null
-  temImagem?: boolean
-  variacoes?: { id: string; nome: string; precoAdicional: number }[]
-}
-type Categoria = { id: string; nome: string; icone?: string | null }
-type CardapioPublico = { categorias: Categoria[]; produtos: Produto[] }
+type Produto = ProdutoPublico
 
 const TODAS = '__todas__'
 const OUTRAS = '__outras__'
@@ -73,13 +72,19 @@ export default function CardapioPage() {
         `/publico/${encodeURIComponent(restaurantId)}/cardapio`,
         { signal },
       )
-      if (!Array.isArray(dados.categorias) || !Array.isArray(dados.produtos)) {
+      if (!cardapioValido(dados)) {
         throw new Error('O servidor retornou um cardápio inválido. Tente novamente.')
       }
+      salvarCacheCardapio(restaurantId, dados)
       return dados
     },
     enabled: Boolean(restaurantId),
-    staleTime: 60_000,
+    // Apenas cache público e temporário: nunca guarda senhas ou dados privados.
+    initialData: () => lerCacheCardapio(restaurantId)?.data,
+    initialDataUpdatedAt: () => lerCacheCardapio(restaurantId)?.atualizadoEm,
+    staleTime: VALIDADE_CACHE_CARDAPIO_MS,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
     retry: false,
   })
 
@@ -124,6 +129,8 @@ export default function CardapioPage() {
     })).filter((grupo) => grupo.produtos.length > 0)
   }, [categorias, produtosFiltrados, cardapio.data])
 
+  const nomeRestaurante = cardapio.data?.restauranteNome?.trim() ?? ''
+  const nomeEmDestaque = dividirNomeRestaurante(nomeRestaurante)
   const numeroMesa = mesaId.startsWith('mesa_') ? mesaId.slice(5) : mesaId
   const quantidade = cardapio.data?.produtos.length ?? 0
   const semResultados = cardapio.isSuccess && produtosFiltrados.length === 0
@@ -148,17 +155,32 @@ export default function CardapioPage() {
             )}
           </div>
 
-          <div className="mt-11 max-w-xl sm:mt-14">
-            <p className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.2em] text-orange-300">
-              <span className="h-px w-6 bg-orange-400" aria-hidden="true" />
-              Escolha o seu favorito
-            </p>
-            <h1 className="max-w-lg text-4xl font-extrabold leading-[1.12] tracking-tight sm:text-5xl">
-              Sabores que fazem <span className="text-orange-400">seu dia melhor.</span>
-            </h1>
-            <p className="mt-4 max-w-md text-sm leading-6 text-slate-300 sm:text-base">
-              Explore nossas opções, conheça os preços e escolha com tranquilidade.
-            </p>
+          <div className={`mt-11 grid min-w-0 gap-9 sm:mt-14 ${nomeRestaurante ? 'lg:grid-cols-2 lg:items-center lg:gap-12' : ''}`}>
+            <div className="min-w-0">
+              <p className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.2em] text-orange-300">
+                <span className="h-px w-6 bg-orange-400" aria-hidden="true" />
+                Escolha o seu favorito
+              </p>
+              <h1 className="max-w-lg text-4xl font-extrabold leading-[1.12] tracking-tight sm:text-5xl">
+                Sabores que fazem <span className="text-orange-400">seu dia melhor.</span>
+              </h1>
+              <p className="mt-4 max-w-md text-sm leading-6 text-slate-300 sm:text-base">
+                Explore nossas opções, conheça os preços e escolha com tranquilidade.
+              </p>
+            </div>
+
+            {nomeRestaurante && (
+              <div className="min-w-0 border-l-2 border-orange-400/70 pl-5 sm:pl-7 lg:border-l-0 lg:pl-0 lg:text-right" aria-label={`Restaurante ${nomeRestaurante}`}>
+                <p className="mb-3 text-xs font-extrabold uppercase tracking-[0.2em] text-orange-300">
+                  Nosso restaurante
+                </p>
+                <p className="break-words text-4xl font-extrabold leading-[1.12] tracking-tight sm:text-5xl xl:text-6xl">
+                  {nomeEmDestaque.inicio}{nomeEmDestaque.destaque && (
+                    <> <span className="text-orange-400">{nomeEmDestaque.destaque}</span></>
+                  )}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </header>
