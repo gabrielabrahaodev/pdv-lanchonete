@@ -167,6 +167,17 @@ def atualizar(restaurant_id: str, despesa_id: str, payload: DespesaUpdate) -> di
         if not snap or not snap.exists:
             raise HTTPException(404, "Despesa não encontrada")
         anterior = dict(snap.to_dict() or {})
+        if anterior.get('pedidoReposicaoId'):
+            # Origem financeira vinculada ao recebimento do estoque: não
+            # permitir alterar valor/competência/fornecedor separadamente.
+            campos_economicos = {'categoria', 'descricao', 'valor', 'data',
+                                 'fornecedor_id', 'usuario_id', 'observacoes',
+                                 'vencimento', 'forma_pagamento'}
+            alterados = payload.model_fields_set & campos_economicos
+            if alterados:
+                raise HTTPException(
+                    409, 'Despesa vinculada a reposição: os dados de compra são imutáveis. É possível marcar como paga ou reabrir.'
+                )
         dump = payload.model_dump(by_alias=True)
         reabrir = dump.pop("ativoPago", None)  # True=marca pago agora; False=reabre
         changes = {k: v for k, v in dump.items() if v is not None}
@@ -236,6 +247,8 @@ def remover(restaurant_id: str, despesa_id: str) -> None:
         if not snap or not snap.exists:
             raise HTTPException(404, "Despesa não encontrada")
         anterior = dict(snap.to_dict() or {})
+        if anterior.get('pedidoReposicaoId'):
+            raise HTTPException(409, 'Despesa vinculada a recebimento: não pode ser excluída sem desfazer o estoque')
         evento_id = f"despesa:{despesa_id}:del:{_ver(anterior)}"
         # Agregado primeiro; delete do doc por último (no reads after writes).
         agregados_service.ajustar_despesa_tx(t, restaurant_id, anterior, None, evento_id=evento_id)
