@@ -31,3 +31,11 @@ Antes de publicação:
 - Validar imagens, filtros, temas e ambos os layouts do cardápio.
 
 Referências: [[Producao-e-Estufa]] (módulo separado) e a rota `/m/:restaurantId/:mesaId`.
+
+## Identidade do restaurante no cabeçalho
+
+O endpoint público `GET /api/publico/{restaurantId}/cardapio` devolve o campo `restauranteNome` extraído do `nome` da raiz do restaurante, já lida na verificação de existência. Nenhuma leitura adicional de Firestore ou dado privado é introduzido.
+
+A página mostra o nome em letras grandes, brancas e laranja, no lado direito do cabeçalho em desktop e abaixo da chamada em celulares. O texto é dinâmico por restaurante; `Café Anis` é apenas exemplo. A última palavra aparece em laranja, sem alterar o valor original. Enquanto o backend anterior ainda não fornecer o campo, o novo bloco é omitido, preservando a compatibilidade durante o deploy.
+
+Teste com nomes de uma palavra, várias palavras e nomes longos, especialmente em larguras de 320, 390, 768, 1024 e 1440 px. A mudança envolve frontend **e backend**; o merge na master pode acionar o deploy automático do Render, portanto deve ocorrer somente após revisão e homologação.
