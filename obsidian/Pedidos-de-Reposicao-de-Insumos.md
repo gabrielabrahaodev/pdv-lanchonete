@@ -74,3 +74,10 @@ Repetições ou tentativas concorrentes de receber pedido já finalizado são re
 - [ ] Cancelar um pedido gerado; itens reaparecem na lista de sugestões.
 - [ ] Verificar usuários com papel caixa, garçom e cozinha: sem acesso administrativo à reposição.
 - [ ] Conferir isolamento multi-tenant, layouts mobile/desktop, tema claro/escuro, navegação e histórico.
+
+## Separação operacional e histórica
+A implementação atual tem três rotas: `/reposicao` (geração de solicitações e aguardando recebimento), `/reposicao/recebidos` e `/reposicao/cancelados`. Links reais preservam navegação e acesso direto. Listas novas usam `/reposicao/pedidos/pagina?status=...&limit=20&cursor=...`; o endpoint antigo sem paginação permanece compatível.
+
+Filtro de status no Firestore, ordenação por geração (`createdAt` DESC) e cursor por snapshot. Não ordena por data retroativa do recebimento: ambas as datas são exibidas para não confundir competência e auditoria. Candidatos consultam somente pedidos ainda gerados, sem scan de pedidos recebidos/cancelados. Dados de fornecedor são snapshots do pedido, sem consulta por cartão.
+
+Ver [[Reposicao-Historico-de-Recebimentos]] para índice necessário, cache e homologação. PRs #14, #16, #17 e #21 já estão incorporadas na base `d888359`; referências a limitações antigas de custo comercial e ausência de débito acima são históricas e foram superadas por #16/#17.

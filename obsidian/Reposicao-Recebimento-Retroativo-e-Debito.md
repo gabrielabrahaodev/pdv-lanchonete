@@ -41,3 +41,8 @@ Os dados de valor, competência, fornecedor e descrição de despesas geradas po
 - [ ] Tentar reabrir/repetir recebimento do mesmo pedido, inclusive após erro de rede.
 - [ ] Conferir isolamento entre restaurantes e ausência de alterações em sessões de caixa.
 - [ ] Testar no celular e desktop, especialmente datas e valores com vírgula decimal.
+
+## Consulta histórica separada
+Pedidos recebidos ficam exclusivamente em `/reposicao/recebidos`; cancelados em `/reposicao/cancelados`. A lista não consulta despesas por cartão. Ao abrir detalhes, o operador pode consultar o único débito vinculado; só então ocorre GET da despesa, com tenant/papel na chave de cache. Datas de criação, recebimento efetivo e registro são mostradas separadamente. Histórico antigo sem determinados campos mostra “Não registrado”, sem inferir valor zero.
+
+Novo recebimento também guarda nome do responsável quando disponível no perfil autenticado, sem consulta extra; UID histórico permanece como fallback. Quantidade comercial, quantidade de controle, total por linha e total da compra vêm dos snapshots existentes. Não há edição ou novo recebimento na tela histórica. A transação original de saldo/custo/despesa/evento continua preservada.

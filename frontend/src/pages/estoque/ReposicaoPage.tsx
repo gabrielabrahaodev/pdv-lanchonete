@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import { ReposicaoNavegacao } from './ReposicaoNavegacao'
 import { AlertTriangle, CheckCircle2, ClipboardList, MessageCircle, PackageCheck, XCircle } from 'lucide-react'
 import { api } from '../../lib/api'
 import { brl, dataHora } from '../../lib/format'
@@ -37,6 +38,8 @@ function converter(valor: string): number {
 export default function ReposicaoPage() {
   const { me } = useAuth()
   const qc = useQueryClient()
+  const [cursores,setCursores] = useState<(string|null)[]>([null])
+  const cursor=cursores[cursores.length-1]
   const [filtro, setFiltro] = useState<'gerar' | 'gerados'>('gerar')
   const [quantidades, setQuantidades] = useState<Record<string, string>>({})
   const [erro, setErro] = useState('')
@@ -47,15 +50,18 @@ export default function ReposicaoPage() {
   const saiu = useRef(false)
 
   const candidatos = useQuery({
-    queryKey: ['reposicao-candidatos', me?.restaurantId],
+    queryKey: ['reposicao-candidatos', me?.restaurantId, me?.papel],
+    enabled:filtro==='gerar', staleTime:30000,
     queryFn: () => api<GrupoReposicao[]>('/reposicao/candidatos'),
   })
   const pedidos = useQuery({
-    queryKey: ['reposicao-pedidos', me?.restaurantId],
-    queryFn: () => api<PedidoReposicao[]>('/reposicao/pedidos'),
+    queryKey: ['reposicao-pedidos', me?.restaurantId, me?.papel, 'gerado', cursor],
+    queryFn: () => api<{items:PedidoReposicao[];nextCursor:string|null}>(`/reposicao/pedidos/pagina?status=gerado&limit=20${cursor?'&cursor='+encodeURIComponent(cursor):''}`),
+    enabled:filtro==='gerados', staleTime:30000,
   })
   const config = useQuery({
-    queryKey: ['configuracoes'],
+    queryKey: ['configuracoes',me?.restaurantId],
+    enabled:filtro==='gerar', staleTime:120000,
     queryFn: () => api<Configuracoes>('/configuracoes'),
   })
 
@@ -101,11 +107,14 @@ export default function ReposicaoPage() {
   }, [chave])
 
   async function atualizar() {
+    setCursores([null])
     await Promise.all([
       qc.invalidateQueries({ queryKey: ['reposicao-candidatos', me?.restaurantId] }),
       qc.invalidateQueries({ queryKey: ['reposicao-pedidos', me?.restaurantId] }),
-      qc.invalidateQueries({ queryKey: ['despesas'] }),
-      qc.invalidateQueries({ queryKey: ['resumo-financeiro'] }),
+      qc.invalidateQueries({ queryKey: ['despesas',me?.restaurantId] }),
+      qc.invalidateQueries({ queryKey: ['resumo-financeiro',me?.restaurantId] })
+      ,qc.invalidateQueries({queryKey:['bi',me?.restaurantId]})
+      ,qc.invalidateQueries({queryKey:['bi-contas',me?.restaurantId]}),
       qc.invalidateQueries({ queryKey: ['movimentos'] }),
       qc.invalidateQueries({ queryKey: ['estoque'] }),
     ])
@@ -148,7 +157,7 @@ export default function ReposicaoPage() {
     const mensagem = criarMensagemReposicao(config.data?.nome ?? '', endereco, itens)
     const url = urlWhatsApp(grupo.telefone ?? '', mensagem)
     if (!url) {
-      setErro('Telefone do fornecedor inválido. Cadastre um número brasileiro com DDD no Financeiro.')
+      setErro('Telefone do fornecedor inválido. Cadastre um número brasileiro com DDD em Fornecedores.')
       return
     }
     const registro = {
@@ -169,11 +178,12 @@ export default function ReposicaoPage() {
     janela.opener = null
   }
 
-  const contagemGerados = (pedidos.data ?? []).filter(p => p.status === 'gerado').length
+  const contagemGerados = pedidos.data?.items.length ?? 0
 
   return (
     <div className="space-y-5 p-3 sm:p-6">
       <PageHeader title="Reposição de insumos" subtitle="Solicitações a fornecedores e recebimento de mercadorias" />
+      <ReposicaoNavegacao atual="gerado"/>
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filtrar reposição">
         <button type="button" role="tab" aria-selected={filtro === 'gerar'} onClick={() => setFiltro('gerar')}
           className={`min-h-11 rounded-xl px-4 py-2 text-sm font-bold ${filtro === 'gerar' ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>
@@ -181,7 +191,7 @@ export default function ReposicaoPage() {
         </button>
         <button type="button" role="tab" aria-selected={filtro === 'gerados'} onClick={() => setFiltro('gerados')}
           className={`min-h-11 rounded-xl px-4 py-2 text-sm font-bold ${filtro === 'gerados' ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>
-          Pedidos gerados {contagemGerados ? `(${contagemGerados} aguardando)` : ''}
+          Aguardando recebimento {contagemGerados ? `(${contagemGerados} nesta página)` : ''}
         </button>
       </div>
       {erro && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">{erro}</p>}
@@ -248,51 +258,11 @@ export default function ReposicaoPage() {
         <div className="space-y-4">
           {pedidos.isLoading && <LoadingScreen />}
           {pedidos.isError && <ErrorState error={pedidos.error} />}
-          {pedidos.isSuccess && pedidos.data.length === 0 && (
-            <Card className="p-8 text-center text-sm text-slate-500">Nenhum pedido de reposição registrado.</Card>
+          {pedidos.isSuccess && pedidos.data.items.length === 0 && (
+            <Card className="p-8 text-center text-sm text-slate-500">Nenhum pedido aguardando recebimento nesta página.</Card>
           )}
-          {(pedidos.data ?? []).map(pedido => (
-            <Card key={pedido.id} className="space-y-4 p-4 sm:p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-bold">{pedido.fornecedorNome}</h2>
-                  <p className="text-xs text-slate-500">{dataHora(pedido.criadoEm)} · {pedido.itens.length} insumo(s)</p>
-                  <p className="mt-1 break-words text-xs text-slate-500">Entrega: {pedido.enderecoEntrega}</p>
-                  {pedido.status === 'recebido' && (
-                    <p className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                      Recebido em {pedido.dataRecebimentoLocal ?? (pedido.dataRecebimento ? pedido.dataRecebimento.slice(0, 10) : 'data não informada')}
-                      {pedido.valorTotalRecebido != null && ` · Despesa gerada: ${brl(pedido.valorTotalRecebido)}`}
-                    </p>
-                  )}
-                </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${pedido.status === 'gerado' ? 'bg-amber-100 text-amber-800' : pedido.status === 'recebido' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}>
-                  {pedido.status === 'gerado' ? 'Aguardando recebimento' : pedido.status === 'recebido' ? 'Recebido' : 'Cancelado'}
-                </span>
-              </div>
-              <ul className="grid gap-2 text-sm sm:grid-cols-2">
-                {pedido.itens.map(item => (
-                  <li key={item.itemId} className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                    <span className="font-semibold">{item.nome}</span>
-                    <span className="ml-2 text-slate-500">{item.quantidade} {item.unidade}</span>
-                    {pedido.recebimento?.find(i => i.itemId === item.itemId) && (
-                      <p className="text-xs text-emerald-700 dark:text-emerald-400">Recebido: {pedido.recebimento.find(i => i.itemId === item.itemId)!.quantidade} · {brl(pedido.recebimento.find(i => i.itemId === item.itemId)!.custoUnitario)} / {item.unidade}</p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              {pedido.status === 'recebido' && pedido.despesaId && (
-                <Link to="/financeiro" className="action-button text-sm">Ver débito no Financeiro</Link>
-              )}
-              {pedido.status === 'gerado' && (
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => setPedidoReceber(pedido)}><PackageCheck className="h-4 w-4" /> Reabastecer estoque</Button>
-                  <Button variant="secondary" disabled={cancelar.isPending} onClick={() => window.confirm('Cancelar o pedido de reposição? O estoque não será alterado.') && cancelar.mutate(pedido.id)}>
-                    <XCircle className="h-4 w-4" /> Cancelar
-                  </Button>
-                </div>
-              )}
-            </Card>
-          ))}
+          {(pedidos.data?.items ?? []).map(pedido => <Card key={pedido.id} className="space-y-3 p-4"><div className="flex flex-wrap justify-between gap-2"><h2 className="font-bold">{pedido.fornecedorNome}</h2><span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">Aguardando recebimento</span></div><p className="text-xs text-slate-500">Gerado em {dataHora(pedido.criadoEm)} · {pedido.itens.length} insumo(s)</p><p className="text-xs text-slate-500">Entrega: {pedido.enderecoEntrega}</p><ul className="grid gap-2 text-sm sm:grid-cols-2">{pedido.itens.map(i=><li key={i.itemId} className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800"><strong>{i.nome}</strong> · {i.quantidade} {i.unidade}</li>)}</ul><div className="flex flex-wrap gap-2"><Button onClick={()=>setPedidoReceber(pedido)}><PackageCheck className="h-4 w-4"/>Receber mercadorias</Button><Button variant="secondary" disabled={cancelar.isPending} onClick={()=>window.confirm('Cancelar este pedido? O estoque não será alterado.')&&cancelar.mutate(pedido.id)}>Cancelar pedido</Button></div></Card>)}
+          <div className="flex gap-2"><Button variant="secondary" disabled={cursores.length===1} onClick={()=>setCursores(c=>c.slice(0,-1))}>Anterior</Button><Button variant="secondary" disabled={!pedidos.data?.nextCursor} onClick={()=>setCursores(c=>[...c,pedidos.data!.nextCursor])}>Próxima página</Button></div>
         </div>
       )}
 

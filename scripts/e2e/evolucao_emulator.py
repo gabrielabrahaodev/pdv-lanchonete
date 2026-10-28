@@ -180,3 +180,8 @@ finally:
     ]:
         for snap in col(kind).stream():
             snap.reference.delete()
+
+# Regressão adicional de recebimento/histórico, no mesmo emulador do CI.
+import runpy
+from pathlib import Path
+runpy.run_path(str(Path(__file__).with_name('reposicao_historico_emulator.py')))
