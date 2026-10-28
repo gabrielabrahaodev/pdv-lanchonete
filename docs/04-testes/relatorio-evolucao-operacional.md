@@ -24,7 +24,7 @@ Sem merge, deploy, migração destrutiva ou modificação de dados reais.
    sete larguras; componente e hooks do KDS com Firestore emulado real.
 7. **Documentação:** guia atual, mapa de API e notas existentes do vault atualizados;
    histórico antigo sem custo e pedidos antigos sem encerramento não são migrados.
-8. **Entrega:** três commits por camada, PR de revisão e checklist de homologação.
+8. **Entrega:** commits por camada, PR de revisão e checklist de homologação.
 
 ## Arquivos e responsabilidades
 
@@ -119,3 +119,15 @@ quitação → KDS → conferência de estufa → caixa/agregados/histórico; re
 balcão. Testar depois credenciais reais, perfis e dois restaurantes independentes.
 A PR deve permanecer em revisão até esse aceite. Nenhuma publicação faz parte desta
 entrega.
+
+
+## Ajuste visual solicitado após a revisão
+
+Estoque voltou a uma tabela compacta no desktop e lista enxuta no celular. Saldo
+baixo recebe fundo âmbar, valor em vermelho e aviso textual/ícone, também no modo
+escuro. Nome e saldo têm tamanho menor; ações de edição, movimentação, histórico e
+arquivamento permanecem acessíveis. Sem mudança nas regras do backend.
+
+Verificação visual adicional: 320/390/1024/1440 px, claro/escuro, distinção de cor
+entre saldo normal e baixo, sem overflow e abertura/fechamento da edição. Build
+com TypeScript validado. A correção integra a mesma branch/PR de evolução.

@@ -1,3 +1,11 @@
+import {
+  AlertTriangle,
+  Archive,
+  ArrowUpDown,
+  History,
+  Pencil,
+  ArchiveRestore,
+} from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
@@ -63,8 +71,80 @@ export default function EstoquePage() {
       i.nome.toLowerCase().includes(busca.toLowerCase()) &&
       (!alertas || i.quantidadeAtual <= i.minimo),
   )
+  const emAlerta = (i: InventoryItem) =>
+    i.ativo !== false && i.quantidadeAtual <= i.minimo
+  const corSaldo = (i: InventoryItem) =>
+    i.ativo === false
+      ? 'text-slate-500 dark:text-slate-400'
+      : emAlerta(i)
+        ? 'text-rose-600 dark:text-rose-300'
+        : 'text-emerald-700 dark:text-emerald-400'
+  function acoes(i: InventoryItem, texto = false) {
+    return (
+      <div className="flex flex-wrap items-center gap-1">
+        {gestao && (
+          <>
+            <Button
+              variant="ghost"
+              className="min-w-11 !px-2 !text-xs"
+              aria-label={`Editar ${i.nome}`}
+              title="Editar"
+              onClick={() => setEditar(i)}
+            >
+              <Pencil className="h-4 w-4" aria-hidden="true" />
+              {texto && 'Editar'}
+            </Button>
+            <Button
+              variant="secondary"
+              className="min-w-11 !px-2 !text-xs"
+              aria-label={`Movimentar ${i.nome}`}
+              title="Movimentar"
+              disabled={i.ativo === false}
+              onClick={() => setMovItem(i)}
+            >
+              <ArrowUpDown className="h-4 w-4" aria-hidden="true" />
+              {texto && 'Movimentar'}
+            </Button>
+          </>
+        )}
+        <Button
+          variant="ghost"
+          className="min-w-11 !px-2 !text-xs"
+          aria-label={`Histórico de ${i.nome}`}
+          title="Histórico"
+          onClick={() => setHistItem(i)}
+        >
+          <History className="h-4 w-4" aria-hidden="true" />
+          {texto && 'Histórico'}
+        </Button>
+        {gestao && (
+          <Button
+            variant="ghost"
+            className="min-w-11 !px-2 !text-xs"
+            aria-label={`${i.ativo === false ? 'Reativar' : 'Arquivar'} ${i.nome}`}
+            title={i.ativo === false ? 'Reativar' : 'Arquivar'}
+            disabled={arquivar.isPending}
+            onClick={() =>
+              window.confirm(
+                i.ativo === false
+                  ? `Reativar ${i.nome}?`
+                  : `Arquivar ${i.nome}? Receitas e histórico serão preservados.`,
+              ) && arquivar.mutate(i)
+            }
+          >
+            {i.ativo === false ? (
+              <ArchiveRestore className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Archive className="h-4 w-4" aria-hidden="true" />
+            )}
+            {texto && (i.ativo === false ? 'Reativar' : 'Arquivar')}
+          </Button>
+        )}
+      </div>
+    )
+  }
   return (
-    <div className="space-y-5 p-3 sm:p-6">
+    <div className="space-y-4 p-3 text-slate-800 sm:p-6 dark:text-slate-200">
       <PageHeader
         title="Estoque"
         subtitle="Insumos, compras e movimentações"
@@ -82,7 +162,7 @@ export default function EstoquePage() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
         />
-        <label className="flex min-h-11 items-center gap-2 text-sm">
+        <label className="flex min-h-11 items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
           <input
             type="checkbox"
             checked={alertas}
@@ -90,7 +170,7 @@ export default function EstoquePage() {
           />
           Somente alertas
         </label>
-        <label className="flex min-h-11 items-center gap-2 text-sm">
+        <label className="flex min-h-11 items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
           <input
             type="checkbox"
             checked={arquivados}
@@ -123,68 +203,115 @@ export default function EstoquePage() {
           {erro}
         </p>
       )}
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="grid content-start gap-3 sm:grid-cols-2">
-          {itens.map((i) => (
-            <Card key={i.id} className="min-w-0 space-y-3 p-4">
-              <div>
-                <h2 className="break-words text-lg font-bold">{i.nome}</h2>
-                <p className="text-sm text-slate-500">
-                  {i.ativo === false
-                    ? 'Arquivado'
-                    : i.quantidadeAtual <= i.minimo
-                      ? 'Atenção: saldo no mínimo ou abaixo'
-                      : 'Ativo'}
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_19rem]">
+        <Card className="min-w-0 overflow-hidden">
+          <div className="hidden overflow-x-auto lg:block">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                <tr>
+                  <th className="px-3 py-2.5">Insumo</th>
+                  <th className="px-3 py-2.5">Saldo</th>
+                  <th className="px-3 py-2.5">Mínimo</th>
+                  <th className="px-3 py-2.5">Custo médio</th>
+                  <th className="px-2 py-2.5">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {itens.map((i) => (
+                  <tr
+                    key={i.id}
+                    className={
+                      emAlerta(i) ? 'bg-amber-50 dark:bg-amber-500/10' : ''
+                    }
+                  >
+                    <td className="px-3 py-2">
+                      <span className="block font-semibold text-slate-800 dark:text-slate-100">{i.nome}</span>
+                      {i.ativo === false ? (
+                        <span className="text-xs text-slate-500">
+                          Arquivado
+                        </span>
+                      ) : (
+                        emAlerta(i) && (
+                          <span className="mt-0.5 flex items-center gap-1 text-xs text-amber-800 dark:text-amber-300">
+                            <AlertTriangle
+                              className="h-3.5 w-3.5"
+                              aria-hidden="true"
+                            />
+                            Saldo baixo
+                          </span>
+                        )
+                      )}
+                    </td>
+                    <td
+                      className={`whitespace-nowrap px-3 py-2 font-bold ${corSaldo(i)}`}
+                    >
+                      {i.quantidadeAtual.toLocaleString('pt-BR')} {i.unidade}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2 text-slate-500 dark:text-slate-400">
+                      {i.minimo} {i.unidade}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2">
+                      {custoUnitario(i.custoMedio)}
+                      <span className="text-xs text-slate-500">
+                        {' '}
+                        / {i.unidade}
+                      </span>
+                    </td>
+                    <td className="px-2 py-1">{acoes(i)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <ul className="divide-y divide-slate-100 lg:hidden dark:divide-slate-800">
+            {itens.map((i) => (
+              <li
+                key={i.id}
+                className={`min-w-0 border-l-4 px-3 py-2.5 ${emAlerta(i) ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'border-transparent'}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
+                      {i.nome}
+                    </h2>
+                    {i.ativo === false ? (
+                      <p className="text-xs text-slate-500">Arquivado</p>
+                    ) : (
+                      emAlerta(i) && (
+                        <p className="mt-0.5 flex items-center gap-1 text-xs text-amber-800 dark:text-amber-300">
+                          <AlertTriangle
+                            className="h-3.5 w-3.5 shrink-0"
+                            aria-hidden="true"
+                          />
+                          Saldo baixo
+                        </p>
+                      )
+                    )}
+                  </div>
+                  <p className={`shrink-0 text-sm font-bold ${corSaldo(i)}`}>
+                    {i.quantidadeAtual.toLocaleString('pt-BR')} {i.unidade}
+                  </p>
+                </div>
+                <p className="mt-1 flex flex-wrap gap-x-3 text-xs text-slate-500 dark:text-slate-400">
+                  <span>
+                    Mín.: {i.minimo} {i.unidade}
+                  </span>
+                  <span>
+                    Custo: {custoUnitario(i.custoMedio)} / {i.unidade}
+                  </span>
                 </p>
-              </div>
-              <p className="text-2xl font-bold">
-                {i.quantidadeAtual.toLocaleString('pt-BR')}{' '}
-                <span className="text-sm">{i.unidade}</span>
-              </p>
-              <p className="text-sm">
-                Mínimo: {i.minimo} {i.unidade}
-                <br />
-                Custo médio: {custoUnitario(i.custoMedio)} / {i.unidade}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {gestao && (
-                  <>
-                    <Button variant="secondary" onClick={() => setEditar(i)}>
-                      Editar
-                    </Button>
-                    <Button
-                      disabled={i.ativo === false}
-                      onClick={() => setMovItem(i)}
-                    >
-                      Movimentar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      disabled={arquivar.isPending}
-                      onClick={() =>
-                        window.confirm(
-                          i.ativo === false
-                            ? `Reativar ${i.nome}?`
-                            : `Arquivar ${i.nome}? Receitas e histórico serão preservados.`,
-                        ) && arquivar.mutate(i)
-                      }
-                    >
-                      {i.ativo === false ? 'Reativar' : 'Arquivar'}
-                    </Button>
-                  </>
-                )}
-                <Button variant="ghost" onClick={() => setHistItem(i)}>
-                  Histórico
-                </Button>
-              </div>
-            </Card>
-          ))}
+                <div className="mt-1">{acoes(i, true)}</div>
+              </li>
+            ))}
+          </ul>
           {!itens.length && (
-            <Card className="p-6">Nenhum insumo encontrado.</Card>
+            <p className="p-5 text-sm text-slate-500">
+              Nenhum insumo encontrado.
+            </p>
           )}
-        </div>
+        </Card>
         <Card className="min-w-0 p-4">
-          <h2 className="mb-3 font-bold">Últimas movimentações</h2>
+          <h2 className="mb-3 font-bold text-slate-800 dark:text-slate-100">Últimas movimentações</h2>
           {movimentos.isError ? (
             <ErrorState error={movimentos.error} />
           ) : (
