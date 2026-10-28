@@ -304,6 +304,15 @@ export default function ReposicaoPage() {
   )
 }
 
+function dataHojeLocal(): string {
+  const d = new Date()
+  // Data local do navegador, não UTC, para evitar adiantar o dia após 21h.
+  const ano = d.getFullYear()
+  const mes = String(d.getMonth() + 1).padStart(2, '0')
+  const dia = String(d.getDate()).padStart(2, '0')
+  return `${ano}-${mes}-${dia}`
+}
+
 function ReceberPedido({ pedido, onClose, onSuccess }: {
   pedido: PedidoReposicao
   onClose: () => void
@@ -315,17 +324,25 @@ function ReceberPedido({ pedido, onClose, onSuccess }: {
     }])),
   )
   const [erro, setErro] = useState('')
+  const [dataRecebimento, setDataRecebimento] = useState(dataHojeLocal)
   const entrada = pedido.itens.map(item => ({
     itemId: item.itemId,
     quantidade: converter(linhas[item.itemId]?.quantidade ?? ''),
     custoUnitario: converter(linhas[item.itemId]?.custo ?? ''),
   }))
-  const valido = entrada.every(i =>
-    Number.isFinite(i.quantidade) && i.quantidade > 0 && i.quantidade <= 1000000
-    && Number.isFinite(i.custoUnitario) && i.custoUnitario >= 0 && i.custoUnitario <= 10000000,
-  )
+  const valorTotal = entrada.reduce((s, i) =>
+    s + (Number.isFinite(i.quantidade * i.custoUnitario) ? i.quantidade * i.custoUnitario : 0), 0)
+  const valido = /^\d{4}-\d{2}-\d{2}$/.test(dataRecebimento)
+    && dataRecebimento <= dataHojeLocal()
+    && valorTotal > 0
+    && entrada.every(i =>
+      Number.isFinite(i.quantidade) && i.quantidade > 0 && i.quantidade <= 1000000
+      && Number.isFinite(i.custoUnitario) && i.custoUnitario >= 0 && i.custoUnitario <= 10000000
+    )
   const receber = useMutation({
-    mutationFn: () => api(`/reposicao/pedidos/${pedido.id}/receber`, { method: 'POST', body: { itens: entrada } }),
+    mutationFn: () => api(`/reposicao/pedidos/${pedido.id}/receber`, {
+      method: 'POST', body: { itens: entrada, dataRecebimento },
+    }),
     onSuccess,
     onError: (e) => setErro(e instanceof Error ? e.message : 'Erro ao receber insumos'),
   })
@@ -333,6 +350,10 @@ function ReceberPedido({ pedido, onClose, onSuccess }: {
     <Modal open title={`Reabastecer: ${pedido.fornecedorNome}`} onClose={onClose}>
       <div className="space-y-4">
         <p className="text-sm text-slate-500">Confira as quantidades realmente recebidas e o custo por unidade de controle. O custo médio será recalculado automaticamente.</p>
+        <Field label="Data efetiva do recebimento" hint="Pode ser retroativa. Será a data da entrada no estoque e da despesa no Financeiro.">
+          <Input type="date" value={dataRecebimento} max={dataHojeLocal()}
+            onChange={(e) => setDataRecebimento(e.target.value)} />
+        </Field>
         {pedido.itens.map(item => (
           <div key={item.itemId} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
             <p className="mb-2 font-semibold">{item.nome} <span className="text-xs font-normal text-slate-500">({item.unidade})</span></p>
@@ -350,13 +371,13 @@ function ReceberPedido({ pedido, onClose, onSuccess }: {
             </div>
           </div>
         ))}
-        <p className="text-sm font-bold">Valor total da entrada: {brl(entrada.reduce((s, i) => s + (Number.isFinite(i.quantidade * i.custoUnitario) ? i.quantidade * i.custoUnitario : 0), 0))}</p>
-        <p className="text-xs text-slate-500">Esta confirmação gera uma movimentação por insumo. Um mesmo pedido não poderá ser recebido duas vezes.</p>
+        <p className="text-sm font-bold">Total da compra: {brl(valorTotal)}</p>
+        <p className="text-xs text-slate-500">Ao confirmar, será criada uma despesa de insumos em Financeiro, com status pendente, na data escolhida. O lançamento NÃO indica pagamento realizado. O sistema registra uma entrada por insumo e não permite receber novamente o mesmo pedido.</p>
         {erro && <p role="alert" className="text-sm text-rose-600">{erro}</p>}
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="secondary" disabled={receber.isPending} onClick={onClose}>Voltar</Button>
           <Button variant="success" loading={receber.isPending} disabled={!valido}
-            onClick={() => window.confirm('Confirmar entrada no estoque e recálculo dos custos médios?') && receber.mutate()}>
+            onClick={() => window.confirm(`Confirmar entrada no estoque em ${dataRecebimento} e despesa pendente de ${brl(valorTotal)} no Financeiro?`) && receber.mutate()}>
             <PackageCheck className="h-4 w-4" /> Confirmar recebimento
           </Button>
         </div>
