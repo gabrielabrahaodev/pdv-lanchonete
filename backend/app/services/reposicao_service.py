@@ -238,7 +238,7 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
             'descricao': f"Reposição de insumos — {pedido.get('fornecedorNome', 'Fornecedor')} ({pedido_id})",
             'valor': float(total_despesa),
             'data': competencia,
-            'fornecedorId': pedido['fornecedorId'],
+            'fornecedorId': pedido['fornecedorId'], 'fornecedorNome': pedido.get('fornecedorNome'),
             'status': 'pendente',
             'observacoes': 'Despesa gerada automaticamente ao receber insumos. Marque como paga no Financeiro após efetuar o pagamento.',
         }

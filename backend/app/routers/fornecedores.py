@@ -13,13 +13,13 @@ ESCRITA = require_roles("admin", "gerente", "caixa")
 @router.get("")
 def listar(
     apenas_ativos: bool = Query(default=False),
-    restaurant_id: str = Depends(require_restaurant),
+    restaurant_id: str = Depends(ESCRITA),
 ) -> list[dict]:
     return fornecedores_service.listar(restaurant_id.restaurant_id, apenas_ativos=apenas_ativos)
 
 
 @router.get("/{fornecedor_id}")
-def obter(fornecedor_id: str, restaurant_id: str = Depends(require_restaurant)) -> dict:
+def obter(fornecedor_id: str, restaurant_id: str = Depends(ESCRITA)) -> dict:
     return fornecedores_service.obter(restaurant_id.restaurant_id, fornecedor_id)
 
 

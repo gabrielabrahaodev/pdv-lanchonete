@@ -47,3 +47,7 @@ Se receita for R$ 7.627,10 e despesas por competência R$ 2.035,00, o resultado 
 Fontes: `despesas_service.py`, `calculos.py`, `relatorios_service.py`, `agregados_service.py`, `FinanceiroPage.tsx`.
 
 Novas saídas de pedidos congelam custo unitário e agregados próprios, mantendo o CMV estável após novas compras. Histórico sem custo persistido continua estimativo. Nenhum custo histórico foi inventado. Ver [[Evolucao-Operacional]].
+
+
+## BI gerencial em revisão
+A nova central de Financeiro usa snapshots e margem coberta, com regras separadas dos relatórios legados descritos acima. Ver [[Financeiro-Arquitetura-BI]], [[Financeiro-Regras-Contabeis]] e [[Financeiro-Plano-de-Testes]]. Sem backfill de custos inventados.

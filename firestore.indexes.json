@@ -1,0 +1,20 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "items",
+      "fieldPath": "produtosVendidos",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "items",
+      "fieldPath": "variacoesVendidas",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "items",
+      "fieldPath": "comprasPorFornecedor",
+      "indexes": []
+    }
+  ]
+}

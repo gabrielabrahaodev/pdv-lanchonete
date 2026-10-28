@@ -67,7 +67,7 @@ def _montar_item(restaurant_id: str, item_id: str, payload: OrderItemAdd) -> dic
         receita = [{"itemId": produto["itemRevendaId"], "qtd": 1}]
     return {**data, "id": item_id, "precoUnitario": preco, "status": status,
             "modoEstoque": modo, "produtoNome": produto.get("nome"), "categoriaId": produto.get("categoriaId"), "metaMargem": (100 * float(produto.get("acrescimoLucroPercentual", 0)) / (100 + float(produto.get("acrescimoLucroPercentual", 0)))),
-            "consumoEstoque": calculos.agregar_consumo_receita(receita, 1)}
+            "variacaoNome": next((v.get("nome") for v in produto.get("variacoes", []) if v.get("id") == payload.variacao_id), "Padrão"), "consumoEstoque": calculos.agregar_consumo_receita(receita, 1)}
 
 
 def _total(itens: list[dict]) -> float:

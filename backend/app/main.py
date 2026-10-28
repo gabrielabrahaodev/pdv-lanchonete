@@ -22,6 +22,7 @@ if settings.sentry_dsn:  # pragma: no cover - ativo apenas em produção com DSN
 
 from app.routers import (
     auth,
+    bi,
     caixa,
     categorias,
     configuracoes,
@@ -113,6 +114,7 @@ for router in (
     sistema.router,
 ):
     app.include_router(router, prefix="/api")
+app.include_router(bi.router, prefix='/api')
 
 
 @app.api_route("/health", methods=["GET", "HEAD"], tags=["meta"])

@@ -70,6 +70,15 @@ def _aplicar_tx_multi(t, ops: list[tuple[Any, dict[str, Any]]], restaurant_id: s
     for ref, snap, inc in lidas:
         if not (snap and snap.exists):
             t.set(ref, _base_doc(restaurant_id))
+        # Mapas BI usam o snapshot já lido: evita ultrapassar 500 transforms
+        # por documento em pedidos com muitos produtos, mantendo atomicidade.
+        inc = dict(inc)
+        for caminho, valor in list(inc.items()):
+            if caminho.startswith(('produtosVendidos.', 'variacoesVendidas.')) and isinstance(valor, Increment):
+                anterior = snap.to_dict() or {}
+                for parte in caminho.split('.'):
+                    anterior = anterior.get(parte, 0) if isinstance(anterior, dict) else 0
+                inc[caminho] = anterior + valor.value
         if inc.get('biVersao') and not (snap.to_dict() or {}).get('biPrimeiraColeta'):
             inc = {**inc, 'biPrimeiraColeta': inc['biUltimaColeta']}
         t.update(ref, inc)
@@ -192,6 +201,8 @@ def ajustar_despesa_tx(
                     {
                         f"despesasPorCategoria.{cat}": Increment(sinal * valor),
                         "totalDespesas": Increment(sinal * valor),
+                        **({f"fornecedorNomes.{__import__('hashlib').sha256(str(doc['fornecedorId']).encode()).hexdigest()[:32]}": doc.get('fornecedorNome') or 'Fornecedor histórico'} if doc.get('fornecedorId') else {}),
+                        **({f"comprasPorFornecedor.{__import__('hashlib').sha256(str(doc['fornecedorId']).encode()).hexdigest()[:32]}": Increment(sinal*valor)} if cat == 'insumo' and doc.get('fornecedorId') else {}),
                         "restaurantId": restaurant_id,
                     },
                 )
