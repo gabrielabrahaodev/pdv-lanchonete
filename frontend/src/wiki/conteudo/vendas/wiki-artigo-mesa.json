@@ -1,0 +1,56 @@
+{
+  "id": "mesa",
+  "titulo": "Comanda da mesa",
+  "para": "Mostra os pedidos e itens de uma mesa.",
+  "quando": "Para adicionar consumo ou acompanhar o andamento antes de receber.",
+  "passos": [
+    "Abra a mesa no Caixa ou em Mesas.",
+    "Confira itens, quantidades e estados.",
+    "Use Adicionar itens no pedido aberto ou Novo pedido quando não existir um aberto.",
+    "Use o pagamento para receber; confirme entrega física quando disponível."
+  ],
+  "campos": [
+    {
+      "nome": "Itens, estados e valores",
+      "preenchimento": "Confira o que foi solicitado e o que já foi preparado/entregue.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Novo pedido",
+      "efeito": "Abre uma comanda quando a mesa não tem outra ativa."
+    },
+    {
+      "nome": "Adicionar itens",
+      "efeito": "Inclui consumo no pedido aberto."
+    },
+    {
+      "nome": "Pagamento",
+      "efeito": "Abre recebimento para perfil autorizado."
+    },
+    {
+      "nome": "Confirmar entrega",
+      "efeito": "Registra a saída física dos itens prontos."
+    },
+    {
+      "nome": "Atualizar lotes reservados",
+      "efeito": "Renova reserva da estufa quando o lote precisa ser substituído."
+    }
+  ],
+  "depois": "Na quitação, a mesa é liberada e sai da fila operacional; reservas sem destino confirmado vão para conferência.",
+  "atencao": [
+    "Pedido quitado não aceita novas alterações comerciais. Entrega física e pagamento são coisas diferentes."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "A mesa está livre mas havia produto reservado.",
+      "resposta": "Confira Produção e Estufa para confirmar consumo ou liberação da reserva."
+    }
+  ],
+  "relacionados": [
+    "novo-pedido",
+    "pagamento",
+    "reservas"
+  ]
+}

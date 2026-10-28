@@ -1,0 +1,64 @@
+{
+  "id": "producao",
+  "titulo": "Produção e Estufa",
+  "para": "Controla produtos preparados antes da venda, com lote, validade, reserva e saldo pronto.",
+  "quando": "Para pão, bolo, salgados e outros itens que ficam disponíveis na estufa.",
+  "passos": [
+    "Cadastre produto como Produzido antecipadamente, com ingredientes e rendimento.",
+    "Use Produzir para registrar a fornada efetivamente preparada.",
+    "Na Estufa, filtre produto, local e situação.",
+    "Confira disponível, reservado e validade antes de atender.",
+    "Registre perdas ou conversão apenas quando corresponderem ao produto físico."
+  ],
+  "campos": [
+    {
+      "nome": "Busca, situação e local",
+      "preenchimento": "Filtros dos lotes abertos.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Saldo, reservado e disponível",
+      "preenchimento": "Disponível é saldo livre, sem reservas; vencidos não ficam disponíveis para nova venda.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Validade e local",
+      "preenchimento": "Identificam condição e armazenamento do lote.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Estufa",
+      "efeito": "Mostra lotes e conferência de mesas encerradas."
+    },
+    {
+      "nome": "Produzir",
+      "efeito": "Abre registro de uma nova fornada."
+    },
+    {
+      "nome": "Histórico",
+      "efeito": "Mostra até 100 movimentos recentes, conforme perfil."
+    },
+    {
+      "nome": "Perda / Converter",
+      "efeito": "Abre operação sobre saldo livre do lote."
+    }
+  ],
+  "depois": "Produzir consome ingredientes e gera pronto, mas não gera receita de venda. A venda reserva pronto e a entrega confirma sua saída.",
+  "atencao": [
+    "Não desconte novamente os ingredientes na venda de produto antecipado.",
+    "Admin/gerente/caixa/cozinha operam produção; conferência de mesas exige admin/gerente/caixa."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Produzi 40 e vendi 25.",
+      "resposta": "A produção forma 40 unidades prontas. As 25 vendidas têm custo atribuído; as outras 15 permanecem no lote, descontadas eventuais perdas."
+    }
+  ],
+  "relacionados": [
+    "produzir",
+    "reservas",
+    "perdas-producao"
+  ]
+}

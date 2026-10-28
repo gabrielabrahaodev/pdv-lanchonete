@@ -6,6 +6,7 @@ import {
   Pencil,
   ArchiveRestore,
 } from 'lucide-react'
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -503,6 +504,7 @@ function Cadastro({
         disabled={salvar.isPending || excluir.isPending}
         className="space-y-4"
       >
+        <AjudaContextual artigo="insumos" rotulo="Como cadastrar este insumo?" />
         <Field label="Nome">
           <Input
             value={form.nome}
@@ -736,6 +738,7 @@ function Movimentar({
       onClose={() => !travado && onClose()}
     >
       <fieldset disabled={travado} className="space-y-4">
+        <AjudaContextual artigo="movimentacoes" rotulo="Como movimentar o estoque?" />
         <Field label="Operação">
           <Select value={tipo} onChange={(e) => setTipo(e.target.value)}>
             <option value="entrada">Entrada / compra</option>

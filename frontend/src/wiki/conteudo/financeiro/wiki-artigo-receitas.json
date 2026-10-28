@@ -1,0 +1,48 @@
+{
+  "id": "receitas",
+  "titulo": "Financeiro — Receitas",
+  "para": "Mostra vendas quitadas, receita reconhecida, ticket e distribuição por data e pagamento.",
+  "quando": "Para comparar faturamento e volume de pedidos.",
+  "passos": [
+    "Selecione Receitas e aplique o período.",
+    "Compare receita e quantidade de pedidos quitados.",
+    "Consulte evolução diária/mensal e formas de pagamento."
+  ],
+  "campos": [
+    {
+      "nome": "Início e fim",
+      "preenchimento": "Datas civis inclusivas, início não posterior ao fim; clique em Aplicar período.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "7 / 30 / 90 dias",
+      "preenchimento": "Atalhos para janela de consulta.",
+      "obrigatorio": "Opcional"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Receitas",
+      "efeito": "Abre gráficos e totais de vendas."
+    },
+    {
+      "nome": "Aplicar período",
+      "efeito": "Define a janela de quitação da consulta."
+    }
+  ],
+  "depois": "Ticket médio = receita ÷ pedidos quitados. Uma venda pode ter várias unidades, sem virar vários pedidos.",
+  "atencao": [
+    "Receita não é saldo bancário. Produção e entrada de estoque não são vendas. Delivery separado não é reconhecido automaticamente."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Pedido aberto conta como receita?",
+      "resposta": "Não como venda quitada neste painel."
+    }
+  ],
+  "relacionados": [
+    "pagamento",
+    "resultados",
+    "relatorios"
+  ]
+}

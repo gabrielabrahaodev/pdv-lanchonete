@@ -1,0 +1,81 @@
+{
+  "id": "insumos",
+  "titulo": "Cadastrar e editar insumos",
+  "para": "Define unidade de controle, compra habitual, referência de custo e fornecedor do insumo.",
+  "quando": "Antes de cadastrar receitas ou comprar um material novo.",
+  "passos": [
+    "Clique em Novo insumo e informe nome e unidade de controle.",
+    "Escolha fornecedor habitual ou cadastre um fornecedor no formulário.",
+    "Defina mínimo, preço de referência e saldo inicial se for um item novo.",
+    "Configure unidade habitual de compra e fator quando usar embalagem.",
+    "Salve; nas próximas compras, use Movimentar ou Reposição."
+  ],
+  "campos": [
+    {
+      "nome": "Nome",
+      "preenchimento": "Identificação do insumo.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Fornecedor habitual",
+      "preenchimento": "Fornecedor ativo; nome e telefone/WhatsApp com DDD se cadastrar um novo.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Unidade de controle / consumo",
+      "preenchimento": "Unidade usada no saldo e na receita, por exemplo g, kg, ml, l ou un.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Quantidade mínima",
+      "preenchimento": "Limite de alerta, não uma compra automática.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Preço de referência",
+      "preenchimento": "Valor por unidade de referência exibida, como R$/kg quando controla em g.",
+      "obrigatorio": "Conforme cadastro"
+    },
+    {
+      "nome": "Saldo inicial",
+      "preenchimento": "Contagem inicial na unidade de controle; não é compra nem despesa automática.",
+      "obrigatorio": "Ao cadastrar"
+    },
+    {
+      "nome": "Unidade habitual de compra",
+      "preenchimento": "Unidade compatível ou embalagem comercial.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Quantidade por unidade de compra",
+      "preenchimento": "Fator positivo, como 1000 g por pacote.",
+      "obrigatorio": "Para embalagem"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Salvar",
+      "efeito": "Grava cadastro; não cria pedido de reposição."
+    },
+    {
+      "nome": "Cadastrar fornecedor",
+      "efeito": "Cria contato disponível para vincular."
+    }
+  ],
+  "depois": "A unidade e o custo passam a orientar conversões e fichas técnicas.",
+  "atencao": [
+    "Não mude unidade de controle de um item com saldo/movimentos/receitas sem resolver vínculos; a alteração pode ser bloqueada.",
+    "Nome de pacote sozinho não informa peso: configure o fator corretamente."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Compro em kg e uso g.",
+      "resposta": "Controle em g e selecione kg na compra; a conversão entre massa é automática."
+    }
+  ],
+  "relacionados": [
+    "unidades",
+    "movimentacoes",
+    "fornecedores"
+  ]
+}

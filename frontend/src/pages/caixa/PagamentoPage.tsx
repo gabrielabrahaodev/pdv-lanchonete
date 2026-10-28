@@ -1,3 +1,4 @@
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -117,6 +118,7 @@ export default function PagamentoPage() {
         ← Voltar ao caixa
       </Link>
       <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">{balcao ? 'Pagamento — venda direta' : 'Pagamento'}</h1>
+        <AjudaContextual />
       <p className="text-sm text-slate-500">{identificacaoPedido(p)} · {dataHora(p.criadoEm)} · <Badge value={p.status} /></p>
 
       <Card className="mt-4 divide-y divide-slate-100">

@@ -1,0 +1,48 @@
+{
+  "id": "aguardando",
+  "titulo": "Aguardando recebimento",
+  "para": "Lista pedidos de reposição gerados que ainda não chegaram.",
+  "quando": "Para conferir entregas esperadas e iniciar recebimento.",
+  "passos": [
+    "Abra a aba Aguardando recebimento.",
+    "Confira fornecedor, itens, data de geração e endereço.",
+    "Use Receber mercadorias apenas depois de conferir a entrega.",
+    "Use Anterior e Próxima página para navegar pela lista."
+  ],
+  "campos": [
+    {
+      "nome": "Fornecedor, insumos, quantidade e endereço",
+      "preenchimento": "Resumo da solicitação; valores definitivos são informados ao receber.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Receber mercadorias",
+      "efeito": "Abre conferência de quantidade, unidade, total e data."
+    },
+    {
+      "nome": "Cancelar pedido",
+      "efeito": "Encerra a solicitação; não altera estoque."
+    },
+    {
+      "nome": "Anterior / Próxima página",
+      "efeito": "Consulta os pedidos daquele estado."
+    }
+  ],
+  "depois": "O recebido sai desta lista e aparece em Pedidos recebidos; o cancelado aparece no histórico correspondente.",
+  "atencao": [
+    "Se a entrega não ocorreu, não confirme recebimento só para retirar o pedido da lista."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Por que não vejo uma compra antiga aqui?",
+      "resposta": "Pedidos recebidos e cancelados ficam em telas próprias."
+    }
+  ],
+  "relacionados": [
+    "recebimento",
+    "recebidos",
+    "reposicao-cancelados"
+  ]
+}

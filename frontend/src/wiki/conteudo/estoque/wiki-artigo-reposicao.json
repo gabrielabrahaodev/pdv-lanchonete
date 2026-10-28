@@ -1,0 +1,58 @@
+{
+  "id": "reposicao",
+  "titulo": "Reposição de insumos",
+  "para": "Gera solicitações por fornecedor e acompanha mercadoria aguardada.",
+  "quando": "Ao planejar reposição de insumos com saldo baixo.",
+  "passos": [
+    "Cadastre fornecedor com WhatsApp, vincule insumos e preencha endereço do restaurante nas Configurações.",
+    "Na aba de geração, revise grupos e quantidades sugeridas.",
+    "Abra a mensagem do WhatsApp, revise e envie ao fornecedor.",
+    "Ao retornar, confirme se deseja registrar o pedido; abrir WhatsApp sozinho não comprova envio.",
+    "Acompanhe Aguardando recebimento e registre a chegada física depois."
+  ],
+  "campos": [
+    {
+      "nome": "Quantidade a solicitar",
+      "preenchimento": "Quantidade positiva por insumo; ajuste à necessidade real.",
+      "obrigatorio": "Para itens solicitados"
+    },
+    {
+      "nome": "Fornecedor e endereço de entrega",
+      "preenchimento": "Vêm dos cadastros/configurações; revise antes de enviar.",
+      "obrigatorio": "Sim para gerar"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "WhatsApp",
+      "efeito": "Abre mensagem; não envia nem registra sozinho."
+    },
+    {
+      "nome": "Registrar pedido",
+      "efeito": "Guarda a solicitação como aguardando."
+    },
+    {
+      "nome": "Não registrar",
+      "efeito": "Descarta a confirmação pendente."
+    },
+    {
+      "nome": "Pedidos recebidos / Cancelados",
+      "efeito": "Abrem históricos separados."
+    }
+  ],
+  "depois": "Gerar pedido não aumenta estoque e não gera despesa. Isso ocorre no recebimento.",
+  "atencao": [
+    "Admin/gerente utilizam Reposição. Não solicite de novo insumos já aguardados sem revisar as quantidades."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Abrir WhatsApp já enviou?",
+      "resposta": "Não. Envio e confirmação de registro são etapas diferentes."
+    }
+  ],
+  "relacionados": [
+    "aguardando",
+    "recebimento",
+    "fornecedores"
+  ]
+}

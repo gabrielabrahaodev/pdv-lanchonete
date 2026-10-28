@@ -1,0 +1,63 @@
+{
+  "id": "recebidos",
+  "titulo": "Pedidos recebidos",
+  "para": "Consulta o histórico de reposições recebidas sem alterar saldo.",
+  "quando": "Para conferir compra, data, responsável e débito associado.",
+  "passos": [
+    "Abra Pedidos recebidos em Reposição.",
+    "Navegue por páginas e abra Detalhes do pedido.",
+    "Compare solicitado, recebido comercial e convertido para estoque.",
+    "Se houver despesa, use Consultar débito vinculado; para pagar, abra Financeiro."
+  ],
+  "campos": [
+    {
+      "nome": "Gerado em",
+      "preenchimento": "Quando a solicitação foi criada.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Recebimento efetivo",
+      "preenchimento": "Dia real informado, inclusive retroativo.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Operação registrada em",
+      "preenchimento": "Momento em que o recebimento foi gravado.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Total, responsável e débito",
+      "preenchimento": "Snapshots do recebimento; ausências históricas são indicadas.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Detalhes do pedido",
+      "efeito": "Mostra linhas e valores registrados."
+    },
+    {
+      "nome": "Consultar débito vinculado",
+      "efeito": "Consulta a despesa apenas quando solicitado."
+    },
+    {
+      "nome": "Anterior / Próxima página",
+      "efeito": "Navega no histórico."
+    }
+  ],
+  "depois": "A consulta não recebe novamente, não recalcula saldo e não paga a despesa.",
+  "atencao": [
+    "Não registrado não significa zero. Históricos antigos podem não ter débito ou dados comerciais."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "A data da operação difere da chegada.",
+      "resposta": "É normal em lançamento retroativo: são datas com finalidades diferentes."
+    }
+  ],
+  "relacionados": [
+    "recebimento",
+    "despesas",
+    "reposicao-cancelados"
+  ]
+}

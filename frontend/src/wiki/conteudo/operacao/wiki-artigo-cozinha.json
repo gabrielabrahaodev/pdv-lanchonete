@@ -1,0 +1,45 @@
+{
+  "id": "cozinha",
+  "titulo": "Cozinha — KDS",
+  "para": "Organiza itens que precisam de preparo e entrega.",
+  "quando": "Durante a preparação de comandas de mesas e balcão.",
+  "passos": [
+    "Confira o cartão, identificação e observações do pedido.",
+    "Avance o preparo pelas ações disponíveis, conferindo o conjunto de itens.",
+    "Marque pronto e entregue conforme o estágio real.",
+    "Imprima o que falta preparar se houver impressora disponível."
+  ],
+  "campos": [
+    {
+      "nome": "Itens, estado, tempo e observação",
+      "preenchimento": "Use para priorizar e preparar corretamente.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Iniciar preparo / Pronto / Entregar",
+      "efeito": "Avança somente transições permitidas; ações do cartão são agrupadas."
+    },
+    {
+      "nome": "Imprimir",
+      "efeito": "Imprime o que falta preparar; não confirma entrega."
+    }
+  ],
+  "depois": "Iniciar preparo de sob pedido pode baixar ingredientes, conforme configuração. Antecipado entrega pronto sem repetir o consumo.",
+  "atencao": [
+    "Mesa quitada sai da fila operacional. Balcão pago pode continuar no KDS até terminar preparo/entrega.",
+    "Somente admin/gerente/caixa/cozinha alteram estados de cozinha."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Produto sem preparo não aparece.",
+      "resposta": "Ele pode nascer entregue; confira o cadastro e o modo de estoque."
+    }
+  ],
+  "relacionados": [
+    "novo-pedido",
+    "producao",
+    "pagamento"
+  ]
+}

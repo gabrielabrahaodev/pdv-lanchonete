@@ -1,3 +1,4 @@
+import { AjudaContextual } from '../wiki/componentes/AjudaContextual'
 import { useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -117,7 +118,8 @@ function PrimeiroRestauranteForm() {
         }}
         className="space-y-3"
       >
-        <Field label="Nome do estabelecimento">
+        <AjudaContextual artigo="onboarding" />
+      <Field label="Nome do estabelecimento">
           <Input
             value={nome}
             onChange={(e) => setNome(e.target.value)}

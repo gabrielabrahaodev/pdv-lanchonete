@@ -1,0 +1,51 @@
+{
+  "id": "relatorios",
+  "titulo": "Relatórios",
+  "para": "Consulta vendas quitadas do período, formas de pagamento e produtos/categorias mais vendidos.",
+  "quando": "Para acompanhar movimento e exportar um resumo.",
+  "passos": [
+    "Escolha um dos períodos disponíveis.",
+    "Confira pedidos pagos, faturamento e ticket médio.",
+    "Consulte vendas por hora e rankings.",
+    "Exporte CSV ou abra Fechamento de caixa."
+  ],
+  "campos": [
+    {
+      "nome": "Período",
+      "preenchimento": "Hoje, ontem ou demais atalhos exibidos; datas usam o fuso configurado.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Pedidos pagos e faturamento",
+      "preenchimento": "Vendas quitadas na janela; não inclui todo pedido aberto.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "CSV",
+      "efeito": "Baixa o resumo mostrado em formato de planilha."
+    },
+    {
+      "nome": "Fechamento de caixa",
+      "efeito": "Abre sessões, entradas, retiradas e fechamento."
+    }
+  ],
+  "depois": "A consulta não edita vendas. Ticket é faturamento dividido pela quantidade de pedidos pagos.",
+  "atencao": [
+    "Este módulo preserva relatórios legados. Na resposta legada, resultadoGerencial é faturamento menos despesas por competência; CMV estimado é informativo e pode usar referência atual.",
+    "O menu Financeiro usa resultado BI = receita − custo direto − operacionais com cobertura completa. Não compare os dois como se fossem a mesma medida.",
+    "Relatório e recibo não substituem nota fiscal."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Venda aberta não apareceu.",
+      "resposta": "A base aqui são pedidos pagos. Confira quitação, data de fechamento e período."
+    }
+  ],
+  "relacionados": [
+    "resultados",
+    "receitas",
+    "fechamento-caixa"
+  ]
+}

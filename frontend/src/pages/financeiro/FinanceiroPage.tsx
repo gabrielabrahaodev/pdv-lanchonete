@@ -1,3 +1,4 @@
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
@@ -288,6 +289,7 @@ export function DespesasCard({periodo}: {periodo?: {inicio:string;fim:string}}) 
 
       <div className="flex flex-wrap gap-2 p-3"><Button variant="secondary" disabled={cursores.length===1} onClick={()=>setCursores(c=>c.slice(0,-1))}>Anterior</Button><Button variant="secondary" disabled={!despesas.data?.nextCursor} onClick={()=>setCursores(c=>[...c,despesas.data!.nextCursor])}>Próxima página</Button><span className="text-xs text-slate-500">CSV exporta somente esta página. Páginas filtradas podem ficar vazias.</span></div>
       <Modal title={editandoId ? 'Editar despesa' : 'Nova despesa'} open={aberto} onClose={() => setAberto(false)}>
+        <AjudaContextual artigo="despesas" ancora="campos" rotulo="Como preencher esta despesa?" />
         <div className="space-y-3">
           <Field label="Categoria">
             <Select value={form.categoria} onChange={(e) => setForm({ ...form, categoria: e.target.value as DespesaCategoria })}>

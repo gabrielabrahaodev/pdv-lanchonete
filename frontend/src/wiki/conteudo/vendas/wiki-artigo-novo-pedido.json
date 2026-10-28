@@ -1,0 +1,68 @@
+{
+  "id": "novo-pedido",
+  "titulo": "Novo pedido e adicionar itens",
+  "para": "Monta o consumo de uma mesa e envia os itens.",
+  "quando": "Ao atender uma mesa ou acrescentar novos produtos a um pedido aberto.",
+  "passos": [
+    "Busque o produto e filtre categoria se necessário.",
+    "Use Adicionar ou Personalizar; escolha padrão/variação e observação.",
+    "Ajuste quantidades na comanda. No celular, toque na barra inferior para abri-la.",
+    "Revise valor e itens e confirme o envio."
+  ],
+  "campos": [
+    {
+      "nome": "Produto e categoria",
+      "preenchimento": "Selecione apenas produtos disponíveis.",
+      "obrigatorio": "Produto: sim; filtro: não"
+    },
+    {
+      "nome": "Quantidade",
+      "preenchimento": "Maior que zero; no modal de personalização até 30 por seleção.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Variação",
+      "preenchimento": "Escolha uma opção ou Padrão; o adicional soma ao preço base.",
+      "obrigatorio": "Quando houver"
+    },
+    {
+      "nome": "Observação",
+      "preenchimento": "Até 200 caracteres; não altera a ficha técnica automaticamente.",
+      "obrigatorio": "Não"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Adicionar",
+      "efeito": "Inclui uma unidade ou abre opções."
+    },
+    {
+      "nome": "Personalizar",
+      "efeito": "Define opções e observação daquela linha."
+    },
+    {
+      "nome": "+ / −",
+      "efeito": "Ajusta quantidade ou remove a linha do carrinho."
+    },
+    {
+      "nome": "Enviar / Confirmar",
+      "efeito": "Registra itens no pedido e valida preços e disponibilidade."
+    }
+  ],
+  "depois": "Produtos sob pedido podem ir à cozinha; itens sem preparo podem nascer entregues. Antecipados reservam lotes.",
+  "atencao": [
+    "Apenas pedidos abertos aceitam adicionar itens. Em erro de envio, confira a mensagem e use a tentativa prevista na tela.",
+    "Observação sem cebola não desconta automaticamente ingredientes da receita."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Mesmo produto aparece em duas linhas.",
+      "resposta": "Variações e observações diferentes ficam em linhas separadas."
+    }
+  ],
+  "relacionados": [
+    "mesa",
+    "pagamento",
+    "cozinha"
+  ]
+}

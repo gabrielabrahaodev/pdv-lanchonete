@@ -11,7 +11,12 @@
     "test:seguranca": "tsc src/lib/impressora.ts src/lib/firestoreData.ts --outDir .test-build --module esnext --target es2020 --skipLibCheck && node --test tests/seguranca.test.mjs",
     "test:unidades": "tsc src/lib/precificacao.ts src/lib/unidades.ts src/lib/custosInsumos.ts --outDir .test-build --module esnext --target es2020 --skipLibCheck && node --test tests/unidades.test.mjs",
     "test:cardapio": "tsc src/lib/cardapioCache.ts src/lib/temaPublico.ts --outDir .test-build --module esnext --target es2020 --skipLibCheck && node --test tests/cardapio-cache.test.mjs",
-    "test:reposicao": "tsc src/lib/reposicaoMensagem.ts --outDir .test-build --module esnext --target es2020 --skipLibCheck && node --test tests/reposicao.test.mjs"
+    "test:reposicao": "tsc src/lib/reposicaoMensagem.ts --outDir .test-build --module esnext --target es2020 --skipLibCheck && node --test tests/reposicao.test.mjs",
+    "wiki:indice": "node scripts/wiki-indice.mjs",
+    "test:wiki": "node scripts/wiki-indice.mjs --check && tsc src/wiki/busca/busca.ts src/wiki/navegacao/contexto.ts --outDir .test-build --module esnext --target es2020 --resolveJsonModule --allowSyntheticDefaultImports --moduleResolution bundler --skipLibCheck && node --experimental-json-modules --test tests/wiki.test.mjs",
+    "test:wiki:bundle": "node scripts/wiki-bundle.mjs",
+    "test:wiki:ui": "node tests/wiki-ui.cjs",
+    "test:wiki:pwa": "node tests/wiki-pwa.cjs"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

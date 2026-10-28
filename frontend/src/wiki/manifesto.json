@@ -1,0 +1,1659 @@
+{
+  "categorias": {
+    "inicio": "Primeiros passos",
+    "vendas": "Caixa e Vendas",
+    "produtos": "Produtos e Precificação",
+    "estoque": "Estoque e Compras",
+    "operacao": "Produção e Operação",
+    "financeiro": "Financeiro",
+    "relatorios": "Relatórios",
+    "administracao": "Administração"
+  },
+  "artigos": [
+    {
+      "id": "primeiros-passos",
+      "titulo": "Conhecendo o NexoComanda",
+      "categoria": "inicio",
+      "componentes": [
+        "frontend/src/AppAutenticado.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/01 - Vis├úo do Produto.md",
+        "obsidian/04 - Matriz de Permiss├Áes.md"
+      ],
+      "palavrasChave": [
+        "como navegar",
+        "primeira venda",
+        "comanda",
+        "treinamento"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "acesso",
+        "venda-direta",
+        "perfis",
+        "pwa"
+      ]
+    },
+    {
+      "id": "acesso",
+      "titulo": "Acessar o sistema",
+      "categoria": "inicio",
+      "componentes": [
+        "frontend/src/pages/LoginPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Onboarding e Convites.md",
+        "obsidian/Regras de Neg├│cio/Usu├írios e Configura├º├Áes.md"
+      ],
+      "palavrasChave": [
+        "login",
+        "senha",
+        "entrar",
+        "recuperar acesso"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "onboarding",
+        "minha-conta",
+        "perfis"
+      ]
+    },
+    {
+      "id": "perfis",
+      "titulo": "Perfis de usuário",
+      "categoria": "administracao",
+      "componentes": [
+        "frontend/src/pages/configuracoes/ConfiguracoesPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/04 - Matriz de Permiss├Áes.md",
+        "obsidian/Regras de Neg├│cio/Acesso, Tenancy e Pap├®is.md"
+      ],
+      "palavrasChave": [
+        "permissao",
+        "acesso negado",
+        "403",
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "usuarios",
+        "minha-conta",
+        "primeiros-passos"
+      ]
+    },
+    {
+      "id": "pwa",
+      "titulo": "Instalar o NexoComanda",
+      "categoria": "inicio",
+      "componentes": [
+        "frontend/src/components/AtualizacaoPwa.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Usu├írios e Configura├º├Áes.md",
+        "obsidian/02 - Arquitetura.md"
+      ],
+      "palavrasChave": [
+        "instalar",
+        "aplicativo",
+        "pwa",
+        "offline",
+        "atualizacao"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "acesso",
+        "primeiros-passos"
+      ]
+    },
+    {
+      "id": "onboarding",
+      "titulo": "Criar restaurante por convite",
+      "categoria": "administracao",
+      "componentes": [
+        "frontend/src/pages/SelectRestaurantPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Onboarding e Convites.md"
+      ],
+      "palavrasChave": [
+        "convite",
+        "novo restaurante",
+        "estabelecimento"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "acesso",
+        "configuracoes",
+        "plataforma"
+      ]
+    },
+    {
+      "id": "plataforma",
+      "titulo": "Plataforma",
+      "categoria": "administracao",
+      "componentes": [
+        "frontend/src/pages/plataforma/PlataformaPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Plataforma e Administra├º├úo Global.md"
+      ],
+      "palavrasChave": [
+        "plataforma",
+        "provisionamento"
+      ],
+      "perfis": [
+        "owner"
+      ],
+      "relacionados": [
+        "onboarding",
+        "perfis"
+      ]
+    },
+    {
+      "id": "caixa",
+      "titulo": "Caixa",
+      "categoria": "vendas",
+      "componentes": [
+        "frontend/src/pages/caixa/CaixaOverviewPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Pagamentos e Caixa.md",
+        "obsidian/Venda-de-Balcao.md"
+      ],
+      "palavrasChave": [
+        "como fazer uma venda",
+        "abrir caixa",
+        "fundo de troco",
+        "balcao"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "venda-direta",
+        "mesas",
+        "fechamento-caixa"
+      ]
+    },
+    {
+      "id": "venda-direta",
+      "titulo": "Nova venda direta",
+      "categoria": "vendas",
+      "componentes": [
+        "frontend/src/pages/caixa/NovoPedidoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Venda-de-Balcao.md",
+        "obsidian/Evolucao-Operacional.md"
+      ],
+      "palavrasChave": [
+        "balcao",
+        "venda sem mesa",
+        "vender direto",
+        "como fazer uma venda"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "novo-pedido",
+        "pagamento",
+        "producao"
+      ]
+    },
+    {
+      "id": "mesas",
+      "titulo": "Mesas",
+      "categoria": "vendas",
+      "componentes": [
+        "frontend/src/pages/mesas/MesasPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Mesas, Pedidos e Cozinha.md",
+        "obsidian/Regras de Neg├│cio/Card├ípio Digital, QR e Imagens.md"
+      ],
+      "palavrasChave": [
+        "mesa livre",
+        "mesa ocupada",
+        "qr code",
+        "numero"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "mesa",
+        "novo-pedido",
+        "cardapio"
+      ]
+    },
+    {
+      "id": "mesa",
+      "titulo": "Comanda da mesa",
+      "categoria": "vendas",
+      "componentes": [
+        "frontend/src/pages/caixa/MesaDetailPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Mesas, Pedidos e Cozinha.md",
+        "obsidian/Evolucao-Operacional.md"
+      ],
+      "palavrasChave": [
+        "comanda",
+        "adicionar itens",
+        "confirmar entrega"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "novo-pedido",
+        "pagamento",
+        "reservas"
+      ]
+    },
+    {
+      "id": "novo-pedido",
+      "titulo": "Novo pedido e adicionar itens",
+      "categoria": "vendas",
+      "componentes": [
+        "frontend/src/pages/caixa/NovoPedidoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Mesas, Pedidos e Cozinha.md",
+        "obsidian/Regras de Neg├│cio/Estoque e Baixa Autom├ítica.md"
+      ],
+      "palavrasChave": [
+        "criar comanda",
+        "fazer pedido",
+        "personalizar",
+        "observacao",
+        "variacao"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "mesa",
+        "pagamento",
+        "cozinha"
+      ]
+    },
+    {
+      "id": "pagamento",
+      "titulo": "Pagamento",
+      "categoria": "vendas",
+      "componentes": [
+        "frontend/src/pages/caixa/PagamentoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Pagamentos e Caixa.md",
+        "obsidian/Venda-de-Balcao.md",
+        "obsidian/Evolucao-Operacional.md"
+      ],
+      "palavrasChave": [
+        "pagar",
+        "troco",
+        "pix",
+        "credito",
+        "debito",
+        "recibo"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "fechamento-caixa",
+        "reservas",
+        "cancelamentos"
+      ]
+    },
+    {
+      "id": "cancelamentos",
+      "titulo": "Cancelamentos e remoção de itens",
+      "categoria": "vendas",
+      "componentes": [
+        "frontend/src/pages/caixa/PagamentoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Mesas, Pedidos e Cozinha.md",
+        "obsidian/Evolucao-Operacional.md"
+      ],
+      "palavrasChave": [
+        "cancelar venda",
+        "estorno",
+        "remover item"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "novo-pedido",
+        "pagamento",
+        "movimentacoes"
+      ]
+    },
+    {
+      "id": "fechamento-caixa",
+      "titulo": "Fechamento de caixa",
+      "categoria": "relatorios",
+      "componentes": [
+        "frontend/src/pages/relatorios/FechamentoCaixaPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Pagamentos e Caixa.md"
+      ],
+      "palavrasChave": [
+        "como fechar o caixa",
+        "sangria",
+        "suprimento",
+        "conferencia"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "caixa",
+        "pagamento",
+        "despesas"
+      ]
+    },
+    {
+      "id": "produtos",
+      "titulo": "Produtos",
+      "categoria": "produtos",
+      "componentes": [
+        "frontend/src/pages/produtos/ProdutosPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Produtos e Categorias.md"
+      ],
+      "palavrasChave": [
+        "alterar preco",
+        "catalogo",
+        "ativar produto"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "produto-formulario",
+        "categorias",
+        "precificacao"
+      ]
+    },
+    {
+      "id": "produto-formulario",
+      "titulo": "Novo produto / Editar produto",
+      "categoria": "produtos",
+      "componentes": [
+        "frontend/src/pages/produtos/ProdutoFormPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Produtos e Categorias.md",
+        "obsidian/Precificacao-de-produtos.md",
+        "obsidian/Producao-e-Estufa.md",
+        "obsidian/Custos-de-Insumos-Unidade-Comercial.md"
+      ],
+      "palavrasChave": [
+        "cadastro produto",
+        "editar produto",
+        "ingredientes",
+        "receita",
+        "ficha tecnica",
+        "variacoes"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "precificacao",
+        "unidades",
+        "producao"
+      ]
+    },
+    {
+      "id": "precificacao",
+      "titulo": "Precificação",
+      "categoria": "produtos",
+      "componentes": [
+        "frontend/src/pages/produtos/ProdutoFormPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Precificacao-de-produtos.md",
+        "obsidian/Custos-de-Insumos-Unidade-Comercial.md",
+        "obsidian/Financeiro-Custos-Teoricos-e-Reais.md"
+      ],
+      "palavrasChave": [
+        "margem",
+        "markup",
+        "preco sugerido",
+        "custo por grama",
+        "custo por quilo",
+        "como alterar um preco"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "unidades",
+        "insumos",
+        "lucratividade"
+      ]
+    },
+    {
+      "id": "categorias",
+      "titulo": "Categorias",
+      "categoria": "produtos",
+      "componentes": [
+        "frontend/src/pages/produtos/CategoriasPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Produtos e Categorias.md"
+      ],
+      "palavrasChave": [
+        "nova categoria",
+        "icone",
+        "ordem"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "produtos",
+        "produto-formulario",
+        "cardapio"
+      ]
+    },
+    {
+      "id": "estoque",
+      "titulo": "Estoque",
+      "categoria": "estoque",
+      "componentes": [
+        "frontend/src/pages/estoque/EstoquePage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Estoque e Baixa Autom├ítica.md",
+        "obsidian/Custos-de-Insumos-Unidade-Comercial.md"
+      ],
+      "palavrasChave": [
+        "insumo",
+        "saldo",
+        "alerta estoque",
+        "minimo"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "insumos",
+        "movimentacoes",
+        "reposicao",
+        "unidades"
+      ]
+    },
+    {
+      "id": "insumos",
+      "titulo": "Cadastrar e editar insumos",
+      "categoria": "estoque",
+      "componentes": [
+        "frontend/src/pages/estoque/EstoquePage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Custos-de-Insumos-Unidade-Comercial.md",
+        "obsidian/Regras de Neg├│cio/Estoque e Baixa Autom├ítica.md"
+      ],
+      "palavrasChave": [
+        "novo insumo",
+        "cadastrar insumo",
+        "saldo inicial",
+        "fornecedor habitual"
+      ],
+      "perfis": [
+        "admin",
+        "gerente"
+      ],
+      "relacionados": [
+        "unidades",
+        "movimentacoes",
+        "fornecedores"
+      ]
+    },
+    {
+      "id": "unidades",
+      "titulo": "Unidades e custo médio",
+      "categoria": "estoque",
+      "componentes": [
+        "frontend/src/pages/estoque/EstoquePage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Custos-de-Insumos-Unidade-Comercial.md"
+      ],
+      "palavrasChave": [
+        "grama",
+        "quilo",
+        "quilograma",
+        "litro",
+        "pacote",
+        "embalagem",
+        "custo medio",
+        "custo por grama",
+        "custo por quilo"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "precificacao",
+        "recebimento",
+        "movimentacoes"
+      ]
+    },
+    {
+      "id": "movimentacoes",
+      "titulo": "Movimentar estoque e registrar compra",
+      "categoria": "estoque",
+      "componentes": [
+        "frontend/src/pages/estoque/EstoquePage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Custos-de-Insumos-Unidade-Comercial.md",
+        "obsidian/Regras de Neg├│cio/Estoque e Baixa Autom├ítica.md"
+      ],
+      "palavrasChave": [
+        "entrada",
+        "saida",
+        "ajuste",
+        "corrigir saldo",
+        "compra avulsa",
+        "movimentar estoque"
+      ],
+      "perfis": [
+        "admin",
+        "gerente"
+      ],
+      "relacionados": [
+        "estoque",
+        "unidades",
+        "recebimento"
+      ]
+    },
+    {
+      "id": "reposicao",
+      "titulo": "Reposição de insumos",
+      "categoria": "estoque",
+      "componentes": [
+        "frontend/src/pages/estoque/ReposicaoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Pedidos-de-Reposicao-de-Insumos.md",
+        "obsidian/Reposicao-Historico-de-Recebimentos.md"
+      ],
+      "palavrasChave": [
+        "gerar pedido",
+        "comprar",
+        "solicitar fornecedor",
+        "reposicao"
+      ],
+      "perfis": [
+        "admin",
+        "gerente"
+      ],
+      "relacionados": [
+        "aguardando",
+        "recebimento",
+        "fornecedores"
+      ]
+    },
+    {
+      "id": "aguardando",
+      "titulo": "Aguardando recebimento",
+      "categoria": "estoque",
+      "componentes": [
+        "frontend/src/pages/estoque/ReposicaoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Reposicao-Historico-de-Recebimentos.md",
+        "obsidian/Reposicao-Recebimento-Retroativo-e-Debito.md"
+      ],
+      "palavrasChave": [
+        "pedidos gerados",
+        "aguardando mercadoria"
+      ],
+      "perfis": [
+        "admin",
+        "gerente"
+      ],
+      "relacionados": [
+        "recebimento",
+        "recebidos",
+        "reposicao-cancelados"
+      ]
+    },
+    {
+      "id": "recebimento",
+      "titulo": "Receber mercadorias e compra retroativa",
+      "categoria": "estoque",
+      "componentes": [
+        "frontend/src/pages/estoque/ReposicaoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Reposicao-Recebimento-Retroativo-e-Debito.md",
+        "obsidian/Custos-de-Insumos-Unidade-Comercial.md"
+      ],
+      "palavrasChave": [
+        "como receber uma compra",
+        "receber mercadoria",
+        "retroativo",
+        "data efetiva",
+        "valor total compra"
+      ],
+      "perfis": [
+        "admin",
+        "gerente"
+      ],
+      "relacionados": [
+        "recebidos",
+        "despesas",
+        "unidades"
+      ]
+    },
+    {
+      "id": "recebidos",
+      "titulo": "Pedidos recebidos",
+      "categoria": "estoque",
+      "componentes": [
+        "frontend/src/pages/estoque/ReposicaoHistoricoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Reposicao-Historico-de-Recebimentos.md",
+        "obsidian/Reposicao-Recebimento-Retroativo-e-Debito.md"
+      ],
+      "palavrasChave": [
+        "historico compras",
+        "pedidos recebidos",
+        "debito vinculado"
+      ],
+      "perfis": [
+        "admin",
+        "gerente"
+      ],
+      "relacionados": [
+        "recebimento",
+        "despesas",
+        "reposicao-cancelados"
+      ]
+    },
+    {
+      "id": "reposicao-cancelados",
+      "titulo": "Pedidos cancelados",
+      "categoria": "estoque",
+      "componentes": [
+        "frontend/src/pages/estoque/ReposicaoHistoricoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Reposicao-Historico-de-Recebimentos.md"
+      ],
+      "palavrasChave": [
+        "compras canceladas",
+        "cancelar reposicao"
+      ],
+      "perfis": [
+        "admin",
+        "gerente"
+      ],
+      "relacionados": [
+        "reposicao",
+        "aguardando",
+        "recebidos"
+      ]
+    },
+    {
+      "id": "fornecedores",
+      "titulo": "Fornecedores",
+      "categoria": "estoque",
+      "componentes": [
+        "frontend/src/pages/fornecedores/FornecedoresPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Fornecedores-Gestao-e-CRUD.md",
+        "obsidian/Pedidos-de-Reposicao-de-Insumos.md"
+      ],
+      "palavrasChave": [
+        "cadastrar fornecedor",
+        "contato",
+        "whatsapp",
+        "cnpj"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "insumos",
+        "reposicao",
+        "despesas"
+      ]
+    },
+    {
+      "id": "producao",
+      "titulo": "Produção e Estufa",
+      "categoria": "operacao",
+      "componentes": [
+        "frontend/src/pages/producao/ProducaoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Producao-e-Estufa.md",
+        "obsidian/Evolucao-Operacional.md",
+        "obsidian/Financeiro-Custos-Teoricos-e-Reais.md"
+      ],
+      "palavrasChave": [
+        "estufa",
+        "paes",
+        "bolos",
+        "produto pronto",
+        "fornada"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "produzir",
+        "reservas",
+        "perdas-producao"
+      ]
+    },
+    {
+      "id": "produzir",
+      "titulo": "Produzir em lotes",
+      "categoria": "operacao",
+      "componentes": [
+        "frontend/src/pages/producao/ProducaoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Producao-e-Estufa.md",
+        "obsidian/Financeiro-Custos-Teoricos-e-Reais.md"
+      ],
+      "palavrasChave": [
+        "registrar producao",
+        "rendimento",
+        "lote"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "cozinha"
+      ],
+      "relacionados": [
+        "producao",
+        "precificacao",
+        "perdas-producao"
+      ]
+    },
+    {
+      "id": "reservas",
+      "titulo": "Reservas e entrega da estufa",
+      "categoria": "operacao",
+      "componentes": [
+        "frontend/src/pages/producao/ProducaoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Producao-e-Estufa.md",
+        "obsidian/Evolucao-Operacional.md"
+      ],
+      "palavrasChave": [
+        "fefo",
+        "reservado",
+        "entregar",
+        "conferencia",
+        "liberar reserva"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "mesa",
+        "producao",
+        "pagamento"
+      ]
+    },
+    {
+      "id": "perdas-producao",
+      "titulo": "Perdas e conversão de produtos prontos",
+      "categoria": "operacao",
+      "componentes": [
+        "frontend/src/pages/producao/ProducaoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Producao-e-Estufa.md",
+        "obsidian/Evolucao-Operacional.md"
+      ],
+      "palavrasChave": [
+        "como registrar uma perda de producao",
+        "descarte",
+        "conversao",
+        "vencido"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "cozinha"
+      ],
+      "relacionados": [
+        "reservas",
+        "producao",
+        "producao-historico"
+      ]
+    },
+    {
+      "id": "producao-historico",
+      "titulo": "Histórico de produção",
+      "categoria": "operacao",
+      "componentes": [
+        "frontend/src/pages/producao/ProducaoPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Producao-e-Estufa.md"
+      ],
+      "palavrasChave": [
+        "movimentacoes producao",
+        "auditoria estufa"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "cozinha"
+      ],
+      "relacionados": [
+        "producao",
+        "reservas",
+        "perdas-producao"
+      ]
+    },
+    {
+      "id": "cozinha",
+      "titulo": "Cozinha — KDS",
+      "categoria": "operacao",
+      "componentes": [
+        "frontend/src/pages/cozinha/CozinhaPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Mesas, Pedidos e Cozinha.md",
+        "obsidian/Evolucao-Operacional.md"
+      ],
+      "palavrasChave": [
+        "kds",
+        "preparar",
+        "cozinhar",
+        "fila cozinha"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "novo-pedido",
+        "producao",
+        "pagamento"
+      ]
+    },
+    {
+      "id": "delivery",
+      "titulo": "Delivery",
+      "categoria": "operacao",
+      "componentes": [
+        "frontend/src/pages/delivery/DeliveryPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Delivery.md"
+      ],
+      "palavrasChave": [
+        "entrega",
+        "pedido delivery",
+        "motoboy",
+        "cliente",
+        "ifood"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "caixa",
+        "pagamento",
+        "estoque"
+      ]
+    },
+    {
+      "id": "financeiro",
+      "titulo": "Financeiro — Visão geral",
+      "categoria": "financeiro",
+      "componentes": [
+        "frontend/src/pages/financeiro/FinanceiroBI.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Financeiro-Regras-Contabeis.md",
+        "obsidian/Financeiro-Navegacao-e-Indicadores.md",
+        "obsidian/Financeiro-Custos-Teoricos-e-Reais.md"
+      ],
+      "palavrasChave": [
+        "visao geral",
+        "financeiro",
+        "painel",
+        "receita reconhecida"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "resultados",
+        "lucratividade",
+        "contas-pagar"
+      ]
+    },
+    {
+      "id": "resultados",
+      "titulo": "Financeiro — Resultados",
+      "categoria": "financeiro",
+      "componentes": [
+        "frontend/src/pages/financeiro/FinanceiroBI.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Financeiro-Regras-Contabeis.md",
+        "obsidian/Financeiro-Navegacao-e-Indicadores.md",
+        "obsidian/Financeiro-Custos-Teoricos-e-Reais.md",
+        "obsidian/Financeiro-Agregados-por-Produto.md"
+      ],
+      "palavrasChave": [
+        "resultado gerencial",
+        "cmv",
+        "lucro bruto",
+        "demonstrativo",
+        "indicadores",
+        "formula",
+        "lucro indisponivel"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "financeiro",
+        "lucratividade",
+        "relatorios",
+        "despesas"
+      ]
+    },
+    {
+      "id": "receitas",
+      "titulo": "Financeiro — Receitas",
+      "categoria": "financeiro",
+      "componentes": [
+        "frontend/src/pages/financeiro/FinanceiroBI.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Financeiro-Regras-Contabeis.md",
+        "obsidian/Financeiro-Navegacao-e-Indicadores.md",
+        "obsidian/Financeiro-Custos-Teoricos-e-Reais.md"
+      ],
+      "palavrasChave": [
+        "faturamento",
+        "ticket medio",
+        "vendas quitadas",
+        "receita mensal"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "pagamento",
+        "resultados",
+        "relatorios"
+      ]
+    },
+    {
+      "id": "despesas",
+      "titulo": "Financeiro — Despesas",
+      "categoria": "financeiro",
+      "componentes": [
+        "frontend/src/pages/financeiro/FinanceiroPage.tsx",
+        "frontend/src/pages/financeiro/FinanceiroBI.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Financeiro-Regras-Contabeis.md",
+        "obsidian/Financeiro-Otimizacao-Firestore.md",
+        "obsidian/Reposicao-Recebimento-Retroativo-e-Debito.md"
+      ],
+      "palavrasChave": [
+        "como pagar uma despesa",
+        "competencia",
+        "vencimento",
+        "marcar paga",
+        "reabrir",
+        "nova despesa"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "contas-pagar",
+        "recebimento",
+        "resultados"
+      ]
+    },
+    {
+      "id": "contas-pagar",
+      "titulo": "Financeiro — Contas a pagar",
+      "categoria": "financeiro",
+      "componentes": [
+        "frontend/src/pages/financeiro/FinanceiroBI.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Financeiro-Regras-Contabeis.md",
+        "obsidian/Financeiro-Previsibilidade.md"
+      ],
+      "palavrasChave": [
+        "boleto",
+        "conta vencida",
+        "contas pendentes",
+        "compromissos"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "despesas",
+        "previsibilidade",
+        "financeiro"
+      ]
+    },
+    {
+      "id": "lucratividade",
+      "titulo": "Financeiro — Lucratividade por produto",
+      "categoria": "financeiro",
+      "componentes": [
+        "frontend/src/pages/financeiro/FinanceiroBI.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Financeiro-Lucratividade-Produtos.md",
+        "obsidian/Financeiro-Custos-Teoricos-e-Reais.md",
+        "obsidian/Financeiro-Agregados-por-Produto.md"
+      ],
+      "palavrasChave": [
+        "margem realizada",
+        "cobertura de custos",
+        "custo desconhecido",
+        "rentabilidade",
+        "lucro por produto"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "precificacao",
+        "resultados",
+        "produzir"
+      ]
+    },
+    {
+      "id": "previsibilidade",
+      "titulo": "Financeiro — Previsibilidade",
+      "categoria": "financeiro",
+      "componentes": [
+        "frontend/src/pages/financeiro/FinanceiroBI.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Financeiro-Previsibilidade.md",
+        "obsidian/Financeiro-Regras-Contabeis.md"
+      ],
+      "palavrasChave": [
+        "previsao",
+        "futuro",
+        "cenarios",
+        "planejamento",
+        "previsibilidade"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "contas-pagar",
+        "financeiro",
+        "resultados"
+      ]
+    },
+    {
+      "id": "relatorios",
+      "titulo": "Relatórios",
+      "categoria": "relatorios",
+      "componentes": [
+        "frontend/src/pages/relatorios/RelatoriosPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Relat├│rios e Agregados.md",
+        "obsidian/Financeiro-Regras-Contabeis.md"
+      ],
+      "palavrasChave": [
+        "exportar",
+        "csv",
+        "relatorio vendas",
+        "vendas por hora",
+        "top produtos"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa"
+      ],
+      "relacionados": [
+        "resultados",
+        "receitas",
+        "fechamento-caixa"
+      ]
+    },
+    {
+      "id": "configuracoes",
+      "titulo": "Configurações",
+      "categoria": "administracao",
+      "componentes": [
+        "frontend/src/pages/configuracoes/ConfiguracoesPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Usu├írios e Configura├º├Áes.md",
+        "obsidian/Evolucao-Operacional.md"
+      ],
+      "palavrasChave": [
+        "configurar",
+        "impressora",
+        "tema",
+        "escuro",
+        "baixa automatica"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "usuarios",
+        "minha-conta",
+        "cardapio"
+      ]
+    },
+    {
+      "id": "usuarios",
+      "titulo": "Usuários do restaurante",
+      "categoria": "administracao",
+      "componentes": [
+        "frontend/src/pages/configuracoes/ConfiguracoesPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Regras de Neg├│cio/Usu├írios e Configura├º├Áes.md",
+        "obsidian/Evolucao-Operacional.md",
+        "obsidian/04 - Matriz de Permiss├Áes.md"
+      ],
+      "palavrasChave": [
+        "novo usuario",
+        "funcionario",
+        "desativar",
+        "papel"
+      ],
+      "perfis": [
+        "admin",
+        "gerente"
+      ],
+      "relacionados": [
+        "perfis",
+        "minha-conta",
+        "configuracoes"
+      ]
+    },
+    {
+      "id": "minha-conta",
+      "titulo": "Minha conta",
+      "categoria": "administracao",
+      "componentes": [
+        "frontend/src/pages/conta/MinhaContaPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Evolucao-Operacional.md",
+        "obsidian/Regras de Neg├│cio/Usu├írios e Configura├º├Áes.md"
+      ],
+      "palavrasChave": [
+        "senha atual",
+        "nova senha",
+        "alterar email",
+        "meu perfil",
+        "seguranca"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "acesso",
+        "perfis",
+        "configuracoes"
+      ]
+    },
+    {
+      "id": "cardapio",
+      "titulo": "Cardápio digital",
+      "categoria": "administracao",
+      "componentes": [
+        "frontend/src/pages/cardapio/CardapioPage.tsx"
+      ],
+      "fontesObsidian": [
+        "obsidian/Cardapio-Publico-Isolado.md",
+        "obsidian/Regras de Neg├│cio/Card├ípio Digital, QR e Imagens.md"
+      ],
+      "palavrasChave": [
+        "qr",
+        "menu digital",
+        "cardapio",
+        "pedido publico"
+      ],
+      "perfis": [
+        "admin",
+        "gerente",
+        "caixa",
+        "garcom",
+        "cozinha"
+      ],
+      "relacionados": [
+        "mesas",
+        "produtos",
+        "configuracoes"
+      ]
+    }
+  ],
+  "telas": [
+    {
+      "rota": "/login",
+      "nome": "Acessar o sistema",
+      "componente": "frontend/src/pages/LoginPage.tsx",
+      "artigo": "acesso",
+      "acesso": "publico",
+      "ajuda": false,
+      "excecao": "Página pública: documentada na Wiki autenticada; sem link privado para preservar isolamento e evitar login do cliente."
+    },
+    {
+      "rota": "/select-restaurant",
+      "nome": "Criar restaurante",
+      "componente": "frontend/src/pages/SelectRestaurantPage.tsx",
+      "artigo": "onboarding",
+      "acesso": "autenticado",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/plataforma",
+      "nome": "Plataforma",
+      "componente": "frontend/src/pages/plataforma/PlataformaPage.tsx",
+      "artigo": "plataforma",
+      "acesso": "owner",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/caixa",
+      "nome": "Caixa",
+      "componente": "frontend/src/pages/caixa/CaixaOverviewPage.tsx",
+      "artigo": "caixa",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/caixa/venda-direta",
+      "nome": "Nova venda direta",
+      "componente": "frontend/src/pages/caixa/NovoPedidoPage.tsx",
+      "artigo": "venda-direta",
+      "acesso": "financeiro",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/caixa/mesa/:mesaId",
+      "nome": "Comanda da mesa",
+      "componente": "frontend/src/pages/caixa/MesaDetailPage.tsx",
+      "artigo": "mesa",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/caixa/novo-pedido/:mesaId",
+      "nome": "Novo pedido",
+      "componente": "frontend/src/pages/caixa/NovoPedidoPage.tsx",
+      "artigo": "novo-pedido",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/caixa/pagamento/:pedidoId",
+      "nome": "Pagamento",
+      "componente": "frontend/src/pages/caixa/PagamentoPage.tsx",
+      "artigo": "pagamento",
+      "acesso": "financeiro",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/produtos",
+      "nome": "Produtos",
+      "componente": "frontend/src/pages/produtos/ProdutosPage.tsx",
+      "artigo": "produtos",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/produtos/novo",
+      "nome": "Novo produto",
+      "componente": "frontend/src/pages/produtos/ProdutoFormPage.tsx",
+      "artigo": "produto-formulario",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/produtos/editar/:produtoId",
+      "nome": "Editar produto",
+      "componente": "frontend/src/pages/produtos/ProdutoFormPage.tsx",
+      "artigo": "produto-formulario",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/categorias",
+      "nome": "Categorias",
+      "componente": "frontend/src/pages/produtos/CategoriasPage.tsx",
+      "artigo": "categorias",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/mesas",
+      "nome": "Mesas",
+      "componente": "frontend/src/pages/mesas/MesasPage.tsx",
+      "artigo": "mesas",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/estoque",
+      "nome": "Estoque",
+      "componente": "frontend/src/pages/estoque/EstoquePage.tsx",
+      "artigo": "estoque",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/reposicao",
+      "nome": "Reposição de insumos",
+      "componente": "frontend/src/pages/estoque/ReposicaoPage.tsx",
+      "artigo": "reposicao",
+      "acesso": "gestao",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/reposicao/recebidos",
+      "nome": "Pedidos recebidos",
+      "componente": "frontend/src/pages/estoque/ReposicaoHistoricoPage.tsx",
+      "artigo": "recebidos",
+      "acesso": "gestao",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/reposicao/cancelados",
+      "nome": "Pedidos cancelados",
+      "componente": "frontend/src/pages/estoque/ReposicaoHistoricoPage.tsx",
+      "artigo": "reposicao-cancelados",
+      "acesso": "gestao",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/producao",
+      "nome": "Produção e Estufa",
+      "componente": "frontend/src/pages/producao/ProducaoPage.tsx",
+      "artigo": "producao",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/cozinha",
+      "nome": "Cozinha — KDS",
+      "componente": "frontend/src/pages/cozinha/CozinhaPage.tsx",
+      "artigo": "cozinha",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/delivery",
+      "nome": "Delivery",
+      "componente": "frontend/src/pages/delivery/DeliveryPage.tsx",
+      "artigo": "delivery",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/relatorios",
+      "nome": "Relatórios",
+      "componente": "frontend/src/pages/relatorios/RelatoriosPage.tsx",
+      "artigo": "relatorios",
+      "acesso": "financeiro",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/relatorios/fechamento-caixa",
+      "nome": "Fechamento de caixa",
+      "componente": "frontend/src/pages/relatorios/FechamentoCaixaPage.tsx",
+      "artigo": "fechamento-caixa",
+      "acesso": "financeiro",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/fornecedores",
+      "nome": "Fornecedores",
+      "componente": "frontend/src/pages/fornecedores/FornecedoresPage.tsx",
+      "artigo": "fornecedores",
+      "acesso": "financeiro",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/financeiro",
+      "nome": "Financeiro",
+      "componente": "frontend/src/pages/financeiro/FinanceiroBI.tsx",
+      "artigo": "financeiro",
+      "acesso": "financeiro",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/configuracoes",
+      "nome": "Configurações",
+      "componente": "frontend/src/pages/configuracoes/ConfiguracoesPage.tsx",
+      "artigo": "configuracoes",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/minha-conta",
+      "nome": "Minha conta",
+      "componente": "frontend/src/pages/conta/MinhaContaPage.tsx",
+      "artigo": "minha-conta",
+      "acesso": "tenant",
+      "ajuda": true,
+      "excecao": ""
+    },
+    {
+      "rota": "/m/:restaurantId/:mesaId",
+      "nome": "Cardápio digital",
+      "componente": "frontend/src/pages/cardapio/CardapioPage.tsx",
+      "artigo": "cardapio",
+      "acesso": "publico",
+      "ajuda": false,
+      "excecao": "Página pública: documentada na Wiki autenticada; sem link privado para preservar isolamento e evitar login do cliente."
+    }
+  ],
+  "secoes": {
+    "financeiro": {
+      "Visão geral": "financeiro",
+      "Resultados": "resultados",
+      "Receitas": "receitas",
+      "Despesas": "despesas",
+      "Contas a pagar": "contas-pagar",
+      "Lucratividade por produto": "lucratividade",
+      "Previsibilidade": "previsibilidade"
+    },
+    "produto": {
+      "dados": "produto-formulario",
+      "precificacao": "precificacao"
+    },
+    "reposicao": {
+      "gerar": "reposicao",
+      "gerados": "aguardando"
+    },
+    "producao": {
+      "disponiveis": "producao",
+      "produzir": "produzir",
+      "historico": "producao-historico"
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "id": "financeiro",
+  "titulo": "Financeiro — Visão geral",
+  "para": "Reúne receita, vendas, ticket, cobertura de custos e alertas gerenciais.",
+  "quando": "Para acompanhar o restaurante antes de detalhar o resultado.",
+  "passos": [
+    "Escolha uma seção pelo seletor no celular ou pelos botões no computador.",
+    "Aplique o período ou um atalho.",
+    "Leia a cobertura antes de interpretar a margem e o resultado.",
+    "Use Consultar compromissos se quiser carregar contas a pagar."
+  ],
+  "campos": [
+    {
+      "nome": "Início e fim",
+      "preenchimento": "Datas civis inclusivas, início não posterior ao fim; clique em Aplicar período.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "7 / 30 / 90 dias",
+      "preenchimento": "Atalhos para janela de consulta.",
+      "obrigatorio": "Opcional"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Aplicar período",
+      "efeito": "Atualiza os indicadores da janela."
+    },
+    {
+      "nome": "Atualizar dados",
+      "efeito": "Busca novamente os dados da tela."
+    },
+    {
+      "nome": "Consultar compromissos",
+      "efeito": "Carrega pendências de todos os vencimentos, não só competência do período."
+    }
+  ],
+  "depois": "Os indicadores são de vendas quitadas, com snapshots de custo quando disponíveis. O painel pode ter cache de até 30 segundos.",
+  "atencao": [
+    "Resultado gerencial BI = receita − custo direto das vendas − despesas operacionais, somente com cobertura completa.",
+    "Compra de insumo forma estoque; não é subtraída novamente junto ao CMV.",
+    "Não é lucro contábil nem saldo de caixa. Relatórios legados usam indicadores distintos; consulte o artigo Resultados."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Por que meu lucro está indisponível?",
+      "resposta": "Há histórico sem coleta BI, custo confiável ausente ou base insuficiente. Não trate essa ausência como zero."
+    }
+  ],
+  "relacionados": [
+    "resultados",
+    "lucratividade",
+    "contas-pagar"
+  ]
+}

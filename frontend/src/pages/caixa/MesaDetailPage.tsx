@@ -1,3 +1,4 @@
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { SearchX } from 'lucide-react'
@@ -47,6 +48,7 @@ export default function MesaDetailPage() {
             ← Voltar ao caixa
           </Link>
           <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">Mesa {m?.numero}</h1>
+        <AjudaContextual />
           {m && <Badge value={m.status} />}
         </div>
 

@@ -1,0 +1,49 @@
+{
+  "id": "onboarding",
+  "titulo": "Criar restaurante por convite",
+  "para": "Conclui a criação de um estabelecimento a partir de um convite válido.",
+  "quando": "Quando o responsável da plataforma disponibilizar o acesso inicial.",
+  "passos": [
+    "Abra o convite e faça login ou crie sua conta.",
+    "Informe o nome do estabelecimento e a quantidade de mesas.",
+    "Confirme a criação uma única vez e aguarde o resultado.",
+    "Quando seu vínculo estiver pronto, siga para o Caixa."
+  ],
+  "campos": [
+    {
+      "nome": "Nome do estabelecimento",
+      "preenchimento": "Nome que será exibido no sistema.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Quantidade de mesas",
+      "preenchimento": "Escolha um preset ou outro número inteiro de 0 a 50. Zero permite operação de balcão.",
+      "obrigatorio": "Sim"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Criar restaurante",
+      "efeito": "Cria cadastros iniciais e vincula a conta criadora como admin."
+    },
+    {
+      "nome": "Ir para o Caixa",
+      "efeito": "Abre a operação do restaurante vinculado."
+    }
+  ],
+  "depois": "O restaurante nasce separado dos demais, com configurações e mesas iniciais.",
+  "atencao": [
+    "Convite expirado, revogado ou já consumido não pode criar outra loja. Não troque de conta durante o processo."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "E se a conexão cair?",
+      "resposta": "Entre de novo com a mesma conta; o sistema confere o vínculo antes de tentar criar outra loja."
+    }
+  ],
+  "relacionados": [
+    "acesso",
+    "configuracoes",
+    "plataforma"
+  ]
+}

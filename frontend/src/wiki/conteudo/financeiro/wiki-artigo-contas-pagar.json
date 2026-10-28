@@ -1,0 +1,55 @@
+{
+  "id": "contas-pagar",
+  "titulo": "Financeiro — Contas a pagar",
+  "para": "Consulta despesas pendentes por vencimento, fornecedor e categoria.",
+  "quando": "Para planejar compromissos e verificar atrasos.",
+  "passos": [
+    "Abra Contas a pagar.",
+    "Filtre todas, vencidas, próximos 7/30 dias ou sem vencimento.",
+    "Filtre fornecedor/categoria se necessário.",
+    "Confira o total selecionado e abra Despesas para registrar o pagamento."
+  ],
+  "campos": [
+    {
+      "nome": "Vencimento",
+      "preenchimento": "Filtro do prazo; não depende da competência do seletor de vendas.",
+      "obrigatorio": "Opcional"
+    },
+    {
+      "nome": "Fornecedor e categoria",
+      "preenchimento": "Restringem as pendências carregadas.",
+      "obrigatorio": "Opcional"
+    },
+    {
+      "nome": "Total selecionado",
+      "preenchimento": "Soma das pendências do filtro.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Contas a pagar",
+      "efeito": "Carrega compromissos conhecidos."
+    },
+    {
+      "nome": "Ver/abrir Despesas",
+      "efeito": "Use a seção Despesas para pagar ou navegar por todos os lançamentos."
+    }
+  ],
+  "depois": "A consulta não paga nem altera obrigações. O resumo usa vencimentos conhecidos.",
+  "atencao": [
+    "A consulta limita a 200 pendências e avisa quando parcial. Use Despesas para consultar todas por páginas.",
+    "Sem vencimento não é automaticamente vencida nem tem data presumida."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Mudei o período de vendas e a conta continua.",
+      "resposta": "Contas a pagar usa vencimento/pendência, não competência da receita."
+    }
+  ],
+  "relacionados": [
+    "despesas",
+    "previsibilidade",
+    "financeiro"
+  ]
+}

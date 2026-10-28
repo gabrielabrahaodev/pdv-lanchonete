@@ -1,3 +1,4 @@
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Navigate } from 'react-router-dom'
@@ -59,6 +60,7 @@ export default function PlataformaPage() {
             <div className="grid h-11 w-11 place-items-center rounded-xl bg-brand-600 text-xl text-white shadow-lg">🛰️</div>
             <div>
               <h1 className="text-lg font-bold text-white">Plataforma</h1>
+        <div className="[&>a]:text-orange-200"><AjudaContextual /></div>
               <p className="text-xs text-slate-300">{me.email} · operador</p>
             </div>
           </div>

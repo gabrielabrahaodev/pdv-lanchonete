@@ -1,3 +1,5 @@
+import { artigoDaSecao } from '../../wiki/navegacao/contexto'
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
@@ -182,7 +184,7 @@ export default function ReposicaoPage() {
 
   return (
     <div className="space-y-5 p-3 sm:p-6">
-      <PageHeader title="Reposição de insumos" subtitle="Solicitações a fornecedores e recebimento de mercadorias" />
+      <PageHeader ajuda={artigoDaSecao('reposicao', filtro)} title="Reposição de insumos" subtitle="Solicitações a fornecedores e recebimento de mercadorias" />
       <ReposicaoNavegacao atual="gerado"/>
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filtrar reposição">
         <button type="button" role="tab" aria-selected={filtro === 'gerar'} onClick={() => setFiltro('gerar')}
@@ -379,6 +381,7 @@ function ReceberPedido({ pedido, onClose, onSuccess }: {
 
   return (
     <Modal open title={`Reabastecer: ${pedido.fornecedorNome}`} onClose={onClose}>
+      <AjudaContextual artigo="recebimento" rotulo="Como registrar este recebimento?" />
       <div className="space-y-4">
         <p className="text-sm text-slate-500">
           Informe a quantidade comprada e o valor TOTAL de cada produto. Não é

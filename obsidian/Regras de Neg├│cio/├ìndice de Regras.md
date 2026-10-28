@@ -26,7 +26,7 @@ Este índice contém as regras RN documentadas em `docs/01-planejamento/document
 | RN-15 | Alerta quando saldo ≤ mínimo. | [[Regras de Negócio/Estoque e Baixa Automática]] |
 | RN-16 | Delivery tem transições restritas e timestamps de confirmação/pronto/entrega; estados entregues/cancelados são terminais. | [[Regras de Negócio/Delivery]] |
 | RN-17 | Despesas são somadas por competência `data`, independente do status pago/pendente. Categorias são fixas. | [[Regras de Negócio/Financeiro, CMV e Resultado]] |
-| RN-18 | Resultado gerencial = faturamento − totalDespesas; CMV estimado é informativo para evitar dupla contagem de compras lançadas como despesa. | [[Regras de Negócio/Financeiro, CMV e Resultado]] |
+| RN-18 | Resultado BI = receita − CMV − operacionais, com cobertura integral; compras separadas. Legado de Relatórios = faturamento − totalDespesas; não deduzir CMV de novo. | [[Regras de Negócio/Financeiro, CMV e Resultado]] |
 | RN-19 | Pagar grava `pagoEm`; reabrir remove `pagoEm` com `DELETE_FIELD`; pago/reabrir não alteram agregado por competência. | [[Regras de Negócio/Financeiro, CMV e Resultado]] |
 | RN-20 | Cardápio público depende de `cardapioDigitalAtivo` e limita requisições por IP. | [[Regras de Negócio/Cardápio Digital, QR e Imagens]] |
 | RN-21 | O documento de regra descreve pedidos via QR, mas código atual retorna 410 nessa rota; cardápio deve ser considerado leitura-only até decisão/alteração. | [[Regras de Negócio/Cardápio Digital, QR e Imagens]]; [[Auditoria/Discrepâncias e Riscos]] |

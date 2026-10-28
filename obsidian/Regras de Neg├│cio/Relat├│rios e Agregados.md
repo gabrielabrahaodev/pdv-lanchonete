@@ -13,11 +13,11 @@ tags: [regras, relatórios, desempenho]
 - Top produtos/categorias no máximo dez; IDs são resolvidos para nomes atuais dos cadastros.
 - Tipos de pagamento do agregado aparecem agrupados por forma.
 
-## Despesas e CMV no relatório
+## Despesas e CMV no relatório legado
 
 - Despesas são somadas por `data` (competência), independentemente do status.
 - CMV estimado usa saídas de estoque ligadas a pedido multiplicadas pelo custo médio atual.
-- Resultado gerencial = faturamento − despesas.
+- Resultado gerencial LEGADO = faturamento − despesas por competência. O menu Financeiro usa o BI (receita − CMV − operacionais), com cobertura integral; ver [[Financeiro-Regras-Contabeis]].
 
 ## Agregados no Firestore
 
@@ -32,10 +32,11 @@ tags: [regras, relatórios, desempenho]
 
 Não assumir que todo relatório custa apenas uma leitura. O caminho de resumo agregado lê documentos diários (em lote) para cada dia do período e ainda lista produtos, categorias e estoque para resolver nomes/calcular CMV. `GET /relatorios/agregado` também consulta outras coleções no método `resumo_agregado`.
 
-## Defeito conhecido na branch analisada
+## Estado da correção de leitura
 
-> [!danger] Bloqueador do relatório
-> `backend/app/services/relatorios_service.py` linha aproximada 69 chama `db.get_all(*refs)`. A API Python do Firestore espera a coleção de referências como um único argumento, por exemplo `db.get_all(refs)`. Essa chamada com `*refs` causa o 500 observado para períodos com vários dias. Além disso, a primeira soma usa `s.to_dict().get(...)` sem proteger `to_dict()` nulo para documento ausente. Conferir [[Auditoria/Discrepâncias e Riscos]].
+O defeito histórico de `get_all(*refs)` foi corrigido: a master usa `get_all(refs)`
+e trata snapshot ausente. Não descrever o 500 histórico como bloqueador vigente.
+Conferir `relatorios_service.py` e os testes de intervalo atuais.
 
 ## Backfill: divergência de comentário
 

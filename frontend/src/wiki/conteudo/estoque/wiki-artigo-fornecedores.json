@@ -1,0 +1,82 @@
+{
+  "id": "fornecedores",
+  "titulo": "Fornecedores",
+  "para": "Mantém os contatos e condições comerciais dos fornecedores.",
+  "quando": "Antes de vincular insumos, despesas ou pedidos de compra.",
+  "passos": [
+    "Pesquise por nome, documento ou contato e filtre ativos/inativos.",
+    "Use Novo fornecedor ou Editar.",
+    "Preencha o nome e contatos; confira WhatsApp com DDD para reposição.",
+    "Salve e consulte os detalhes quando precisar."
+  ],
+  "campos": [
+    {
+      "nome": "Nome",
+      "preenchimento": "Identificação do fornecedor.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Nome fantasia e CPF/CNPJ",
+      "preenchimento": "Dados descritivos; não substituem validação fiscal.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Telefone, WhatsApp e e-mail",
+      "preenchimento": "Contatos; WhatsApp com DDD para gerar mensagem de reposição.",
+      "obrigatorio": "Não no cadastro"
+    },
+    {
+      "nome": "Endereço",
+      "preenchimento": "Endereço do fornecedor.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Condição de pagamento",
+      "preenchimento": "Texto, como 7 dias ou à vista; não cria vencimento automático.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Prazo de entrega (dias)",
+      "preenchimento": "Inteiro de 0 a 365.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Observações",
+      "preenchimento": "Notas comerciais.",
+      "obrigatorio": "Não"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Novo / Editar / Salvar",
+      "efeito": "Mantém cadastro."
+    },
+    {
+      "nome": "Detalhes",
+      "efeito": "Exibe contatos e condições."
+    },
+    {
+      "nome": "Ativar / Desativar",
+      "efeito": "Preserva histórico e controla novos vínculos."
+    },
+    {
+      "nome": "Excluir",
+      "efeito": "Bloqueado se houver vínculos operacionais/financeiros."
+    }
+  ],
+  "depois": "O fornecedor pode ser selecionado em insumos e despesas; isso não cria compra automaticamente.",
+  "atencao": [
+    "Admin/gerente/caixa gerenciam fornecedores. Prefira inativar quando houver histórico."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Não consigo excluir um fornecedor.",
+      "resposta": "Há estoque, pedidos, despesas ou movimentos vinculados; preserve o histórico e inative."
+    }
+  ],
+  "relacionados": [
+    "insumos",
+    "reposicao",
+    "despesas"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "plataforma",
+  "titulo": "Plataforma",
+  "para": "Administra convites para criação de restaurantes. É exclusiva do dono da plataforma.",
+  "quando": "Ao autorizar a entrada de um novo estabelecimento.",
+  "passos": [
+    "Entre com uma conta autorizada da plataforma.",
+    "Gere um convite e copie o link.",
+    "Envie o link ao responsável correto fora do sistema.",
+    "Consulte validade e uso; revogue convites que não devam mais ser utilizados."
+  ],
+  "campos": [
+    {
+      "nome": "Código, situação e expiração",
+      "preenchimento": "Consulte os convites listados, sem publicar os links.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Gerar convite",
+      "efeito": "Cria um convite de uso único com validade."
+    },
+    {
+      "nome": "Copiar link",
+      "efeito": "Copia para compartilhar com o destinatário escolhido."
+    },
+    {
+      "nome": "Revogar",
+      "efeito": "Impede o uso de um convite ainda não consumido."
+    }
+  ],
+  "depois": "O convite permite o onboarding; a loja só nasce quando o fluxo é concluído.",
+  "atencao": [
+    "Ser admin de um restaurante não permite acessar esta tela."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Posso reutilizar convite consumido?",
+      "resposta": "Não. Gere outro convite quando houver autorização para outro restaurante."
+    }
+  ],
+  "relacionados": [
+    "onboarding",
+    "perfis"
+  ]
+}

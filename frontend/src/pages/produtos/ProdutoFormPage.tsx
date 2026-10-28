@@ -1,3 +1,5 @@
+import { artigoDaSecao } from '../../wiki/navegacao/contexto'
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -258,6 +260,7 @@ export default function ProdutoFormPage() {
         <h1 className="mt-1 mb-6 text-xl font-bold text-slate-800 dark:text-slate-100">
           {editando ? 'Editar' : 'Novo'} produto
         </h1>
+        <AjudaContextual artigo={artigoDaSecao('produto', aba)} />
       </div>
 
       <Card className="space-y-4 p-4 sm:p-6">

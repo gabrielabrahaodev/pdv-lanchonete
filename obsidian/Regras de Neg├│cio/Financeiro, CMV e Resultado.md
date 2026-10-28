@@ -5,49 +5,66 @@ tags: [regras, financeiro, cmv, dre]
 
 # Financeiro, CMV e Resultado
 
-## Fornecedores
+## Qual tela e qual indicador?
 
-Cadastro com nome e dados opcionais (documento, telefone, e-mail, observações e ativo). Escrita por admin/gerente/caixa. Fornecedor relacionado a despesa via `fornecedorId`, mas não é necessário para toda despesa.
+Conferido na master `5cbe450` em 28/10/2026. Esta nota corrige a descrição antiga,
+que apresentava a fórmula dos relatórios como se fosse também a da central Financeiro.
+Nenhuma regra financeira foi modificada por esta correção documental.
 
-## Despesas
+| Contexto vigente | Cálculo | Limites |
+|---|---|---|
+| Menu **Financeiro**, `/financeiro`, `FinanceiroBI.tsx`, API `/bi/visao-geral` | Receita − custo direto das vendas − despesas operacionais | Resultado integral exige todas as vendas com coleta BI e custos conhecidos. Caso contrário, indisponível. |
+| Contrato legado de **Relatórios**, `relatorios_service.py` | `resultadoGerencial = faturamento − totalDespesas` por competência | Inclui compras na despesa; CMV estimado é informativo e não é descontado outra vez. Não confundir com resultado BI. |
 
-Categorias permitidas no domínio: `insumo`, `folha`, `conta_fixa`, `outra`. Valor positivo. Campos incluem descrição, valor, data de competência, vencimento, status, pagoEm, fornecedor, usuário, forma de pagamento e observações.
-- Criar, atualizar e excluir despesa atualiza agregados pela competência no service transacional.
-- Marcar paga define `status=pago` e `pagoEm=agora`; reabrir define `status=pendente` e apaga `pagoEm` com `DELETE_FIELD`.
-- Pagamento/reabertura de despesa não altera os agregados de competência, pois pagar não muda a data `data` usada no relatório.
-- Relatórios incluem despesas por `data` independentemente de status pago/pendente.
-- Despesa financeira não gera sangria nem baixa sessão de caixa automaticamente.
+`FinanceiroPage.tsx` permanece no código como fonte de componentes reutilizados
+(como `DespesasCard`). A página principal de `/financeiro` é `FinanceiroBI.tsx`.
+O campo legado `faturamentoLiquido` também é faturamento menos despesas; o nome
+não deve ser interpretado como lucro líquido contábil. Nem todos esses campos
+legados são exibidos como cartões na tela atual de Relatórios.
 
-## Resultado gerencial
+## Central Financeiro BI
 
-Fórmula implementada:
+- Receita: vendas de pedidos quitados, reconhecidas na quitação; produção não gera receita.
+- Compra de insumos: categoria `insumo`; forma estoque e é mostrada separada do CMV.
+- Operacionais: demais categorias (`folha`, `conta_fixa`, `outra`), por competência.
+- CMV/custo direto: custo atribuído às unidades vendidas com snapshots confiáveis;
+  não toda a compra nem toda a fornada.
+- Lucro bruto integral = receita − CMV; resultado gerencial = lucro bruto − operacionais.
+- Compra não é deduzida novamente quando o CMV já representa o custo vendido.
+- Margem realizada coberta = (receita coberta − custo conhecido) / receita coberta × 100.
+  Não extrapolar essa margem para vendas sem cobertura.
+- Valores desconhecidos são indisponíveis, não custo zero. Histórico sem snapshots
+  e vendas pagas antes de capturar custo podem permanecer sem cobertura.
 
-`resultadoGerencial = faturamento − totalDespesas`
+Exemplo: receita R$ 100, CMV R$ 20, operacionais R$ 10, compras R$ 40.
+BI: lucro bruto R$ 80 e resultado R$ 70 (com cobertura integral).
+Legado: receita menos despesas R$ 50, se as despesas do período forem compras40 + operacionais10.
+São medidas diferentes, não um erro de subtração. Não somar CMV ao legado novamente.
 
-`faturamentoLiquido` no contrato atual também representa faturamento bruto menos total de despesas. Essa semântica é específica do produto; não chamar de lucro líquido contábil sem qualificação.
+## Despesas, pagamento e datas
 
-## CMV estimado
+Valor positivo; descrição, categoria e competência identificam o lançamento.
+Competência é a data a que pertence; vencimento é o prazo; `pagoEm` é o pagamento.
+Pendente também entra por competência. Marcar paga/reabrir muda pendência, não competência,
+e não gera sangria/suprimento. Débito de reposição é protegido contra edição/exclusão;
+pagar/reabrir continua permitido. Recebimento cria débito pendente e não prova pagamento.
 
-Fórmula implementada:
+## Relatórios legados e CMV estimado
 
-`CMV estimado = Σ (quantidade de saída de estoque vinculada a pedido × custo médio atual do insumo)`
+O caminho legado preserva a composição de sua época. Pode combinar custos congelados
+das saídas/produção com estimativas históricas sem snapshot baseadas na referência de
+estoque atual. Não afirmar que todo CMV legado usa custo atual, nem que todo ele é histórico
+confiável. O resultado legado continua receita menos despesas, independentemente dessa estimativa.
 
-O relatório filtra movimentos tipo `saida` com `pedidoId` e usa o custo médio do cadastro no momento da consulta. O CMV é apresentado como indicador informativo e **não é subtraído novamente do resultado**: despesas de compra de insumo já podem fazer parte de `totalDespesas`; subtrair ambos poderia duplicar custo.
+## Delivery e limites gerais
 
-## Exemplo simples
+O módulo `delivery_orders` da tela Delivery registra estados próprios; criar/entregar ali
+não chama quitação de pedidos, caixa, baixa de ingredientes ou reserva da estufa.
+Não documentar receita automática de delivery como se existisse nessa tela.
 
-Se receita for R$ 7.627,10 e despesas por competência R$ 2.035,00, o resultado exibido será R$ 5.592,10. O CMV estimado de R$ 1.734,43 aparece à parte como sinal de consumo de materiais; ele não é mais uma parcela descontada nessa fórmula do resultado.
+Resultado gerencial não é lucro contábil/fiscal. Sem impostos, taxas, indiretos completos,
+saldos bancários e conciliação, não há lucro líquido ou fluxo de caixa completo garantidos.
 
-## Limites e melhoria futura
-
-- Resultado gerencial de receita menos despesas cadastradas não equivale necessariamente a lucro contábil/fiscal; podem faltar impostos, taxas, folha completa, pró-labore, depreciação ou outros compromissos não registrados.
-- CMV baseado em custo médio atual não é custo histórico por lote.
-- Caixa (pagamentos efetivos) e competência (despesas por data) são métricas diferentes.
-
-Fontes: `despesas_service.py`, `calculos.py`, `relatorios_service.py`, `agregados_service.py`, `FinanceiroPage.tsx`.
-
-Novas saídas de pedidos congelam custo unitário e agregados próprios, mantendo o CMV estável após novas compras. Histórico sem custo persistido continua estimativo. Nenhum custo histórico foi inventado. Ver [[Evolucao-Operacional]].
-
-
-## BI gerencial em revisão
-A nova central de Financeiro usa snapshots e margem coberta, com regras separadas dos relatórios legados descritos acima. Ver [[Financeiro-Arquitetura-BI]], [[Financeiro-Regras-Contabeis]] e [[Financeiro-Plano-de-Testes]]. Sem backfill de custos inventados.
+Fontes: `AppAutenticado.tsx`, `FinanceiroBI.tsx`, `bi_service.py`, `lucratividade.py`,
+`relatorios_service.py`, `calculos.py`, `despesas_service.py`, `delivery_service.py`.
+Ver [[Financeiro-Regras-Contabeis]], [[Financeiro-Custos-Teoricos-e-Reais]] e [[Wiki-Central-de-Ajuda]].

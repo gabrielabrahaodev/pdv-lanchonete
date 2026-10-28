@@ -1,0 +1,73 @@
+{
+  "id": "pagamento",
+  "titulo": "Pagamento",
+  "para": "Registra o valor efetivamente recebido por um pedido.",
+  "quando": "Depois de conferir dinheiro ou aprovação do PIX/cartão.",
+  "passos": [
+    "Confira os itens, o total e o restante.",
+    "Escolha dinheiro, PIX, crédito ou débito.",
+    "Na mesa, informe a parcela; no balcão, o valor é o restante integral.",
+    "Para dinheiro, informe Recebido para calcular troco.",
+    "Registre e aguarde confirmação; no balcão, confirme também a entrega dos prontos somente se ocorreu."
+  ],
+  "campos": [
+    {
+      "nome": "Forma",
+      "preenchimento": "Dinheiro, PIX, crédito ou débito.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Valor",
+      "preenchimento": "Positivo e não maior que o restante. No balcão é somente leitura.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Recebido (troco)",
+      "preenchimento": "Dinheiro entregue pelo cliente, pelo menos o valor do pagamento.",
+      "obrigatorio": "Opcional, só dinheiro"
+    },
+    {
+      "nome": "Confirmar também a entrega",
+      "preenchimento": "Marca fisicamente os itens prontos do balcão.",
+      "obrigatorio": "Não"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Valor exato",
+      "efeito": "Preenche o restante nas mesas."
+    },
+    {
+      "nome": "Registrar / Confirmar pagamento",
+      "efeito": "Registra o recebimento."
+    },
+    {
+      "nome": "Tentar novamente",
+      "efeito": "Confere a mesma operação após falha; não inicie outro recebimento sem conferir."
+    },
+    {
+      "nome": "Recibo",
+      "efeito": "Imprime comprovante gerencial, não nota fiscal."
+    },
+    {
+      "nome": "Cancelar venda",
+      "efeito": "Balcão sem pagamentos: cancela e libera reservas ainda não consumidas."
+    }
+  ],
+  "depois": "Quando o total é quitado, o pedido fica pago. Mesa é liberada; no balcão, preparo pode continuar no KDS.",
+  "atencao": [
+    "Registrar PIX/cartão não cobra nem verifica a operadora. O QR PIX desta tela ainda não está implementado.",
+    "O balcão exige caixa aberto. Cancelamento após baixa não estorna ingredientes."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Pagar é confirmar entrega?",
+      "resposta": "Não. A opção do balcão confirma somente os itens prontos selecionados; mesas podem exigir conferência de reservas."
+    }
+  ],
+  "relacionados": [
+    "fechamento-caixa",
+    "reservas",
+    "cancelamentos"
+  ]
+}

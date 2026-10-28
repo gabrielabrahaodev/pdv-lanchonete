@@ -1,0 +1,44 @@
+{
+  "id": "cancelamentos",
+  "titulo": "Cancelamentos e remoção de itens",
+  "para": "Explica limites de remoção e cancelamento sem prometer estorno automático.",
+  "quando": "Quando há erro de lançamento ou desistência.",
+  "passos": [
+    "Antes de enviar, corrija o carrinho com quantidade e remoção.",
+    "Depois de enviar, confira o estado do item e as ações disponíveis ao seu perfil.",
+    "Na venda direta sem pagamento, use Cancelar venda e confirme.",
+    "Se já houve pagamento, procure a gestão; a tela não oferece estorno financeiro."
+  ],
+  "campos": [
+    {
+      "nome": "Estado e pagamentos",
+      "preenchimento": "Confira antes de solicitar cancelamento.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Remover / cancelar",
+      "efeito": "Depende de pedido aberto, estado e perfil. Remoção física só é aceita para item pendente."
+    },
+    {
+      "nome": "Cancelar venda",
+      "efeito": "Não deve ser usado como prova de devolução de dinheiro."
+    }
+  ],
+  "depois": "O total comercial pode ser recalculado; reservas não entregues são liberadas. Ingredientes já consumidos não retornam.",
+  "atencao": [
+    "Não ajuste estoque só para esconder um cancelamento. Registre a situação física pela operação apropriada."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "O sistema estorna cartão?",
+      "resposta": "Não há integração de estorno com operadora nesta versão."
+    }
+  ],
+  "relacionados": [
+    "novo-pedido",
+    "pagamento",
+    "movimentacoes"
+  ]
+}

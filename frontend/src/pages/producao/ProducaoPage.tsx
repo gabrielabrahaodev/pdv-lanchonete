@@ -1,3 +1,5 @@
+import { artigoDaSecao } from '../../wiki/navegacao/contexto'
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
@@ -179,6 +181,7 @@ export default function ProducaoPage() {
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
           Produção e Estufa
         </h1>
+        <AjudaContextual artigo={artigoDaSecao('producao', aba)} />
         <p className="mt-1 text-sm text-slate-500">
           Prepare os lotes, acompanhe a validade e entregue sem consumir
           ingredientes duas vezes.
@@ -262,6 +265,7 @@ export default function ProducaoPage() {
           {gestor && (
             <Card className="space-y-3 p-4">
               <h2 className="font-bold">Conferência de mesas encerradas</h2>
+              <AjudaContextual artigo="reservas" rotulo="Como conferir reservas?" />
               <p className="text-sm text-slate-500">
                 Reservas não entregues continuam bloqueadas. Confirme o destino
                 físico antes de liberar ou baixar o saldo.
@@ -450,7 +454,8 @@ export default function ProducaoPage() {
           </div>
           {lote && operar && (
             <Card className="p-4 sm:p-6">
-              <h2 className="mb-4 font-bold">
+              <AjudaContextual artigo="perdas-producao" rotulo="Como registrar perda ou conversão?" />
+            <h2 className="mb-4 font-bold">
                 {acao === 'perda'
                   ? 'Perda / ajuste de saída'
                   : 'Converter apresentação'}{' '}

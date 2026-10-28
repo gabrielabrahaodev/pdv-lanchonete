@@ -1,0 +1,43 @@
+{
+  "id": "reposicao-cancelados",
+  "titulo": "Pedidos cancelados",
+  "para": "Consulta solicitações de reposição canceladas.",
+  "quando": "Para rastrear pedidos que não serão recebidos.",
+  "passos": [
+    "Abra Cancelados em Reposição.",
+    "Navegue pelas páginas.",
+    "Use Detalhes do pedido para consultar o que foi solicitado."
+  ],
+  "campos": [
+    {
+      "nome": "Fornecedor, geração e itens",
+      "preenchimento": "Dados da solicitação preservada.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Detalhes do pedido",
+      "efeito": "Abre consulta sem recebimento ou edição."
+    },
+    {
+      "nome": "Anterior / Próxima página",
+      "efeito": "Consulta mais registros."
+    }
+  ],
+  "depois": "Consultar ou cancelar uma solicitação não movimenta o estoque.",
+  "atencao": [
+    "Não há ação de receber novamente nesta tela. Gere uma solicitação nova se necessário."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Cancelar a solicitação apaga uma entrada?",
+      "resposta": "Não. O cancelamento é do pedido ainda não recebido, sem estorno de estoque."
+    }
+  ],
+  "relacionados": [
+    "reposicao",
+    "aguardando",
+    "recebidos"
+  ]
+}

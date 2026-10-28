@@ -1,0 +1,40 @@
+{
+  "id": "pwa",
+  "titulo": "Instalar o NexoComanda",
+  "para": "Permite usar o sistema instalado como aplicativo NexoComanda.",
+  "quando": "Para abrir o sistema pela tela inicial do celular ou do computador.",
+  "passos": [
+    "Abra o site no navegador compatível.",
+    "Use Instalar aplicativo ou Adicionar à tela de início no menu do navegador.",
+    "Abra o ícone NexoComanda e entre normalmente.",
+    "Quando o sistema oferecer atualização, conclua os lançamentos antes de recarregar."
+  ],
+  "campos": [
+    {
+      "nome": "Instalar / Adicionar à tela inicial",
+      "preenchimento": "Opção do navegador, não um cadastro no restaurante.",
+      "obrigatorio": "Opcional"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Atualizar / Recarregar",
+      "efeito": "Carrega a versão nova; confira formulários em andamento antes de aceitar."
+    }
+  ],
+  "depois": "O aplicativo instalado usa o mesmo restaurante, dados e permissões do navegador.",
+  "atencao": [
+    "Instalar não permite vender sem internet. Dados em cache podem estar desatualizados.",
+    "O botão de instalação depende do navegador; no desenvolvimento comum não há service worker."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Preciso instalar para usar?",
+      "resposta": "Não. O acesso pelo navegador continua disponível."
+    }
+  ],
+  "relacionados": [
+    "acesso",
+    "primeiros-passos"
+  ]
+}

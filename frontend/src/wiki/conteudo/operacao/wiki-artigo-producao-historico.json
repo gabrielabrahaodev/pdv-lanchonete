@@ -1,0 +1,44 @@
+{
+  "id": "producao-historico",
+  "titulo": "Histórico de produção",
+  "para": "Consulta os últimos movimentos da estufa e produção.",
+  "quando": "Para investigar consumo, reservas, perdas, conversões e entregas.",
+  "passos": [
+    "Abra Histórico em Produção e Estufa.",
+    "Confira tipo, data, produto, lote, responsável e quantidade.",
+    "Leia motivo/observação antes de concluir que houve venda ou perda."
+  ],
+  "campos": [
+    {
+      "nome": "Tipo e quantidade",
+      "preenchimento": "Produção, reserva, entrega, liberação, perda ou conversão.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Responsável, lote e custo",
+      "preenchimento": "Referência do movimento quando registrada.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Histórico",
+      "efeito": "Consulta até 100 movimentos recentes; não é uma exportação integral do banco."
+    }
+  ],
+  "depois": "A consulta não altera saldos nem cria vendas.",
+  "atencao": [
+    "Reservar não é vender nem perder. Os movimentos representam etapas diferentes."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Por que há reserva e entrega para o mesmo lote?",
+      "resposta": "A reserva bloqueia unidades; a entrega confirma saída física."
+    }
+  ],
+  "relacionados": [
+    "producao",
+    "reservas",
+    "perdas-producao"
+  ]
+}

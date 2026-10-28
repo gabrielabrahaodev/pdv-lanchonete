@@ -1,0 +1,56 @@
+{
+  "id": "produtos",
+  "titulo": "Produtos",
+  "para": "Consulta o catálogo de venda, preços, situação e categorias.",
+  "quando": "Ao revisar cardápio ou alterar um produto.",
+  "passos": [
+    "Busque pelo nome ou filtre por categoria.",
+    "Confira preço e situação do produto na tabela/lista.",
+    "Use Novo produto para cadastrar ou Editar para abrir o formulário."
+  ],
+  "campos": [
+    {
+      "nome": "Busca",
+      "preenchimento": "Nome do produto.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Categoria",
+      "preenchimento": "Limita a lista à categoria escolhida.",
+      "obrigatorio": "Não"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Novo produto",
+      "efeito": "Abre cadastro."
+    },
+    {
+      "nome": "Editar",
+      "efeito": "Abre dados e precificação."
+    },
+    {
+      "nome": "Ativar / Desativar",
+      "efeito": "Muda disponibilidade para novas vendas."
+    },
+    {
+      "nome": "Excluir",
+      "efeito": "Remove o cadastro e sua imagem; prefira desativar para preservar referência operacional."
+    }
+  ],
+  "depois": "Novas vendas usam os preços validados no servidor; os itens já vendidos mantêm seu preço registrado.",
+  "atencao": [
+    "CRUD de produtos exige admin/gerente/caixa. Não confunda desativar produto com apagar vendas antigas."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Alterar preço muda vendas passadas?",
+      "resposta": "Não. As linhas do pedido mantêm seu preço registrado."
+    }
+  ],
+  "relacionados": [
+    "produto-formulario",
+    "categorias",
+    "precificacao"
+  ]
+}
