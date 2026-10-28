@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.alias_generators import to_camel
 
 
@@ -417,6 +417,22 @@ class Configuracoes(CamelModel):
 
 # ---------------------------------------------------------------- Financeiro
 class DadosFornecedor(CamelModel):
+    @field_validator('nome', check_fields=False)
+    @classmethod
+    def validar_nome_fornecedor(cls, value):
+        if value is not None:
+            value = value.strip()
+            if not 2 <= len(value) <= 200:
+                raise ValueError('Nome deve ter de 2 a 200 caracteres')
+        return value
+
+    @field_validator('email', check_fields=False)
+    @classmethod
+    def validar_email_fornecedor(cls, value):
+        if value and ('@' not in value or '.' not in value.rsplit('@', 1)[-1] or len(value)>254):
+            raise ValueError('E-mail inválido')
+        return value
+
     nome_fantasia: Optional[str] = Field(default=None, max_length=200)
     whatsapp: Optional[str] = Field(default=None, max_length=30)
     endereco: Optional[str] = Field(default=None, max_length=1000)

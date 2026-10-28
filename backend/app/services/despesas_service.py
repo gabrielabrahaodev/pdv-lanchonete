@@ -136,6 +136,8 @@ def criar(restaurant_id: str, payload: DespesaCreate) -> dict:
             fornecedor = next(iter(t.get(item_doc(restaurant_id, 'fornecedores', data['fornecedorId']))), None)
             if not fornecedor or not fornecedor.exists or (fornecedor.to_dict() or {}).get('ativo') is False:
                 raise HTTPException(422, 'Fornecedor inválido ou inativo neste restaurante')
+        if data.get('fornecedorId'):
+            data['fornecedorNome'] = (fornecedor.to_dict() or {}).get('nome')
         # Agregado PRIMEIRO (leitura + escrita), doc da despesa por último
         # (Firestore proíbe leitura após escrita na transação).
         agregados_service.ajustar_despesa_tx(
@@ -174,6 +176,8 @@ def atualizar(restaurant_id: str, despesa_id: str, payload: DespesaUpdate) -> di
             if not fornecedor or not fornecedor.exists or (fornecedor.to_dict() or {}).get('ativo') is False:
                 raise HTTPException(422, 'Fornecedor inválido ou inativo neste restaurante')
         dump = payload.model_dump(by_alias=True)
+        if payload.fornecedor_id and payload.fornecedor_id != anterior.get('fornecedorId'):
+            dump['fornecedorNome'] = (fornecedor.to_dict() or {}).get('nome')
         reabrir = dump.pop("ativoPago", None)  # True=marca pago agora; False=reabre
         changes = {k: v for k, v in dump.items() if v is not None}
         if reabrir is True:

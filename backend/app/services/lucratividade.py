@@ -50,7 +50,7 @@ def metricas_venda(pedido):
         conhecido = custo is not None and i.get('custoDiretoEstado') == 'conhecido'
         teorico = i.get('custoTeoricoSnapshot')
         rows.append({'produtoId':i['produtoId'], 'variacaoId':i.get('variacaoId') or '',
-            'nome':i.get('produtoNome', i['produtoId']), 'categoriaId':i.get('categoriaId') or '',
+            'variacaoNome':i.get('variacaoNome', 'Padrão'), 'nome':i.get('produtoNome', i['produtoId']), 'categoriaId':i.get('categoriaId') or '',
             'metaMargem':i.get('metaMargem'), 'quantidade':qtd,
             'brutaCentavos':bruto, 'liquidaCentavos':receita, 'descontoCentavos':max(0, bruto-receita),
             'ajusteCentavos':max(0, receita-bruto), 'custoEscalado':inteiro(custo, ESCALA) if conhecido else 0,
@@ -68,7 +68,7 @@ def incrementos(pedido):
                 'custoEscalado','receitaCobertaCentavos','quantidadeConhecida','quantidadeDesconhecida','teoricoEscalado','quantidadeTeorica')
     for row in metricas_venda(pedido):
         for prefix in (f"produtosVendidos.{chave(row['produtoId'])}", f"variacoesVendidas.{chave(row['produtoId']+'|'+row['variacaoId'])}"):
-            for k in ('produtoId','variacaoId','nome','categoriaId'):
+            for k in ('produtoId','variacaoId','variacaoNome','nome','categoriaId'):
                 inc[f'{prefix}.{k}'] = row[k]
             if row.get('metaMargem') is not None:
                 inc[f'{prefix}.metaMargem'] = row['metaMargem']

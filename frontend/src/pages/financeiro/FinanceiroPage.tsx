@@ -122,7 +122,7 @@ function despesaVazia(): DespesaForm {
   }
 }
 
-function DespesasCard() {
+export function DespesasCard() {
   const qc = useQueryClient()
   const { me } = useAuth()
   const [cursores, setCursores] = useState<(string | null)[]>([null])

@@ -27,7 +27,7 @@ const DeliveryPage = lazy(() => import('./pages/delivery/DeliveryPage'))
 const RelatoriosPage = lazy(() => import('./pages/relatorios/RelatoriosPage'))
 const FechamentoCaixaPage = lazy(() => import('./pages/relatorios/FechamentoCaixaPage'))
 const FornecedoresPage = lazy(() => import('./pages/fornecedores/FornecedoresPage'))
-const FinanceiroPage = lazy(() => import('./pages/financeiro/FinanceiroPage'))
+const FinanceiroPage = lazy(() => import('./pages/financeiro/FinanceiroBI'))
 const ConfiguracoesPage = lazy(() => import('./pages/configuracoes/ConfiguracoesPage'))
 
 function RequireAuth({ children }: { children: ReactNode }) {
