@@ -70,7 +70,7 @@ async function preparar(page) {
   await page.context().route('**/src/components/AtualizacaoPwa.tsx', (r) =>
     r.fulfill({
       contentType: 'application/javascript',
-      body: 'export const AtualizacaoPwa=()=>null',
+      body: 'export const AtualizacaoPwa=()=>null;export const VersaoAppCard=()=>null',
     }),
   )
   const hooks = fs.readFileSync('src/hooks/useFirestore.ts', 'utf8')
