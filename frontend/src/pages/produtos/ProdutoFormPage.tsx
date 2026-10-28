@@ -1,7 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { custoUnitario } from '../../lib/format'
+import { formatarPrecoReferencia } from '../../lib/custosInsumos'
 import { unidadesCompativeis } from '../../lib/unidades'
 import { numeroDecimal, precificar } from '../../lib/precificacao'
 import { api } from '../../lib/api'
@@ -653,7 +653,7 @@ export default function ProdutoFormPage() {
                   <br />
                   <span className="text-xs text-slate-500">
                     {linha.item
-                      ? `${custoUnitario(linha.item.custoMedio)} / ${linha.item.unidade}`
+                      ? formatarPrecoReferencia(linha.item)
                       : 'Item não encontrado'}
                   </span>
                 </span>
