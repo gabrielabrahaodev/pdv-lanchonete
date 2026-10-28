@@ -255,3 +255,90 @@ def test_payload_recebimento_rejeita_data_invalida():
     for invalid in ['2026-02-30', '', 'ontem']:
         with pytest.raises(ValidationError):
             ReceberPedidoReposicao(data_recebimento=invalid, itens=itens)
+
+
+def test_reposicao_gramas_recebe_quilos_valor_total_e_gera_debito_exato(db):
+    preparar(db)
+    db.store.data[doc_path(RID, 'estoque', 'cafe')].update({
+        'unidade': 'g', 'unidadeCompra': 'kg',
+        'quantidadeAtual': 200, 'minimo': 500, 'custoMedio': 0.008,
+    })
+    p = criar_pedido(db)
+    result = rep.receber(RID, 'admin', p['id'], ReceberPedidoReposicao(
+        data_recebimento=date(2026, 9, 23),
+        itens=[
+            ItemRecebimentoReposicao(item_id='cafe', quantidade_compra=2,
+                                    unidade_compra='kg', valor_total_compra=16),
+            ItemRecebimentoReposicao(item_id='leite', quantidade_compra=2,
+                                    unidade_compra='L', valor_total_compra=20),
+        ],
+    ))
+    item = estoque.obter_item(RID, 'cafe')
+    assert item['quantidadeAtual'] == 2200
+    assert item['custoMedio'] == pytest.approx(0.008)
+    assert result['valorTotalRecebido'] == 36
+    assert despesas.obter(RID, result['despesaId'])['valor'] == 36
+    entrada = next(d for d in db.store.data.values()
+                   if d.get('pedidoReposicaoId') == p['id'] and d.get('itemId') == 'cafe' and d.get('tipo') == 'entrada')
+    assert entrada['qtd'] == 2000
+    assert entrada['quantidadeCompra'] == 2
+    assert entrada['unidadeCompra'] == 'kg'
+    assert entrada['valorTotalCompra'] == 16
+    assert entrada['custoMedioApos'] == pytest.approx(0.008)
+    assert result['recebimento'][0]['quantidadeCompra'] == 2
+    assert result['recebimento'][0]['unidadeCompra'] == 'kg'
+    antes = deepcopy(db.store.data)
+    with pytest.raises(HTTPException) as exc:
+        rep.receber(RID, 'admin', p['id'], ReceberPedidoReposicao(
+            data_recebimento=date(2026, 9, 23),
+            itens=[
+                ItemRecebimentoReposicao(item_id='cafe', quantidade_compra=2, unidade_compra='kg', valor_total_compra=16),
+                ItemRecebimentoReposicao(item_id='leite', quantidade_compra=2, unidade_compra='L', valor_total_compra=20),
+            ],
+        ))
+    assert exc.value.status_code == 409
+    assert db.store.data == antes
+
+
+def test_reposicao_pacote_convertido_e_custo_pouco_maior_que_zero(db):
+    preparar(db)
+    db.store.data[doc_path(RID, 'estoque', 'cafe')].update({
+        'unidade': 'g', 'unidadeCompra': 'pct', 'fatorCompra': 500,
+        'quantidadeAtual': 100, 'custoMedio': 0.007,
+    })
+    p = criar_pedido(db)
+    resultado = rep.receber(RID, 'admin', p['id'], ReceberPedidoReposicao(
+        data_recebimento=date(2026, 9, 23),
+        itens=[
+            ItemRecebimentoReposicao(item_id='cafe', quantidade_compra=3,
+                                    unidade_compra='pct', valor_total_compra=12),
+            ItemRecebimentoReposicao(item_id='leite', quantidade_compra=1,
+                                    unidade_compra='L', valor_total_compra=8),
+        ],
+    ))
+    assert resultado['valorTotalRecebido'] == 20
+    assert estoque.obter_item(RID, 'cafe')['quantidadeAtual'] == 1600
+    assert estoque.obter_item(RID, 'cafe')['custoMedio'] == pytest.approx(12.7 / 1600)
+    item_mov = next(m for m in db.store.data.values() if m.get('pedidoReposicaoId') == p['id'] and m.get('itemId') == 'cafe' and m.get('tipo') == 'entrada')
+    assert item_mov['quantidadeCompra'] == 3
+    assert item_mov['unidadeCompra'] == 'pct'
+    assert item_mov['qtd'] == 1500
+
+
+def test_reposicao_compra_rejeita_incompatibilidade_e_mistura_de_contratos_sem_movimentos(db):
+    preparar(db)
+    p = criar_pedido(db)
+    antiga = deepcopy(db.store.data)
+    cenarios = [
+        ItemRecebimentoReposicao(item_id='cafe', quantidade_compra=2, unidade_compra='L', valor_total_compra=16),
+        ItemRecebimentoReposicao(item_id='cafe', quantidade_compra=2, unidade_compra='kg', valor_total_compra=16, custo_unitario=4),
+        ItemRecebimentoReposicao(item_id='cafe', quantidade_compra=2, unidade_compra='kg', valor_total_compra=16.001),
+    ]
+    for linha in cenarios:
+        with pytest.raises(HTTPException) as exc:
+            rep.receber(RID, 'admin', p['id'], ReceberPedidoReposicao(
+                data_recebimento=date(2026, 9, 23),
+                itens=[linha, ItemRecebimentoReposicao(item_id='leite', quantidade_compra=1, unidade_compra='L', valor_total_compra=8)],
+            ))
+        assert exc.value.status_code == 422
+        assert db.store.data == antiga
