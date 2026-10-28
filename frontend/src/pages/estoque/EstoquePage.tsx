@@ -305,7 +305,7 @@ export default function EstoquePage() {
                     Mín.: {i.minimo} {i.unidade}
                   </span>
                   <span>
-                    Custo: {formatarPrecoReferencia(i)} / {i.unidade}
+                    Custo: {formatarPrecoReferencia(i)}
                   </span>
                 </p>
                 <div className="mt-1">{acoes(i, true)}</div>
