@@ -38,4 +38,7 @@ def atualizar(restaurant_id: str, fornecedor_id: str, payload: FornecedorUpdate)
 
 def remover(restaurant_id: str, fornecedor_id: str) -> None:
     obter(restaurant_id, fornecedor_id)
+    # Insumos e pedidos precisam preservar a referência e o nome histórico.
+    if any(i.get('fornecedorId') == fornecedor_id for i in list_items(restaurant_id, 'estoque')) or any(p.get('fornecedorId') == fornecedor_id for p in list_items(restaurant_id, 'pedidos_reposicao')):
+        raise HTTPException(409, 'Fornecedor vinculado a insumos ou pedidos: desative em vez de excluir')
     item_doc(restaurant_id, "fornecedores", fornecedor_id).delete()

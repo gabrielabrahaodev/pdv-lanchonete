@@ -126,6 +126,7 @@ export interface Order {
 }
 
 export interface InventoryItem {
+  fornecedorId?: string | null
   ativo?: boolean
   unidadeCompra?: string
   fatorCompra?: number
@@ -206,6 +207,7 @@ export interface ReportSummary {
 
 export interface Configuracoes {
   nome: string
+  endereco?: string
   moeda: string
   timezone: string
   impressoraTipo: string
@@ -278,4 +280,41 @@ export interface MovimentoProducao {
   pedidoId?: string
   usuarioId: string
   criadoEm: string
+}
+
+export interface ItemReposicao {
+  itemId: string
+  nome: string
+  unidade: string
+  quantidade: number
+  custoUnitarioPrevisto: number
+  saldoNaSolicitacao?: number
+}
+
+export interface PedidoReposicao {
+  id: string
+  fornecedorId: string
+  fornecedorNome: string
+  telefone?: string
+  enderecoEntrega: string
+  mensagem: string
+  status: 'gerado' | 'recebido' | 'cancelado'
+  itens: ItemReposicao[]
+  criadoEm: string
+  recebidoEm?: string
+  recebimento?: Array<{ itemId: string; quantidade: number; custoUnitario: number; valorTotal: number }>
+}
+
+export interface GrupoReposicao {
+  fornecedorId: string
+  fornecedorNome: string
+  telefone: string
+  itens: Array<{
+    itemId: string
+    nome: string
+    unidade: string
+    saldo: number
+    minimo: number
+    custoMedio: number
+  }>
 }

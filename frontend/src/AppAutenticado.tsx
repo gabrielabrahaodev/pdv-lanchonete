@@ -21,6 +21,7 @@ const CategoriasPage = lazy(() => import('./pages/produtos/CategoriasPage'))
 const MesasPage = lazy(() => import('./pages/mesas/MesasPage'))
 const ProducaoPage = lazy(() => import('./pages/producao/ProducaoPage'))
 const EstoquePage = lazy(() => import('./pages/estoque/EstoquePage'))
+const ReposicaoPage = lazy(() => import('./pages/estoque/ReposicaoPage'))
 const CozinhaPage = lazy(() => import('./pages/cozinha/CozinhaPage'))
 const DeliveryPage = lazy(() => import('./pages/delivery/DeliveryPage'))
 const RelatoriosPage = lazy(() => import('./pages/relatorios/RelatoriosPage'))
@@ -42,6 +43,12 @@ function RequireFinanceiro({ children }: { children: ReactNode }) {
   const { me } = useAuth()
   return ['admin', 'gerente', 'caixa'].includes(me?.papel ?? '')
     ? <>{children}</> : <Navigate to="/caixa" replace />
+}
+
+function RequireGestao({ children }: { children: ReactNode }) {
+  const { me } = useAuth()
+  return ['admin', 'gerente'].includes(me?.papel ?? '')
+    ? <>{children}</> : <Navigate to="/estoque" replace />
 }
 
 function RequireNoAuth({ children }: { children: ReactNode }) {
@@ -118,6 +125,7 @@ export default function AppAutenticado() {
           <Route path="categorias" element={<CategoriasPage />} />
           <Route path="mesas" element={<MesasPage />} />
           <Route path="estoque" element={<EstoquePage />} />
+          <Route path="reposicao" element={<RequireGestao><ReposicaoPage /></RequireGestao>} />
           <Route path="producao" element={<ProducaoPage />} />
           <Route path="cozinha" element={<CozinhaPage />} />
           <Route path="delivery" element={<DeliveryPage />} />

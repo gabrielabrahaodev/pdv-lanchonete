@@ -248,6 +248,7 @@ class InventoryItemCreate(CamelModel):
     custo_medio: float = Field(default=0, ge=0, allow_inf_nan=False)
     unidade_compra: Optional[str] = None
     fator_compra: Optional[float] = Field(default=None, gt=0, allow_inf_nan=False)
+    fornecedor_id: Optional[str] = Field(default=None, max_length=128)
 
 
 class InventoryItemUpdate(CamelModel):
@@ -258,6 +259,7 @@ class InventoryItemUpdate(CamelModel):
     ativo: Optional[bool] = None
     unidade_compra: Optional[str] = None
     fator_compra: Optional[float] = Field(default=None, gt=0, allow_inf_nan=False)
+    fornecedor_id: Optional[str] = Field(default=None, max_length=128)
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, extra="forbid")
 
 
@@ -404,6 +406,7 @@ class ReportSalesSummary(CamelModel):
 # ---------------------------------------------------------------- Configurações
 class Configuracoes(CamelModel):
     nome: str = ""
+    endereco: str = Field(default="", max_length=500)
     moeda: str = "BRL"
     timezone: str = "America/Sao_Paulo"
     impressora_tipo: str = "bluetooth"
@@ -516,3 +519,25 @@ class ConferenciaReserva(CamelModel):
 class SolicitacaoSeguranca(CamelModel):
     acao: Literal["solicitar_troca_email", "solicitar_troca_senha"]
     model_config = ConfigDict(extra="forbid")
+
+
+# -------------------------------------------------------------- Reposição de estoque
+class ItemReposicao(CamelModel):
+    item_id: str = Field(min_length=1)
+    quantidade: float = Field(gt=0, le=1000000, allow_inf_nan=False)
+
+
+class PedidoReposicaoCreate(CamelModel):
+    fornecedor_id: str = Field(min_length=1)
+    itens: list[ItemReposicao] = Field(min_length=1, max_length=80)
+    mensagem: str = Field(min_length=5, max_length=3500)
+
+
+class ItemRecebimentoReposicao(CamelModel):
+    item_id: str = Field(min_length=1)
+    quantidade: float = Field(gt=0, le=1000000, allow_inf_nan=False)
+    custo_unitario: float = Field(ge=0, le=10000000, allow_inf_nan=False)
+
+
+class ReceberPedidoReposicao(CamelModel):
+    itens: list[ItemRecebimentoReposicao] = Field(min_length=1, max_length=80)

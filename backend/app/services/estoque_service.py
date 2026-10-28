@@ -25,6 +25,14 @@ from app.services.base import (
 
 
 # ------------------------------------------------------------------ itens
+def _validar_fornecedor(rid: str, fornecedor_id: str | None) -> None:
+    if not fornecedor_id:
+        return
+    fornecedor = get_item(rid, 'fornecedores', fornecedor_id)
+    if not fornecedor or fornecedor.get('ativo') is False:
+        raise HTTPException(422, 'Fornecedor não encontrado ou inativo neste restaurante')
+
+
 def listar_itens(restaurant_id: str, *, apenas_alertas: bool = False) -> list[dict]:
     docs = list_items(restaurant_id, "estoque")
     if apenas_alertas:
@@ -62,6 +70,7 @@ def _referencias(t, rid, iid):
     # Fontes históricas legadas também impedem excluir/permutar a unidade.
     lotes = list(t.get(items_col(rid, "lotes_producao")))
     pedidos = list(t.get(items_col(rid, "pedidos")))
+    reposicoes = list(t.get(items_col(rid, "pedidos_reposicao")))
     return any(
         any(i.get("itemId") == iid for i in (l.to_dict() or {}).get("ingredientes", []))
         for l in lotes
@@ -71,6 +80,9 @@ def _referencias(t, rid, iid):
             for i in (p.to_dict() or {}).get("itens", [])
         )
         for p in pedidos
+    ) or any(
+        any(i.get("itemId") == iid for i in (r.to_dict() or {}).get("itens", []))
+        for r in reposicoes
     )
 
 
@@ -100,6 +112,7 @@ def criar_item(
     if data["unidade"] not in UNIDADES:
         raise HTTPException(422, "Unidade de controle inválida")
     _validar_cadastro(data)
+    _validar_fornecedor(restaurant_id, data.get('fornecedorId'))
     ref = items_col(restaurant_id, "estoque").document()
 
     @transactional
@@ -141,6 +154,9 @@ def atualizar_item(
 ) -> dict:
     ref = item_doc(restaurant_id, "estoque", item_id)
     changes = payload.model_dump(by_alias=True, exclude_none=True)
+    # String vazia permite remover o vínculo sem apagar histórico do insumo.
+    if payload.fornecedor_id is not None:
+        changes['fornecedorId'] = payload.fornecedor_id.strip()
 
     @transactional
     def executar(t):
@@ -148,6 +164,10 @@ def atualizar_item(
         if not snap or not snap.exists:
             raise HTTPException(404, "Item não encontrado")
         atual = snap.to_dict() or {}
+        if 'fornecedorId' in changes and changes['fornecedorId']:
+            fornecedor = next(iter(t.get(item_doc(restaurant_id, 'fornecedores', changes['fornecedorId']))), None)
+            if not fornecedor or not fornecedor.exists or (fornecedor.to_dict() or {}).get('ativo') is False:
+                raise HTTPException(422, 'Fornecedor não encontrado ou inativo neste restaurante')
         _validar_cadastro({**atual, **changes})
         if changes.get("unidade", atual["unidade"]) != atual["unidade"]:
             if (
