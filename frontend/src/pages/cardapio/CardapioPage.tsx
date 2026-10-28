@@ -62,16 +62,35 @@ export default function CardapioPage() {
   const [busca, setBusca] = useState('')
   const [categoriaAtiva, setCategoriaAtiva] = useState(TODAS)
   const [produtoDetalhe, setProdutoDetalhe] = useState<Produto | null>(null)
+  const [esperaLonga, setEsperaLonga] = useState(false)
 
   const fecharDetalhe = useCallback(() => setProdutoDetalhe(null), [])
 
   const cardapio = useQuery({
     queryKey: ['cardapio-publico', restaurantId],
-    queryFn: () => apiPublico<CardapioPublico>(`/publico/${restaurantId}/cardapio`),
+    queryFn: async ({ signal }) => {
+      const dados = await apiPublico<CardapioPublico>(
+        `/publico/${encodeURIComponent(restaurantId)}/cardapio`,
+        { signal },
+      )
+      if (!Array.isArray(dados.categorias) || !Array.isArray(dados.produtos)) {
+        throw new Error('O servidor retornou um cardápio inválido. Tente novamente.')
+      }
+      return dados
+    },
     enabled: Boolean(restaurantId),
     staleTime: 60_000,
-    retry: 1,
+    retry: false,
   })
+
+  useEffect(() => {
+    if (!cardapio.isLoading) {
+      setEsperaLonga(false)
+      return
+    }
+    const timer = setTimeout(() => setEsperaLonga(true), 9_000)
+    return () => clearTimeout(timer)
+  }, [cardapio.isLoading])
 
   const categorias = useMemo(() => {
     const produtos = cardapio.data?.produtos ?? []
@@ -208,10 +227,18 @@ export default function CardapioPage() {
         </div>
 
         {cardapio.isLoading && (
-          <div role="status" aria-label="Carregando cardápio" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[0, 1, 2, 3, 4, 5].map((n) => (
-              <div key={n} className="h-36 animate-pulse rounded-2xl bg-orange-100/70 sm:h-72 dark:bg-slate-800" />
-            ))}
+          <div role="status" aria-label="Carregando cardápio">
+            {esperaLonga && (
+              <p className="mb-5 rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 text-sm leading-6 text-orange-900 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-100">
+                Estamos conectando ao cardápio. O servidor pode estar iniciando e a primeira consulta pode demorar.
+                Se não carregar, você poderá tentar novamente sem precisar abrir outro QR Code.
+              </p>
+            )}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2, 3, 4, 5].map((n) => (
+                <div key={n} className="h-36 animate-pulse rounded-2xl bg-orange-100/70 sm:h-72 dark:bg-slate-800" />
+              ))}
+            </div>
             <span className="sr-only">Carregando o cardápio…</span>
           </div>
         )}
@@ -220,7 +247,7 @@ export default function CardapioPage() {
             <BookOpenText className="mx-auto h-10 w-10 text-orange-500" aria-hidden="true" />
             <h3 className="mt-3 text-lg font-extrabold">Não foi possível abrir o cardápio</h3>
             <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              Tente novamente em instantes ou peça ajuda ao atendente.
+              {cardapio.error instanceof Error ? cardapio.error.message : 'Tente novamente em instantes ou peça ajuda ao atendente.'}
             </p>
             <button type="button" onClick={() => void cardapio.refetch()} className="mt-5 min-h-11 rounded-xl bg-orange-500 px-5 text-sm font-bold text-white hover:bg-orange-600">
               Tentar novamente

@@ -1,8 +1,8 @@
-import { API_BASE } from './api'
+import { API_PUBLICA_BASE } from './apiPublico'
 
 /** URL pública dos bytes da foto (funciona em <img> sem Authorization). */
 export function urlImagemProduto(restaurantId: string, produtoId: string): string {
-  return `${API_BASE}/api/publico/${restaurantId}/imagens/${produtoId}`
+  return `${API_PUBLICA_BASE}/api/publico/${restaurantId}/imagens/${produtoId}`
 }
 
 const LADO_MAX = 900
