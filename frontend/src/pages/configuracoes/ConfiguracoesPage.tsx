@@ -211,6 +211,14 @@ function ConfigForm({ initial }: { initial: ConfigType }) {
           onChange={(e) => setForm({ ...form, nome: e.target.value })}
         />
       </Field>
+      <Field label="Endereço de entrega do restaurante" hint="Utilizado nos pedidos de reposição enviados aos fornecedores. Informe rua, número, bairro, cidade e CEP.">
+        <Input
+          value={form.endereco ?? ''}
+          maxLength={500}
+          placeholder="Rua, número, bairro, cidade - UF, CEP"
+          onChange={(e) => setForm({ ...form, endereco: e.target.value })}
+        />
+      </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Moeda">
           <Input value={form.moeda} disabled />
