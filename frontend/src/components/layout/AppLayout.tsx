@@ -8,6 +8,7 @@ import {
   FolderOpen,
   Menu,
   Package,
+  ClipboardList,
   Sandwich,
   Satellite,
   Settings,
@@ -30,6 +31,7 @@ const NAV: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/categorias', label: 'Categorias', icon: <FolderOpen className="h-5 w-5" aria-hidden="true" /> },
   { to: '/producao', label: 'Produção e Estufa', icon: <ChefHat className="h-5 w-5" aria-hidden="true" /> },
   { to: '/estoque', label: 'Estoque', icon: <Package className="h-5 w-5" aria-hidden="true" /> },
+  { to: '/reposicao', label: 'Reposição', icon: <ClipboardList className="h-5 w-5" aria-hidden="true" /> },
   { to: '/cozinha', label: 'Cozinha (KDS)', icon: <ChefHat className="h-5 w-5" aria-hidden="true" /> },
   { to: '/delivery', label: 'Delivery', icon: <Bike className="h-5 w-5" aria-hidden="true" /> },
   { to: '/relatorios', label: 'Relatórios', icon: <ChartColumn className="h-5 w-5" aria-hidden="true" /> },
@@ -140,7 +142,9 @@ export default function AppLayout() {
         </div>
 
         <nav aria-label="Navegação principal" className="flex-1 space-y-1 overflow-y-auto p-2">
-          {NAV.filter((item) => !['/financeiro', '/relatorios'].includes(item.to) || ['admin', 'gerente', 'caixa'].includes(me?.papel ?? '')).map((item) => (
+          {NAV.filter((item) => item.to === '/reposicao'
+            ? ['admin', 'gerente'].includes(me?.papel ?? '')
+            : !['/financeiro', '/relatorios'].includes(item.to) || ['admin', 'gerente', 'caixa'].includes(me?.papel ?? '')).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
