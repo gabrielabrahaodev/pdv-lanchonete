@@ -85,9 +85,14 @@ export default function ReposicaoPage() {
         saiu.current = false
       }
     }
+    const onBlur = () => {
+      if (pendente.current) saiu.current = true
+    }
+    window.addEventListener('blur', onBlur)
     window.addEventListener('focus', onFocus)
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
+      window.removeEventListener('blur', onBlur)
       window.removeEventListener('focus', onFocus)
       document.removeEventListener('visibilitychange', onVisibility)
     }
@@ -140,16 +145,22 @@ export default function ReposicaoPage() {
       setErro('Telefone do fornecedor inválido. Cadastre um número brasileiro com DDD no Financeiro.')
       return
     }
-    const janela = window.open(url, '_blank')
-    if (!janela) { setErro('O navegador bloqueou o WhatsApp. Permita pop-ups e tente novamente.'); return }
-    janela.opener = null
     const registro = {
       fornecedorId: grupo.fornecedorId, fornecedorNome: grupo.fornecedorNome,
       mensagem, itens: itens.map(({ itemId, quantidade }) => ({ itemId, quantidade })),
     }
+    // Registrar antes da abertura para não perder o blur/visibilitychange do
+    // aplicativo WhatsApp (especialmente no Android e iOS).
     pendente.current = registro
     saiu.current = false
     try { sessionStorage.setItem(chave, JSON.stringify(registro)) } catch { /* resta na memória */ }
+    const janela = window.open(url, '_blank')
+    if (!janela) {
+      limparPendente()
+      setErro('O navegador bloqueou o WhatsApp. Permita pop-ups e tente novamente.')
+      return
+    }
+    janela.opener = null
   }
 
   const contagemGerados = (pedidos.data ?? []).filter(p => p.status === 'gerado').length
