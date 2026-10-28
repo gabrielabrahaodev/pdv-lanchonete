@@ -147,6 +147,9 @@ export interface StockMovement {
   qtd: number
   saldoApos?: number
   observacao?: string | null
+  dataMovimentacao?: string
+  pedidoReposicaoId?: string
+  despesaId?: string
   usuarioId: string
   criadoEm: string
 }
@@ -302,6 +305,10 @@ export interface PedidoReposicao {
   itens: ItemReposicao[]
   criadoEm: string
   recebidoEm?: string
+  dataRecebimento?: string
+  dataRecebimentoLocal?: string
+  despesaId?: string
+  valorTotalRecebido?: number
   recebimento?: Array<{ itemId: string; quantidade: number; custoUnitario: number; valorTotal: number }>
 }
 
