@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import {
   VALIDADE_CACHE_CARDAPIO_MS as TTL,
   cardapioValido,
+  dividirNomeRestaurante,
   lerCacheCardapio,
   salvarCacheCardapio,
 } from '../.test-build/cardapioCache.js'
@@ -76,4 +77,24 @@ test('cardapio guarda somente dados publicos e nao tem estado de login', () => {
   assert.match(pagina, /salvarCacheCardapio\(restaurantId, dados\)/)
   assert.match(pagina, /lerCacheCardapio\(restaurantId\)/)
   assert.doesNotMatch(pagina, /useAuth\(|Authorization|\/auth\/me/)
+})
+
+test('nome do restaurante é opcional na API antiga e respeita o tenant', () => {
+  assert.equal(cardapioValido(exemplo), true)
+  assert.equal(cardapioValido({ ...exemplo, restauranteNome: 'Café Anis' }), true)
+  assert.equal(cardapioValido({ ...exemplo, restauranteNome: { privado: true } }), false)
+
+  memoria()
+  salvarCacheCardapio('anis', { ...exemplo, restauranteNome: 'Café Anis' }, 100_000)
+  salvarCacheCardapio('outro', { ...exemplo, restauranteNome: 'Bistrô Central' }, 100_000)
+  assert.equal(lerCacheCardapio('anis', 100_001)?.data.restauranteNome, 'Café Anis')
+  assert.equal(lerCacheCardapio('outro', 100_001)?.data.restauranteNome, 'Bistrô Central')
+  delete globalThis.sessionStorage
+})
+
+test('nome do restaurante usa tipografia com última palavra destacada', () => {
+  assert.deepEqual(dividirNomeRestaurante('Café Anis'), { inicio: 'Café', destaque: 'Anis' })
+  assert.deepEqual(dividirNomeRestaurante('  Padaria do Centro  '), { inicio: 'Padaria do', destaque: 'Centro' })
+  assert.deepEqual(dividirNomeRestaurante('Bistrô'), { inicio: 'Bistrô', destaque: '' })
+  assert.deepEqual(dividirNomeRestaurante('   '), { inicio: '', destaque: '' })
 })
