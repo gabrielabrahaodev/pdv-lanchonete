@@ -535,8 +535,14 @@ class PedidoReposicaoCreate(CamelModel):
 
 class ItemRecebimentoReposicao(CamelModel):
     item_id: str = Field(min_length=1)
-    quantidade: float = Field(gt=0, le=1000000, allow_inf_nan=False)
-    custo_unitario: float = Field(ge=0, le=10000000, allow_inf_nan=False)
+    # Campos antigos mantidos para compatibilidade dos clientes anteriores.
+    quantidade: Optional[float] = Field(default=None, gt=0, le=1000000, allow_inf_nan=False)
+    custo_unitario: Optional[float] = Field(default=None, ge=0, le=10000000, allow_inf_nan=False)
+    # Contrato novo: o operador digita quantidade na unidade comercial e
+    # valor total da linha (centavos), sem cadastrar o preço por grama.
+    quantidade_compra: Optional[float] = Field(default=None, gt=0, le=1000000, allow_inf_nan=False)
+    unidade_compra: Optional[str] = None
+    valor_total_compra: Optional[float] = Field(default=None, gt=0, le=100000000, allow_inf_nan=False)
 
 
 class ReceberPedidoReposicao(CamelModel):
