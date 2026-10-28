@@ -450,9 +450,14 @@ function Cadastro({
     const anterior = { unidade: form.unidade, unidadeCompra: form.unidadeCompra, fatorCompra: numeroDecimal(form.fatorCompra) }
     const custoAtual = custoPorUnidadeControle(numeroDecimal(form.custoMedio), unidadeReferencia(anterior), anterior)
     const proximo = { ...form, ...modificacoes }
+    const conversaoControle = converterQuantidade(1, anterior.unidade, proximo.unidade)
+    // Alterar g ↔ kg ou ml ↔ L precisa converter também o custo unitário.
+    // Unidades incompatíveis não devem herdar um preço incorreto.
+    const custoConvertido = custoAtual == null || conversaoControle === null || conversaoControle <= 0
+      ? 0 : custoAtual / conversaoControle
     const refProxima = {
       unidade: proximo.unidade, unidadeCompra: proximo.unidadeCompra,
-      fatorCompra: numeroDecimal(proximo.fatorCompra), custoMedio: custoAtual ?? 0,
+      fatorCompra: numeroDecimal(proximo.fatorCompra), custoMedio: custoConvertido,
     }
     const ref = precoPorReferencia(refProxima)
     setForm({ ...proximo, custoMedio: ref == null ? form.custoMedio : String(ref) })
