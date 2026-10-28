@@ -188,6 +188,14 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
             if item.get('unidade') != salvo.get('unidade'):
                 raise HTTPException(409, 'Unidade do insumo mudou após gerar pedido')
             linha = linhas[salvo['itemId']]
+            # Pedidos novos guardam o fator original de cada embalagem.
+            # Se o fator foi alterado, não receber caixas com conversão diferente
+            # da exibida ao operador: exigir correção do cadastro antes.
+            if (linha.valor_total_compra is not None and linha.unidade_compra in ('cx', 'pct')
+                    and 'fatorCompra' in salvo
+                    and (salvo.get('unidadeCompra') != item.get('unidadeCompra')
+                         or salvo.get('fatorCompra') != item.get('fatorCompra'))):
+                raise HTTPException(409, 'A configuração da embalagem mudou após gerar o pedido. Revise antes de receber')
             saldo = Decimal(str(item.get('quantidadeAtual', 0)))
             custo_anterior = Decimal(str(item.get('custoMedio', 0)))
             if linha.valor_total_compra is not None:
