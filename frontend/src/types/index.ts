@@ -289,6 +289,8 @@ export interface ItemReposicao {
   itemId: string
   nome: string
   unidade: string
+  unidadeCompra?: string
+  fatorCompra?: number | null
   quantidade: number
   custoUnitarioPrevisto: number
   saldoNaSolicitacao?: number
