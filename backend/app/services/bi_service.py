@@ -20,6 +20,27 @@ def invalidar(rid):
                 del _CACHE[key]
 
 
+def indicadores(atual, anterior, rows, coberta):
+    receita=atual['receita']
+    completa=atual['biVendas']==atual['vendas'] and all(r['estadoCusto']=='conhecido' for r in rows)
+    custo=atual['cmvConhecido']
+    bruto=receita-custo if completa and custo is not None else None
+    alertas=[]
+    if atual['variacaoPercentual'] is not None and atual['variacaoPercentual']<0:
+        alertas.append('Receita menor que a do período anterior de mesma duração.')
+    if not completa:alertas.append('Custos ou vendas sem cobertura completa: resultado gerencial indisponível.')
+    abaixo=sum(any('abaixo da meta' in a for a in r['alertas']) for r in rows)
+    if abaixo:alertas.append(f'{abaixo} produto(s) com margem abaixo da meta registrada.')
+    return {'coberturaCompleta':completa, 'lucroBruto':bruto,
+        'margemBruta':bruto/receita*100 if bruto is not None and receita else None,
+        'margemCoberta':(coberta-custo)/coberta*100 if coberta and custo is not None else None,
+        'cmvPercentual':custo/receita*100 if completa and custo is not None and receita else None,
+        'operacionaisPercentual':atual['operacionais']/receita*100 if receita else None,
+        'coberturaReceitaPercentual':coberta/receita*100 if receita else None,
+        'variacaoDespesasPercentual':(atual['operacionais']-anterior['operacionais'])/anterior['operacionais']*100 if anterior['operacionais'] else None,
+        'alertas':alertas}
+
+
 def periodo(inicio, fim):
     if fim < inicio or (fim-inicio).days > 365:
         raise HTTPException(422, 'Período deve ter entre 1 e 366 dias')
@@ -161,6 +182,7 @@ def painel(rid, papel, inicio, fim, horizonte=7):
     value=json_num({'inicio':inicio.isoformat(),'fim':fim.isoformat(),'atual':atual,'anterior':anterior,'produtos':rows,'evolucao':diario,
         'variacoes':produtos(atuais.values(), variacao='*'),
         'cobertura':{'vendasComBI':atual['biVendas'],'vendasTotais':atual['vendas'],'primeiraColetaNoPeriodo':min(primeiras) if primeiras else None,'diasComAgregado':len(atuais),'diasSolicitados':n},
+        'indicadores':indicadores(atual,anterior,rows,coberta),
         'previsao':prever(docs,fim,horizonte),
         'limitacoes':['Resultado gerencial não é lucro contábil. Impostos e taxas não alocados não foram deduzidos.','Compras de insumos são separadas do CMV para evitar dupla dedução.','Histórico anterior sem snapshots não é reconstruído. Dados podem ter até 30 segundos de cache.','Fluxo de caixa completo indisponível: saldo bancário e todas as saídas não são conciliados.'],
         'leiturasEstimadasMaximas':(fim-primeiro).days+1})
@@ -173,7 +195,23 @@ def painel(rid, papel, inicio, fim, horizonte=7):
 def contas(rid):
     snaps=list(items_col(rid,'despesas').where('status','==','pendente').limit(201).stream())
     docs=[doc_to_dict(s) for s in snaps[:200]]
-    return {'items':docs,'incompleto':len(snaps)>200,'limite':200}
+    from zoneinfo import ZoneInfo
+    from app.core.config import settings
+    hoje=datetime.now(ZoneInfo(settings.timezone)).date()
+    resumo={'total':0,'vencidas':0,'semVencimento':0,'quantidadeVencidas':0,'aVencer7':0,'aVencer30':0,'aVencer90':0}
+    for doc in docs:
+        valor=decimal(doc.get('valor',0)); resumo['total']+=valor
+        v=doc.get('vencimento')
+        if isinstance(v,datetime):v=v.astimezone(ZoneInfo(settings.timezone)).date()
+        elif isinstance(v,str):v=date.fromisoformat(v[:10])
+        else:v=None
+        if v is None:resumo['semVencimento']+=valor
+        elif v<hoje:
+            resumo['vencidas']+=valor;resumo['quantidadeVencidas']+=1
+        else:
+            for n in (7,30,90):
+                if v<=hoje+timedelta(days=n):resumo[f'aVencer{n}']+=valor
+    return {'items':docs,'resumo':json_num(resumo),'incompleto':len(snaps)>200,'limite':200,'dataReferencia':hoje.isoformat()}
 
 
 def produto_evolucao(rid,inicio,fim,pid,variacao=None,papel="financeiro"):
