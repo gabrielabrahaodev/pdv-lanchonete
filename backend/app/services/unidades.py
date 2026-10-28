@@ -48,3 +48,28 @@ def quantidade_controle(qtd, origem, item):
             "Quantidade convertida excede a precisão de 0,001 da unidade de controle",
         )
     return float(arredondado)
+
+
+def custo_medio_entrada(saldo_atual, custo_atual, quantidade_controle_recebida, valor_total_compra):
+    """Média ponderada em unidade de CONTROLE, a partir do valor total em reais.
+
+    Não arredonda o custo por grama antes da média. Moeda da compra exige
+    centavos; custo armazenado permite oito casas decimais.
+    """
+    saldo = Decimal(str(saldo_atual))
+    custo = Decimal(str(custo_atual))
+    qtd = Decimal(str(quantidade_controle_recebida))
+    total = Decimal(str(valor_total_compra))
+    if any(not x.is_finite() for x in (saldo, custo, qtd, total)):
+        raise HTTPException(422, "Quantidade ou valor inválido")
+    if qtd <= 0 or custo < 0 or total <= 0:
+        raise HTTPException(422, "Compra exige quantidade e valor total positivos")
+    if total != total.quantize(Decimal("0.01")):
+        raise HTTPException(422, "Valor total da compra deve ter no máximo dois decimais")
+    base = max(saldo, Decimal(0))
+    resultado = ((base * custo + total) / (base + qtd)).quantize(
+        Decimal("0.00000001"), rounding=ROUND_HALF_UP
+    )
+    if resultado <= 0:
+        raise HTTPException(422, "Custo muito pequeno para a precisão do estoque")
+    return float(resultado)

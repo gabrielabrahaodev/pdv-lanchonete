@@ -26,6 +26,7 @@ import {
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl, dataHora, custoUnitario } from '../../lib/format'
 import { numeroDecimal } from '../../lib/precificacao'
+import { custoPorUnidadeControle, precoPorReferencia, unidadeReferencia, formatarPrecoReferencia, simularCompra, converterCustoControle } from '../../lib/custosInsumos'
 import {
   converterQuantidade,
   UNIDADES,
@@ -257,11 +258,7 @@ export default function EstoquePage() {
                       {i.minimo} {i.unidade}
                     </td>
                     <td className="whitespace-nowrap px-3 py-2">
-                      {custoUnitario(i.custoMedio)}
-                      <span className="text-xs text-slate-500">
-                        {' '}
-                        / {i.unidade}
-                      </span>
+                      {formatarPrecoReferencia(i)}
                     </td>
                     <td className="px-2 py-1">{acoes(i)}</td>
                   </tr>
@@ -304,7 +301,7 @@ export default function EstoquePage() {
                     Mín.: {i.minimo} {i.unidade}
                   </span>
                   <span>
-                    Custo: {custoUnitario(i.custoMedio)} / {i.unidade}
+                    Custo: {formatarPrecoReferencia(i)}
                   </span>
                 </p>
                 <div className="mt-1">{acoes(i, true)}</div>
@@ -421,13 +418,14 @@ function Cadastro({
     fornecedorId: item?.fornecedorId ?? '',
     unidade: item?.unidade ?? 'un',
     minimo: String(item?.minimo ?? 0),
-    custoMedio: String(item?.custoMedio ?? 0),
+    custoMedio: String(item ? precoPorReferencia(item) ?? 0 : 0),
     quantidadeAtual: '0',
     unidadeCompra: item?.unidadeCompra ?? item?.unidade ?? 'un',
     fatorCompra: String(item?.fatorCompra ?? 1),
   })
   const [erro, setErro] = useState('')
   const qc = useQueryClient()
+  // Formulário edita preço de referência comercial, nunca o custo pequeno por g.
   const [novoFornecedor, setNovoFornecedor] = useState(false)
   const [fornecedorForm, setFornecedorForm] = useState({ nome: '', telefone: '' })
   const [cadastrado, setCadastrado] = useState<Fornecedor | null>(null)
@@ -448,6 +446,26 @@ function Cadastro({
     },
     onError: (e) => setErro(e instanceof Error ? e.message : 'Não foi possível cadastrar o fornecedor'),
   })
+  function alterarUnidades(modificacoes: Partial<typeof form>) {
+    const anterior = { unidade: form.unidade, unidadeCompra: form.unidadeCompra, fatorCompra: numeroDecimal(form.fatorCompra) }
+    const custoAtual = custoPorUnidadeControle(numeroDecimal(form.custoMedio), unidadeReferencia(anterior), anterior)
+    const proximo = { ...form, ...modificacoes }
+    // Converter também o custo na troca g ↔ kg ou ml ↔ L.
+    // Não aproveitar preço de unidades incompatíveis.
+    const custoConvertido = custoAtual == null
+      ? 0 : converterCustoControle(custoAtual, anterior.unidade, proximo.unidade) ?? 0
+    const refProxima = {
+      unidade: proximo.unidade, unidadeCompra: proximo.unidadeCompra,
+      fatorCompra: numeroDecimal(proximo.fatorCompra), custoMedio: custoConvertido,
+    }
+    const ref = precoPorReferencia(refProxima)
+    setForm({ ...proximo, custoMedio: ref == null ? form.custoMedio : String(ref) })
+  }
+  const unidadeAtual = {
+    unidade: form.unidade, unidadeCompra: form.unidadeCompra,
+    fatorCompra: numeroDecimal(form.fatorCompra),
+  }
+  const custoInterno = custoPorUnidadeControle(numeroDecimal(form.custoMedio), unidadeReferencia(unidadeAtual), unidadeAtual)
   const salvar = useMutation({
     mutationFn: () =>
       api(item ? `/estoque/itens/${item.id}` : '/estoque/itens', {
@@ -457,7 +475,7 @@ function Cadastro({
           fornecedorId: form.fornecedorId,
           unidade: form.unidade,
           minimo: numeroDecimal(form.minimo),
-          custoMedio: numeroDecimal(form.custoMedio),
+          custoMedio: custoInterno,
           unidadeCompra: form.unidadeCompra,
           fatorCompra: numeroDecimal(form.fatorCompra),
           ...(!item
@@ -534,8 +552,7 @@ function Cadastro({
             <Select
               value={form.unidade}
               onChange={(e) =>
-                setForm({
-                  ...form,
+                alterarUnidades({
                   unidade: e.target.value,
                   ...(!item ? { unidadeCompra: e.target.value } : {}),
                 })
@@ -554,8 +571,8 @@ function Cadastro({
             />
           </Field>
           <Field
-            label={`Custo por ${form.unidade} (R$)`}
-            hint="Correções são registradas no histórico. Compras recalculam o custo médio."
+            label={`Preço de referência (R$ / ${unidadeReferencia(unidadeAtual)})`}
+            hint="Informe valor por kg, litro, unidade ou embalagem. O sistema guarda automaticamente o custo proporcional por grama ou ml."
           >
             <Input
               inputMode="decimal"
@@ -563,6 +580,12 @@ function Cadastro({
               onChange={(e) => setForm({ ...form, custoMedio: e.target.value })}
             />
           </Field>
+          {custoInterno != null && Number.isFinite(custoInterno) && (
+            <p className="text-xs text-slate-500 sm:col-span-2">
+              Referência: {formatarPrecoReferencia({ ...unidadeAtual, custoMedio: custoInterno })}
+              {['g', 'ml'].includes(form.unidade) && ' · Custo proporcional detalhado é calculado internamente.'}
+            </p>
+          )}
           {!item && (
             <Field label="Saldo inicial">
               <Input
@@ -578,7 +601,7 @@ function Cadastro({
             <Select
               value={form.unidadeCompra}
               onChange={(e) =>
-                setForm({ ...form, unidadeCompra: e.target.value })
+                alterarUnidades({ unidadeCompra: e.target.value })
               }
             >
               {UNIDADES.map((u) => (
@@ -594,7 +617,7 @@ function Cadastro({
                 inputMode="decimal"
                 value={form.fatorCompra}
                 onChange={(e) =>
-                  setForm({ ...form, fatorCompra: e.target.value })
+                  alterarUnidades({ fatorCompra: e.target.value })
                 }
               />
             </Field>
@@ -609,6 +632,7 @@ function Cadastro({
           loading={salvar.isPending}
           disabled={
             !form.nome.trim() ||
+            custoInterno === null || !Number.isFinite(custoInterno) ||
             ![
               form.minimo,
               form.custoMedio,
@@ -667,6 +691,9 @@ function Movimentar({
     item.unidadeCompra,
     item.fatorCompra,
   )
+  const simulacao = tipo === 'entrada'
+    ? simularCompra(item, numeroDecimal(qtd), unidade, numeroDecimal(valor))
+    : null
   const salvar = useMutation({
     mutationFn: () =>
       api('/estoque/movimentacoes', {
@@ -762,9 +789,9 @@ function Movimentar({
             convertido > 0 && (
               <>
                 <br />
-                Custo desta compra: {brl(
-                  numeroDecimal(valor) / convertido,
-                )} / {item.unidade}
+                Preço da compra: {simulacao
+                  ? formatarPrecoReferencia({ ...item, custoMedio: simulacao.custoPorControle })
+                  : 'Valor inválido'}
               </>
             )}
         </p>

@@ -16,6 +16,7 @@ from app.models.models import PedidoReposicaoCreate, ReceberPedidoReposicao
 from app.core.config import settings
 from app.services import agregados_service
 from app.services import base
+from app.services.unidades import quantidade_controle, custo_medio_entrada
 from app.services.base import (
     config_doc, executar_transacao, get_item, item_doc, items_col,
     list_items, stamp_create, stamp_update,
@@ -67,6 +68,8 @@ def candidatos(rid: str) -> list[dict]:
             'itemId': item['id'],
             'nome': item.get('nome', ''),
             'unidade': item.get('unidade', 'un'),
+            'unidadeCompra': item.get('unidadeCompra') or item.get('unidade', 'un'),
+            'fatorCompra': item.get('fatorCompra'),
             'saldo': item.get('quantidadeAtual', 0),
             'minimo': item.get('minimo', 0),
             'custoMedio': item.get('custoMedio', 0),
@@ -107,6 +110,8 @@ def criar(rid: str, uid: str, payload: PedidoReposicaoCreate) -> dict:
             itens.append({
                 'itemId': linha.item_id, 'nome': data['nome'],
                 'unidade': data['unidade'], 'quantidade': linha.quantidade,
+                'unidadeCompra': data.get('unidadeCompra') or data['unidade'],
+                'fatorCompra': data.get('fatorCompra'),
                 'custoUnitarioPrevisto': data.get('custoMedio', 0),
                 'saldoNaSolicitacao': data.get('quantidadeAtual', 0),
             })
@@ -183,24 +188,47 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
             if item.get('unidade') != salvo.get('unidade'):
                 raise HTTPException(409, 'Unidade do insumo mudou após gerar pedido')
             linha = linhas[salvo['itemId']]
-            qtd = Decimal(str(linha.quantidade))
-            custo_unit = Decimal(str(linha.custo_unitario))
+            # Pedidos novos guardam o fator original de cada embalagem.
+            # Se o fator foi alterado, não receber caixas com conversão diferente
+            # da exibida ao operador: exigir correção do cadastro antes.
+            if (linha.valor_total_compra is not None and linha.unidade_compra in ('cx', 'pct')
+                    and 'fatorCompra' in salvo
+                    and (salvo.get('unidadeCompra') != item.get('unidadeCompra')
+                         or salvo.get('fatorCompra') != item.get('fatorCompra'))):
+                raise HTTPException(409, 'A configuração da embalagem mudou após gerar o pedido. Revise antes de receber')
             saldo = Decimal(str(item.get('quantidadeAtual', 0)))
             custo_anterior = Decimal(str(item.get('custoMedio', 0)))
-            base_valorizada = max(saldo, Decimal(0))
-            novo_custo = ((base_valorizada * custo_anterior + qtd * custo_unit) /
-                         (base_valorizada + qtd)).quantize(Decimal('0.00000001'), rounding=ROUND_HALF_UP)
+            if linha.valor_total_compra is not None:
+                # Entrada nova: custo em REAIS pela compra completa.
+                if (linha.quantidade is not None or linha.custo_unitario is not None
+                        or linha.quantidade_compra is None or not linha.unidade_compra):
+                    raise HTTPException(422, 'Informe quantidade, unidade e valor total da compra, sem custo por grama')
+                compra_qtd = linha.quantidade_compra
+                compra_unidade = linha.unidade_compra
+                qtd = Decimal(str(quantidade_controle(compra_qtd, compra_unidade, item)))
+                total = Decimal(str(linha.valor_total_compra))
+                novo_custo = custo_medio_entrada(saldo, custo_anterior, qtd, total)
+                custo_unit = total / qtd
+            else:
+                # Compatibilidade: pedidos recebidos por clientes antigos.
+                if (linha.quantidade is None or linha.custo_unitario is None
+                        or linha.quantidade_compra is not None or linha.unidade_compra is not None):
+                    raise HTTPException(422, 'Dados de compra incompletos')
+                qtd = Decimal(str(linha.quantidade))
+                custo_unit = Decimal(str(linha.custo_unitario))
+                compra_qtd = linha.quantidade
+                compra_unidade = item['unidade']
+                total = (qtd * custo_unit).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                base_valorizada = max(saldo, Decimal(0))
+                novo_custo = float(((base_valorizada * custo_anterior + qtd * custo_unit) /
+                                   (base_valorizada + qtd)).quantize(Decimal('0.00000001'), rounding=ROUND_HALF_UP))
             novo_saldo = round(float(saldo + qtd), 3)
-            updates.append((salvo, item_ref, item, linha, novo_saldo, float(novo_custo)))
+            updates.append((salvo, item_ref, item, novo_saldo, novo_custo,
+                            qtd, total, compra_qtd, compra_unidade, custo_unit))
 
-        # Total monetário por linha (arredondamento decimal a centavos).
-        # O lançamento de débito exige ao menos um item com valor positivo.
-        total_despesa = sum(
-            (
-                Decimal(str(linha.quantidade)) * Decimal(str(linha.custo_unitario))
-            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            for _, _, _, linha, _, _ in updates
-        )
+        # Valor total REAL da compra gera débito no Financeiro, sem arredondar
+        # primeiro o custo por g/ml (que pode ser menor que um centavo).
+        total_despesa = sum((u[6] for u in updates), Decimal(0))
         if total_despesa <= 0:
             raise HTTPException(422, 'Informe um custo positivo para gerar a despesa do recebimento')
         dados_despesa = {
@@ -222,16 +250,13 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
 
         # Transação única: entradas, média ponderada, pedido e despesa.
         recebidos = []
-        for salvo, item_ref, item, linha, saldo, custo in updates:
+        for salvo, item_ref, item, saldo, custo, qtd, total, compra_qtd, compra_unidade, custo_unit in updates:
             mov_ref = items_col(rid, 'movimentacoes_estoque').document()
-            total = float((
-                Decimal(str(linha.quantidade)) * Decimal(str(linha.custo_unitario))
-            ).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
             t.set(mov_ref, stamp_create({
-                'tipo': 'entrada', 'itemId': salvo['itemId'], 'qtd': linha.quantidade,
+                'tipo': 'entrada', 'itemId': salvo['itemId'], 'qtd': float(qtd),
                 'saldoApos': saldo, 'unidade': item['unidade'],
-                'quantidadeCompra': linha.quantidade, 'unidadeCompra': item['unidade'],
-                'valorTotalCompra': total, 'custoUnitario': item.get('custoMedio', 0),
+                'quantidadeCompra': compra_qtd, 'unidadeCompra': compra_unidade,
+                'valorTotalCompra': float(total), 'custoUnitario': item.get('custoMedio', 0),
                 'custoMedioApos': custo, 'usuarioId': uid, 'restaurantId': rid,
                 'pedidoReposicaoId': pedido_id,
                 'despesaId': despesa_ref.id, 'dataMovimentacao': competencia,
@@ -240,8 +265,9 @@ def receber(rid: str, uid: str, pedido_id: str, payload: ReceberPedidoReposicao)
             t.update(item_ref, stamp_update({'quantidadeAtual': saldo, 'custoMedio': custo}))
             recebidos.append({
                 'itemId': salvo['itemId'], 'nome': salvo['nome'],
-                'unidade': item['unidade'], 'quantidade': linha.quantidade,
-                'custoUnitario': linha.custo_unitario, 'valorTotal': total,
+                'unidade': item['unidade'], 'quantidade': float(qtd),
+                'quantidadeCompra': compra_qtd, 'unidadeCompra': compra_unidade,
+                'custoUnitario': float(custo_unit), 'valorTotal': float(total),
                 'movimentacaoId': mov_ref.id,
             })
         t.set(despesa_ref, stamp_create(dados_despesa))

@@ -7,7 +7,7 @@ import hashlib
 import json
 from decimal import Decimal, ROUND_HALF_UP
 from fastapi import HTTPException
-from app.services.unidades import UNIDADES, quantidade_controle, converter
+from app.services.unidades import UNIDADES, quantidade_controle, converter, custo_medio_entrada
 from google.cloud.firestore import transactional
 
 from app.core.firebase import get_db
@@ -266,16 +266,9 @@ def registrar_movimentacao(
         custo = float(item.get("custoMedio", 0))
         novo_custo = custo
         if payload.valor_total_compra is not None:
-            # Saldo negativo não representa estoque com valor disponível.
-            base = max(Decimal(str(atual)), Decimal(0))
-            novo_custo = float(
-                (
-                    (
-                        base * Decimal(str(custo))
-                        + Decimal(str(payload.valor_total_compra))
-                    )
-                    / (base + Decimal(str(qtd)))
-                ).quantize(Decimal("0.00000001"), rounding=ROUND_HALF_UP)
+            # Preço de compra = valor TOTAL, nunca custo arredondado por g/ml.
+            novo_custo = custo_medio_entrada(
+                atual, custo, qtd, payload.valor_total_compra
             )
 
         if payload.tipo == "entrada":
