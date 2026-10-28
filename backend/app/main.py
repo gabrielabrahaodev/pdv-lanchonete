@@ -4,6 +4,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 
 import logging
+import os
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -121,7 +122,7 @@ app.include_router(bi.router, prefix='/api')
 def health() -> dict:
     """LIVENESS — nunca toca o Firestore (não derruba o serviço em queda
     temporária da dependência). Verificação de dependência: use /ready."""
-    return {"status": "ok", "project": settings.project_id}
+    return {"status": "ok", "project": settings.project_id, "commit": os.environ.get("RENDER_GIT_COMMIT")}
 
 
 @app.api_route("/ready", methods=["GET", "HEAD"], tags=["meta"])
