@@ -61,7 +61,7 @@ def candidatos(rid: str) -> list[dict]:
         grupo = agrupados.setdefault(fid, {
             'fornecedorId': fid,
             'fornecedorNome': fornecedor.get('nome', ''),
-            'telefone': fornecedor.get('telefone') or '',
+            'telefone': fornecedor.get('whatsapp') or fornecedor.get('telefone') or '',
             'itens': [],
         })
         grupo['itens'].append({
@@ -119,7 +119,7 @@ def criar(rid: str, uid: str, payload: PedidoReposicaoCreate) -> dict:
         t.set(ref, stamp_create({
             'restaurantId': rid, 'fornecedorId': payload.fornecedor_id,
             'fornecedorNome': (fornecedor.to_dict() or {}).get('nome', ''),
-            'telefone': (fornecedor.to_dict() or {}).get('telefone') or '',
+            'telefone': (fornecedor.to_dict() or {}).get('whatsapp') or (fornecedor.to_dict() or {}).get('telefone') or '',
             'enderecoEntrega': endereco,
             'mensagem': payload.mensagem, 'itens': itens, 'status': 'gerado',
             'usuarioId': uid, 'origem': 'whatsapp_nao_confirmado',

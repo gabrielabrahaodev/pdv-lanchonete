@@ -35,6 +35,7 @@ const NAV: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/cozinha', label: 'Cozinha (KDS)', icon: <ChefHat className="h-5 w-5" aria-hidden="true" /> },
   { to: '/delivery', label: 'Delivery', icon: <Bike className="h-5 w-5" aria-hidden="true" /> },
   { to: '/relatorios', label: 'Relatórios', icon: <ChartColumn className="h-5 w-5" aria-hidden="true" /> },
+  { to: '/fornecedores', label: 'Fornecedores', icon: <Wallet className="h-5 w-5" aria-hidden="true" /> },
   { to: '/financeiro', label: 'Financeiro', icon: <Wallet className="h-5 w-5" aria-hidden="true" /> },
   { to: '/minha-conta', label: 'Minha conta', icon: <Settings className="h-5 w-5" aria-hidden="true" /> },
   { to: '/configuracoes', label: 'Configurações', icon: <Settings className="h-5 w-5" aria-hidden="true" /> },
@@ -144,7 +145,7 @@ export default function AppLayout() {
         <nav aria-label="Navegação principal" className="flex-1 space-y-1 overflow-y-auto p-2">
           {NAV.filter((item) => item.to === '/reposicao'
             ? ['admin', 'gerente'].includes(me?.papel ?? '')
-            : !['/financeiro', '/relatorios'].includes(item.to) || ['admin', 'gerente', 'caixa'].includes(me?.papel ?? '')).map((item) => (
+            : !['/fornecedores', '/financeiro', '/relatorios'].includes(item.to) || ['admin', 'gerente', 'caixa'].includes(me?.papel ?? '')).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
