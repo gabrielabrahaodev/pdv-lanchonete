@@ -5,10 +5,12 @@ import { AlertTriangle, CheckCircle2, ClipboardList, MessageCircle, PackageCheck
 import { api } from '../../lib/api'
 import { brl, dataHora } from '../../lib/format'
 import { numeroDecimal } from '../../lib/precificacao'
+import { formatarPrecoReferencia, simularCompra, unidadeReferencia } from '../../lib/custosInsumos'
+import { unidadesCompativeis, converterQuantidade } from '../../lib/unidades'
 import { criarMensagemReposicao, urlWhatsApp } from '../../lib/reposicaoMensagem'
 import { useAuth } from '../../context/AuthContext'
 import type { Configuracoes, GrupoReposicao, PedidoReposicao } from '../../types'
-import { Button, Card, ErrorState, Field, Input, LoadingScreen, Modal } from '../../components/ui'
+import { Button, Card, ErrorState, Field, Input, LoadingScreen, Modal, Select } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
 
 type Pendente = {
@@ -326,71 +328,145 @@ function dataHojeLocal(): string {
   return `${ano}-${mes}-${dia}`
 }
 
+type LinhaCompra = { quantidadeCompra: string; unidadeCompra: string; valorTotalCompra: string }
+
+function dadosIniciais(item: PedidoReposicao['itens'][number]): LinhaCompra {
+  const conversao = {
+    unidade: item.unidade,
+    unidadeCompra: item.unidadeCompra ?? item.unidade,
+    fatorCompra: item.fatorCompra,
+  }
+  const unidade = unidadeReferencia(conversao)
+  const fator = converterQuantidade(1, unidade, item.unidade, conversao.unidadeCompra ?? undefined, conversao.fatorCompra)
+  const qtd = fator && fator > 0 ? item.quantidade / fator : item.quantidade
+  const custoPrevisto = item.quantidade * (item.custoUnitarioPrevisto ?? 0)
+  return {
+    unidadeCompra: unidade,
+    quantidadeCompra: String(Number(qtd.toFixed(3))),
+    valorTotalCompra: custoPrevisto > 0 ? custoPrevisto.toFixed(2) : '',
+  }
+}
+
 function ReceberPedido({ pedido, onClose, onSuccess }: {
   pedido: PedidoReposicao
   onClose: () => void
   onSuccess: () => void
 }) {
-  const [linhas, setLinhas] = useState<Record<string, { quantidade: string; custo: string }>>(
-    Object.fromEntries(pedido.itens.map(item => [item.itemId, {
-      quantidade: String(item.quantidade), custo: String(item.custoUnitarioPrevisto ?? 0),
-    }])),
+  const [linhas, setLinhas] = useState<Record<string, LinhaCompra>>(
+    Object.fromEntries(pedido.itens.map(item => [item.itemId, dadosIniciais(item)])),
   )
   const [erro, setErro] = useState('')
   const [dataRecebimento, setDataRecebimento] = useState(dataHojeLocal)
-  const entrada = pedido.itens.map(item => ({
-    itemId: item.itemId,
-    quantidade: converter(linhas[item.itemId]?.quantidade ?? ''),
-    custoUnitario: converter(linhas[item.itemId]?.custo ?? ''),
-  }))
-  const valorTotal = entrada.reduce((s, i) =>
-    s + (Number.isFinite(i.quantidade * i.custoUnitario) ? i.quantidade * i.custoUnitario : 0), 0)
+  const entrada = pedido.itens.map(item => {
+    const linha = linhas[item.itemId]
+    const qtd = converter(linha?.quantidadeCompra ?? '')
+    const valor = converter(linha?.valorTotalCompra ?? '')
+    const unidadeCompra = linha?.unidadeCompra ?? item.unidade
+    const referencia = {
+      unidade: item.unidade,
+      unidadeCompra: item.unidadeCompra ?? item.unidade,
+      fatorCompra: item.fatorCompra,
+    }
+    return {
+      itemId: item.itemId,
+      quantidadeCompra: qtd,
+      unidadeCompra,
+      valorTotalCompra: valor,
+      resumo: simularCompra(referencia, qtd, unidadeCompra, valor),
+      referencia,
+    }
+  })
+  const valorTotal = entrada.reduce((acc, item) =>
+    acc + (Number.isFinite(item.valorTotalCompra) ? item.valorTotalCompra : 0), 0)
   const valido = /^\d{4}-\d{2}-\d{2}$/.test(dataRecebimento)
     && dataRecebimento <= dataHojeLocal()
     && valorTotal > 0
     && entrada.every(i =>
-      Number.isFinite(i.quantidade) && i.quantidade > 0 && i.quantidade <= 1000000
-      && Number.isFinite(i.custoUnitario) && i.custoUnitario >= 0 && i.custoUnitario <= 10000000
+      i.resumo !== null &&
+      Number.isFinite(i.quantidadeCompra) && i.quantidadeCompra > 0 && i.quantidadeCompra <= 1000000 &&
+      Number.isFinite(i.valorTotalCompra) && i.valorTotalCompra > 0 && i.valorTotalCompra <= 100000000 &&
+      Math.abs(i.valorTotalCompra * 100 - Math.round(i.valorTotalCompra * 100)) < 0.000001 &&
+      Math.abs(i.resumo.quantidadeControle * 1000 - Math.round(i.resumo.quantidadeControle * 1000)) < 0.000001,
     )
+
   const receber = useMutation({
     mutationFn: () => api(`/reposicao/pedidos/${pedido.id}/receber`, {
-      method: 'POST', body: { itens: entrada, dataRecebimento },
+      method: 'POST',
+      body: {
+        dataRecebimento,
+        itens: entrada.map(({ itemId, quantidadeCompra, unidadeCompra, valorTotalCompra }) => ({
+          itemId, quantidadeCompra, unidadeCompra, valorTotalCompra,
+        })),
+      },
     }),
     onSuccess,
     onError: (e) => setErro(e instanceof Error ? e.message : 'Erro ao receber insumos'),
   })
+
+  function alterar(itemId: string, alteracao: Partial<LinhaCompra>) {
+    setLinhas(prev => ({ ...prev, [itemId]: { ...prev[itemId], ...alteracao } }))
+  }
+
   return (
     <Modal open title={`Reabastecer: ${pedido.fornecedorNome}`} onClose={onClose}>
       <div className="space-y-4">
-        <p className="text-sm text-slate-500">Confira as quantidades realmente recebidas e o custo por unidade de controle. O custo médio será recalculado automaticamente.</p>
-        <Field label="Data efetiva do recebimento" hint="Pode ser retroativa. Será a data da entrada no estoque e da despesa no Financeiro.">
+        <p className="text-sm text-slate-500">
+          Informe a quantidade comprada e o valor TOTAL de cada produto. Não é
+          necessário calcular o custo por grama: ele será atualizado automaticamente.
+        </p>
+        <Field label="Data efetiva do recebimento" hint="Pode ser retroativa; determina a data da entrada e da despesa no Financeiro.">
           <Input type="date" value={dataRecebimento} max={dataHojeLocal()}
             onChange={(e) => setDataRecebimento(e.target.value)} />
         </Field>
-        {pedido.itens.map(item => (
-          <div key={item.itemId} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-            <p className="mb-2 font-semibold">{item.nome} <span className="text-xs font-normal text-slate-500">({item.unidade})</span></p>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label={`Quantidade (${item.unidade})`}>
-                <Input inputMode="decimal" value={linhas[item.itemId].quantidade}
-                  onChange={(e) => setLinhas(prev => ({ ...prev, [item.itemId]: { ...prev[item.itemId], quantidade: e.target.value } }))}
-                />
+        {pedido.itens.map(item => {
+          const linha = linhas[item.itemId]
+          const prev = entrada.find(i => i.itemId === item.itemId)!
+          return (
+            <div key={item.itemId} className="space-y-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+              <p className="font-semibold">{item.nome} <span className="text-xs font-normal text-slate-500">(estoque: {item.unidade})</span></p>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Qtd. comprada">
+                  <Input inputMode="decimal" value={linha.quantidadeCompra}
+                    onChange={(e) => alterar(item.itemId, { quantidadeCompra: e.target.value })} />
+                </Field>
+                <Field label="Unidade de compra">
+                  <Select value={linha.unidadeCompra}
+                    onChange={(e) => {
+                      const novo = e.target.value
+                      const antes = prev.resumo?.quantidadeControle ??
+                        converterQuantidade(Number(linha.quantidadeCompra), linha.unidadeCompra, item.unidade, prev.referencia.unidadeCompra ?? undefined, prev.referencia.fatorCompra)
+                      const porUnidade = converterQuantidade(1, novo, item.unidade, prev.referencia.unidadeCompra ?? undefined, prev.referencia.fatorCompra)
+                      alterar(item.itemId, {
+                        unidadeCompra: novo,
+                        quantidadeCompra: antes != null && porUnidade ? String(Number((antes / porUnidade).toFixed(3))) : linha.quantidadeCompra,
+                      })
+                    }}>
+                    {unidadesCompativeis(item.unidade, item.unidadeCompra, item.fatorCompra).map(u =>
+                      <option key={u} value={u}>{u}</option>
+                    )}
+                  </Select>
+                </Field>
+              </div>
+              <Field label="Valor total da linha (R$)" hint="Ex.: 2 kg por R$ 16,00. Valor da compra, não preço por grama.">
+                <Input inputMode="decimal" placeholder="Ex.: 16,00" value={linha.valorTotalCompra}
+                  onChange={(e) => alterar(item.itemId, { valorTotalCompra: e.target.value })} />
               </Field>
-              <Field label={`Custo / ${item.unidade} (R$)`}>
-                <Input inputMode="decimal" value={linhas[item.itemId].custo}
-                  onChange={(e) => setLinhas(prev => ({ ...prev, [item.itemId]: { ...prev[item.itemId], custo: e.target.value } }))}
-                />
-              </Field>
+              <div className="rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                {prev.resumo
+                  ? <>Entrará no estoque: <strong>{prev.resumo.quantidadeControle.toLocaleString('pt-BR')} {item.unidade}</strong>
+                    {' · '}Custo de referência: <strong>{formatarPrecoReferencia({ ...prev.referencia, custoMedio: prev.resumo.custoPorControle })}</strong></>
+                  : 'Informe uma quantidade, unidade e valor total válidos para visualizar o custo.'}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
         <p className="text-sm font-bold">Total da compra: {brl(valorTotal)}</p>
-        <p className="text-xs text-slate-500">Ao confirmar, será criada uma despesa de insumos em Financeiro, com status pendente, na data escolhida. O lançamento NÃO indica pagamento realizado. O sistema registra uma entrada por insumo e não permite receber novamente o mesmo pedido.</p>
+        <p className="text-xs text-slate-500">Ao confirmar, o Financeiro registrará uma despesa de insumos pendente de pagamento, na data escolhida. O custo médio do estoque será recalculado pelas quantidades convertidas, sem arredondar o preço por grama antes da operação.</p>
         {erro && <p role="alert" className="text-sm text-rose-600">{erro}</p>}
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="secondary" disabled={receber.isPending} onClick={onClose}>Voltar</Button>
           <Button variant="success" loading={receber.isPending} disabled={!valido}
-            onClick={() => window.confirm(`Confirmar entrada no estoque em ${dataRecebimento} e despesa pendente de ${brl(valorTotal)} no Financeiro?`) && receber.mutate()}>
+            onClick={() => window.confirm(`Confirmar entrada em ${dataRecebimento} e despesa pendente de ${brl(valorTotal)}?`) && receber.mutate()}>
             <PackageCheck className="h-4 w-4" /> Confirmar recebimento
           </Button>
         </div>
