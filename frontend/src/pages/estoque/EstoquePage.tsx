@@ -7,11 +7,12 @@ import {
   ArchiveRestore,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { api, ApiError } from '../../lib/api'
 import { useEstoque, useMovimentacoes } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
-import type { InventoryItem, StockMovement } from '../../types'
+import type { InventoryItem, StockMovement, Fornecedor } from '../../types'
 import {
   Button,
   Card,
@@ -37,6 +38,7 @@ export default function EstoquePage() {
   const gestao = ['admin', 'gerente'].includes(me?.papel ?? '')
   const estoque = useEstoque(me?.restaurantId)
   const movimentos = useMovimentacoes(me?.restaurantId)
+  const fornecedores = useQuery({ queryKey: ['fornecedores'], queryFn: () => api<Fornecedor[]>('/fornecedores'), enabled: gestao })
   const [busca, setBusca] = useState('')
   const [arquivados, setArquivados] = useState(false)
   const [alertas, setAlertas] = useState(false)
@@ -150,7 +152,10 @@ export default function EstoquePage() {
         subtitle="Insumos, compras e movimentações"
         actions={
           gestao && (
-            <Button onClick={() => setEditar('novo')}>Novo insumo</Button>
+            <div className="flex flex-wrap gap-2">
+              <Link to="/reposicao" className="action-button">Reposição de insumos</Link>
+              <Button onClick={() => setEditar('novo')}>Novo insumo</Button>
+            </div>
           )
         }
       />
@@ -226,6 +231,7 @@ export default function EstoquePage() {
                   >
                     <td className="px-3 py-2">
                       <span className="block font-semibold text-slate-800 dark:text-slate-100">{i.nome}</span>
+                      {i.fornecedorId && <span className="block text-xs text-slate-500">{(fornecedores.data ?? []).find(f => f.id === i.fornecedorId)?.nome ?? 'Fornecedor vinculado'}</span>}
                       {i.ativo === false ? (
                         <span className="text-xs text-slate-500">
                           Arquivado
@@ -274,6 +280,7 @@ export default function EstoquePage() {
                     <h2 className="break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
                       {i.nome}
                     </h2>
+                    {i.fornecedorId && <p className="text-xs text-slate-500">{(fornecedores.data ?? []).find(f => f.id === i.fornecedorId)?.nome ?? 'Fornecedor vinculado'}</p>}
                     {i.ativo === false ? (
                       <p className="text-xs text-slate-500">Arquivado</p>
                     ) : (
@@ -325,6 +332,7 @@ export default function EstoquePage() {
       {editar && (
         <Cadastro
           item={editar === 'novo' ? null : editar}
+          fornecedores={fornecedores.data ?? []}
           onClose={() => setEditar(null)}
         />
       )}
@@ -400,13 +408,16 @@ function Movimentos({
 }
 function Cadastro({
   item,
+  fornecedores,
   onClose,
 }: {
   item: InventoryItem | null
+  fornecedores: Fornecedor[]
   onClose: () => void
 }) {
   const [form, setForm] = useState({
     nome: item?.nome ?? '',
+    fornecedorId: item?.fornecedorId ?? '',
     unidade: item?.unidade ?? 'un',
     minimo: String(item?.minimo ?? 0),
     custoMedio: String(item?.custoMedio ?? 0),
@@ -421,6 +432,7 @@ function Cadastro({
         method: item ? 'PATCH' : 'POST',
         body: {
           nome: form.nome.trim(),
+          fornecedorId: form.fornecedorId,
           unidade: form.unidade,
           minimo: numeroDecimal(form.minimo),
           custoMedio: numeroDecimal(form.custoMedio),
@@ -456,6 +468,14 @@ function Cadastro({
             value={form.nome}
             onChange={(e) => setForm({ ...form, nome: e.target.value })}
           />
+        </Field>
+        <Field label="Fornecedor habitual" hint="Cadastre novos fornecedores em Financeiro → Fornecedores.">
+          <Select value={form.fornecedorId} onChange={(e) => setForm({ ...form, fornecedorId: e.target.value })}>
+            <option value="">Sem fornecedor definido</option>
+            {fornecedores.filter(f => f.ativo !== false || f.id === form.fornecedorId).map(f => (
+              <option key={f.id} value={f.id}>{f.nome}{f.ativo === false ? ' (inativo)' : ''}</option>
+            ))}
+          </Select>
         </Field>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field
