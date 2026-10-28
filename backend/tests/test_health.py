@@ -85,3 +85,10 @@ def test_ready_head_sem_corpo(client, monkeypatch):
     _patch_firestore(monkeypatch, "ok")
     r = client.head("/ready")
     assert r.status_code == 200
+
+
+def test_health_informa_commit_sem_consultar_firestore(client, monkeypatch):
+    monkeypatch.setenv('RENDER_GIT_COMMIT', 'a'*40)
+    assert client.get('/health').json()['commit'] == 'a'*40
+    monkeypatch.delenv('RENDER_GIT_COMMIT')
+    assert client.get('/health').json()['commit'] is None

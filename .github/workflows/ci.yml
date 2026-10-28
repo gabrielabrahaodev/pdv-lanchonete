@@ -67,3 +67,11 @@ jobs:
       - name: firebase emulators:exec (regras e produção concorrente)
         run: npx firebase-tools emulators:exec --only firestore --project demo-p0a "node tests/firestore_rules.test.mjs && PYTHONPATH=../backend python ../scripts/e2e/producao_emulator.py && PYTHONPATH=../backend python ../scripts/e2e/balcao_emulator.py && PYTHONPATH=../backend python ../scripts/e2e/evolucao_emulator.py && PYTHONPATH=../backend python ../scripts/e2e/bi_emulator.py && PYTHONPATH=../backend python ../scripts/e2e/despesas_paginacao_emulator.py"
         working-directory: frontend
+
+  scripts-publicacao:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PowerShell - atualizacao e deploy simulados
+        shell: pwsh
+        run: ./scripts/tests/publicacao.ps1

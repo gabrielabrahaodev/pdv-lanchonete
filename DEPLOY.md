@@ -158,3 +158,9 @@ cd frontend && npx firebase-tools emulators:exec --only firestore --project demo
 Ãšltimo baseline completo validado em produÃ§Ã£o: 2026-08-24 (51/51 antes da seÃ§Ã£o onboarding); fix do caixa `abertoEm` revalidado em produÃ§Ã£o em 2026-08-25.
 
 CI (GitHub Actions) roda pytest + tsc + build em todo push/PR.
+
+## Publicação automatizada atual — NexoComanda
+
+Após atualizar a master e homologar localmente, execute `deploy-prd.bat` na raiz Git (pasta `python`). O BAT agora chama `deploy-prd.ps1`: testes, build, validação do commit na Render/readiness, regras e índices, espera READY e Hosting `nexocomanda`. Não executa push nem usa hook/credencial Render. A atualização local fica em `atualizar-master.ps1`, sem apagar mudanças.
+
+Procedimento completo e limites: [Atualização e publicação](obsidian/Atualizacao-Local-e-Publicacao.md). Esta seção substitui as URLs/instruções históricas de publicação manual acima para o site atual `https://nexocomanda.web.app`.
