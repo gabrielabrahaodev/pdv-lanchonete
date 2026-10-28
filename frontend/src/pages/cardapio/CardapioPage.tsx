@@ -6,18 +6,16 @@ import { apiPublico } from '../../lib/apiPublico'
 import { brl } from '../../lib/format'
 import { urlImagemProduto } from '../../lib/imagem'
 import { Modal } from '../../components/ui'
+import {
+  cardapioValido,
+  lerCacheCardapio,
+  salvarCacheCardapio,
+  VALIDADE_CACHE_CARDAPIO_MS,
+  type ProdutoPublico,
+  type CardapioPublico,
+} from '../../lib/cardapioCache'
 
-type Produto = {
-  id: string
-  nome: string
-  categoriaId: string
-  preco: number
-  imagemUrl?: string | null
-  temImagem?: boolean
-  variacoes?: { id: string; nome: string; precoAdicional: number }[]
-}
-type Categoria = { id: string; nome: string; icone?: string | null }
-type CardapioPublico = { categorias: Categoria[]; produtos: Produto[] }
+type Produto = ProdutoPublico
 
 const TODAS = '__todas__'
 const OUTRAS = '__outras__'
@@ -73,13 +71,19 @@ export default function CardapioPage() {
         `/publico/${encodeURIComponent(restaurantId)}/cardapio`,
         { signal },
       )
-      if (!Array.isArray(dados.categorias) || !Array.isArray(dados.produtos)) {
+      if (!cardapioValido(dados)) {
         throw new Error('O servidor retornou um cardápio inválido. Tente novamente.')
       }
+      salvarCacheCardapio(restaurantId, dados)
       return dados
     },
     enabled: Boolean(restaurantId),
-    staleTime: 60_000,
+    // Apenas cache público e temporário: nunca guarda senhas ou dados privados.
+    initialData: () => lerCacheCardapio(restaurantId)?.data,
+    initialDataUpdatedAt: () => lerCacheCardapio(restaurantId)?.atualizadoEm,
+    staleTime: VALIDADE_CACHE_CARDAPIO_MS,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
     retry: false,
   })
 
