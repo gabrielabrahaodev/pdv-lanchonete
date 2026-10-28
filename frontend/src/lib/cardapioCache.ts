@@ -18,8 +18,17 @@ export type ProdutoPublico = {
 export type CategoriaPublica = { id: string; nome: string; icone?: string | null }
 
 export type CardapioPublico = {
+  /** Nome de exibição do estabelecimento, vindo do cadastro público. */
+  restauranteNome?: string
   categorias: CategoriaPublica[]
   produtos: ProdutoPublico[]
+}
+
+/** Mostra a última palavra em laranja, acompanhando o título da esquerda. */
+export function dividirNomeRestaurante(nome: string): { inicio: string; destaque: string } {
+  const partes = nome.trim().split(/\s+/u).filter(Boolean)
+  if (partes.length <= 1) return { inicio: partes[0] ?? '', destaque: '' }
+  return { inicio: partes.slice(0, -1).join(' '), destaque: partes[partes.length - 1] }
 }
 
 export type CacheCardapio = {
@@ -34,7 +43,8 @@ function chave(restaurantId: string): string {
 export function cardapioValido(dado: unknown): dado is CardapioPublico {
   if (!dado || typeof dado !== 'object') return false
   const d = dado as Partial<CardapioPublico>
-  return Array.isArray(d.categorias) && Array.isArray(d.produtos) &&
+  return (d.restauranteNome === undefined || typeof d.restauranteNome === 'string') &&
+    Array.isArray(d.categorias) && Array.isArray(d.produtos) &&
     d.categorias.every((c) => c && typeof c.id === 'string' && typeof c.nome === 'string') &&
     d.produtos.every((p) =>
       p && typeof p.id === 'string' && typeof p.nome === 'string' &&
