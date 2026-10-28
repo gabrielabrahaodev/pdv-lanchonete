@@ -1,0 +1,56 @@
+{
+  "id": "previsibilidade",
+  "titulo": "Financeiro — Previsibilidade",
+  "para": "Apresenta cenários de receita e compromissos conhecidos, com limites explícitos.",
+  "quando": "Ao planejar próximos dias sem tratar uma hipótese como garantia.",
+  "passos": [
+    "Selecione Previsibilidade e o horizonte disponível.",
+    "Confira se há observações suficientes e leia as hipóteses.",
+    "Compare cenários conservador, base e otimista.",
+    "Confira compromissos de 7/30/90 dias e sem vencimento; use Contas a pagar para detalhes."
+  ],
+  "campos": [
+    {
+      "nome": "Horizonte",
+      "preenchimento": "7, 30 ou 90 dias, conforme seletor.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Cenários",
+      "preenchimento": "Conservador = base × 0,8; otimista = base × 1,2.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Compromissos conhecidos",
+      "preenchimento": "Somente obrigações pendentes e vencimentos registrados.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Selecionar horizonte",
+      "efeito": "Reconsulta a previsão para a duração escolhida."
+    },
+    {
+      "nome": "Ver compromissos",
+      "efeito": "Use Contas a pagar para detalhar pendências."
+    }
+  ],
+  "depois": "A previsão usa média por dia da semana em até 56 datas observadas e tendência limitada. Ausência de agregado não é venda zero.",
+  "atencao": [
+    "Exige ao menos 28 observações para 7/30 dias e 56 para 90, com ao menos três de cada dia da semana.",
+    "Não é intervalo estatístico de confiança nem previsão de feriados/sazonalidade anual.",
+    "Sem saldo inicial e conciliação não há projeção confiável de saldo de caixa. Não inventa despesas recorrentes."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Por que previsão indisponível?",
+      "resposta": "Ainda não há observações suficientes no histórico coletado. Leia o motivo exibido; não preencha dados fictícios."
+    }
+  ],
+  "relacionados": [
+    "contas-pagar",
+    "financeiro",
+    "resultados"
+  ]
+}

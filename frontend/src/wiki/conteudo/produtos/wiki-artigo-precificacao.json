@@ -1,0 +1,77 @@
+{
+  "id": "precificacao",
+  "titulo": "Precificação",
+  "para": "Estima custo de ingredientes e sugere preço com acréscimo sobre o custo.",
+  "quando": "Antes de definir ou revisar o preço de venda.",
+  "passos": [
+    "No cadastro ou edição do produto, abra a aba Precificação e complete ingredientes, quantidades e unidades.",
+    "Confira custos dos insumos no Estoque e rendimento da receita.",
+    "Informe o acréscimo desejado sobre o custo.",
+    "Revise preço sugerido, ganho em reais e margem sobre a venda.",
+    "Use a sugestão se fizer sentido, confira o preço de venda e salve."
+  ],
+  "campos": [
+    {
+      "nome": "Custo por ingrediente",
+      "preenchimento": "Quantidade convertida × custo médio do insumo.",
+      "obrigatorio": "Calculado"
+    },
+    {
+      "nome": "Custo total da receita",
+      "preenchimento": "Soma de ingredientes antes de dividir por rendimento.",
+      "obrigatorio": "Calculado"
+    },
+    {
+      "nome": "Custo dos ingredientes por produto",
+      "preenchimento": "Custo total dividido pelo rendimento; em sob pedido o rendimento é uma unidade.",
+      "obrigatorio": "Calculado"
+    },
+    {
+      "nome": "Acréscimo desejado sobre o custo (%)",
+      "preenchimento": "Percentual não negativo, como 50 ou 100. É markup, não margem sobre venda.",
+      "obrigatorio": "Sim para sugestão"
+    },
+    {
+      "nome": "Preço sugerido",
+      "preenchimento": "Custo × (1 + acréscimo/100), arredondado para cima nos centavos.",
+      "obrigatorio": "Calculado"
+    },
+    {
+      "nome": "Preço de venda",
+      "preenchimento": "Valor efetivo positivo que será salvo.",
+      "obrigatorio": "Sim"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Usar preço sugerido",
+      "efeito": "Copia a sugestão para o preço base; não salva sozinho."
+    },
+    {
+      "nome": "Salvar",
+      "efeito": "Confirma o preço de venda e os dados do produto."
+    }
+  ],
+  "depois": "A sugestão não altera preços automaticamente nem comprova lucro realizado.",
+  "atencao": [
+    "Custo R$ 10 + acréscimo 50% dá preço R$ 15. Ganho bruto R$ 5 e margem sobre venda 33,33%, não 50%.",
+    "Para margem de 50% sobre venda com custo R$ 10, o preço seria R$ 20 (markup 100%).",
+    "Impostos, taxas, aluguel, trabalho e perdas não alocadas não estão incluídos nessa sugestão.",
+    "Ingrediente sem custo positivo impede sugestão completa; custo desconhecido não é zero no BI."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Custo por grama é muito pequeno.",
+      "resposta": "Compre em kg e use g na receita: 2 kg por R$ 16 equivalem a R$ 0,008/g. 150 g custam R$ 1,20."
+    },
+    {
+      "pergunta": "Estimado e realizado são iguais?",
+      "resposta": "A sugestão usa referências atuais. O realizado usa os custos congelados das vendas com cobertura disponível."
+    }
+  ],
+  "relacionados": [
+    "unidades",
+    "insumos",
+    "lucratividade"
+  ]
+}

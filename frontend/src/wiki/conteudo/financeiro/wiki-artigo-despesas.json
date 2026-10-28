@@ -1,0 +1,99 @@
+{
+  "id": "despesas",
+  "titulo": "Financeiro — Despesas",
+  "para": "Registra e acompanha obrigações por competência, situação e vencimento.",
+  "quando": "Para contas, folha, outras despesas e pagamento de débito de reposição.",
+  "passos": [
+    "Abra Despesas; aplique o período e filtros de situação/categoria.",
+    "Use Nova despesa para uma obrigação ainda não registrada.",
+    "Preencha descrição, valor positivo e data de competência.",
+    "Ao pagar de fato, use Marcar paga; use Reabrir se o registro de pagamento foi incorreto.",
+    "Navegue por páginas para consultar mais itens."
+  ],
+  "campos": [
+    {
+      "nome": "Categoria",
+      "preenchimento": "Insumo, folha, conta fixa ou outra.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Descrição",
+      "preenchimento": "Identifique a obrigação.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Valor (R$)",
+      "preenchimento": "Total positivo.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Data (competência)",
+      "preenchimento": "Dia ao qual a despesa pertence; é o filtro do período.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Vencimento",
+      "preenchimento": "Data limite para pagar; não substitui competência.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Forma de pagamento",
+      "preenchimento": "Dinheiro, PIX, débito, crédito, transferência ou boleto.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Fornecedor",
+      "preenchimento": "Vínculo opcional para insumo.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Funcionário",
+      "preenchimento": "Selecione para folha quando aplicável.",
+      "obrigatorio": "Conforme lançamento"
+    },
+    {
+      "nome": "Observações",
+      "preenchimento": "Detalhe do lançamento.",
+      "obrigatorio": "Não"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Salvar",
+      "efeito": "Cria/edita o lançamento por competência."
+    },
+    {
+      "nome": "Marcar paga",
+      "efeito": "Registra pagamento, sem cobrar banco nem retirar da sessão de caixa."
+    },
+    {
+      "nome": "Reabrir",
+      "efeito": "Volta a pendente e remove o registro de pago."
+    },
+    {
+      "nome": "Editar / Excluir",
+      "efeito": "Permitidos para lançamentos manuais autorizados; débito de reposição é protegido."
+    },
+    {
+      "nome": "CSV",
+      "efeito": "Exporta apenas a página atual, não todo o histórico."
+    }
+  ],
+  "depois": "Pagamento altera pendência; não muda a competência do resultado. Reposição recebida já cria o débito: não cadastre outro.",
+  "atencao": [
+    "Despesas pendentes também compõem os valores por competência. No resultado BI, categoria insumo é compra separada do CMV.",
+    "Uma página filtrada pode vir vazia e ainda ter próxima página.",
+    "Pagar/reabrir não movimenta sangria ou suprimento do caixa."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Posso mudar o valor da despesa de reposição?",
+      "resposta": "Não por esta tela; o vínculo protege a coerência com o recebimento. Pagar e reabrir são permitidos."
+    }
+  ],
+  "relacionados": [
+    "contas-pagar",
+    "recebimento",
+    "resultados"
+  ]
+}

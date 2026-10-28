@@ -29,7 +29,14 @@ export default defineConfig({
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+        globIgnores: ['**/wiki-artigo-*.js'],
         runtimeCaching: [
+          {
+            // Artigos estaticos com hash: carregar ao abrir, cachear apos visita.
+            urlPattern: ({ url }: { url: URL }) => url.origin === self.location.origin && /\/assets\/wiki-artigo-[^/]+\.js$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: { cacheName: 'wiki-artigos', expiration: { maxEntries: 60, maxAgeSeconds: 31536000 } },
+          },
           {
             // Respostas autenticadas não podem compartilhar cache entre usuários.
             urlPattern: ({ url, request }: { url: URL; request: Request }) =>

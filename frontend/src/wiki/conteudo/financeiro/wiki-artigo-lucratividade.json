@@ -1,0 +1,77 @@
+{
+  "id": "lucratividade",
+  "titulo": "Financeiro — Lucratividade por produto",
+  "para": "Compara quantidade, receita e margem da parcela vendida com custo conhecido.",
+  "quando": "Ao avaliar produtos e variações sem confundir margem estimada e realizada.",
+  "passos": [
+    "Aplique o período e filtre produto/categoria.",
+    "Selecione variação quando houver um produto escolhido.",
+    "Ordene por receita, volume, lucro ou margem coberta.",
+    "Abra um produto no ranking para conferir custos, cobertura e evolução diária."
+  ],
+  "campos": [
+    {
+      "nome": "Início e fim",
+      "preenchimento": "Datas civis inclusivas, início não posterior ao fim; clique em Aplicar período.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "7 / 30 / 90 dias",
+      "preenchimento": "Atalhos para janela de consulta.",
+      "obrigatorio": "Opcional"
+    },
+    {
+      "nome": "Produto, categoria e variação",
+      "preenchimento": "Filtros de vendas individualizadas; categoria histórica usa o registro da venda.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Quantidade vendida",
+      "preenchimento": "Unidades do produto, não número de pedidos.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Receita atribuída e preço médio",
+      "preenchimento": "Receita alocada à linha; preço médio = receita ÷ quantidade.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Custo teórico / realizado",
+      "preenchimento": "Referência da receita e custo histórico direto, quando confiáveis.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Margens e cobertura",
+      "preenchimento": "Realizada usa só receita coberta; teórica exige referência completa.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Selecionar produto",
+      "efeito": "Abre detalhes/evolução sob demanda."
+    },
+    {
+      "nome": "Ordenar ranking",
+      "efeito": "Reordena os dados sem alterar preços."
+    }
+  ],
+  "depois": "Ex.: receita coberta R$ 100 e custo conhecido R$ 40 dão lucro bruto coberto R$ 60 e margem 60%. Se há mais receita sem custo, esses 60% não representam a margem de todas as vendas.",
+  "atencao": [
+    "Custo desconhecido aparece indisponível, nunca como zero. Não extrapole margem parcial.",
+    "Produzir 40 e vender 25 reconhece custo das 25, não da fornada inteira. Perdas não geram receita.",
+    "Vendas quitadas antes de capturar custo podem continuar desconhecidas; preparo posterior não reconstrói automaticamente o agregado.",
+    "Custo teórico e realizado de sob pedido podem coincidir: não há medição automática de todas as perdas adicionais. Diferença de margens usa pontos percentuais e exige cobertura."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Alterar a receita muda o custo das vendas passadas?",
+      "resposta": "Não. O BI usa snapshots históricos; o formulário de precificação usa referências atuais."
+    }
+  ],
+  "relacionados": [
+    "precificacao",
+    "resultados",
+    "produzir"
+  ]
+}

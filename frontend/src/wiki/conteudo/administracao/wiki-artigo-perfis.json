@@ -1,0 +1,60 @@
+{
+  "id": "perfis",
+  "titulo": "Perfis de usuário",
+  "para": "Explica quem pode realizar as operações do restaurante.",
+  "quando": "Ao distribuir tarefas entre equipe e gestão.",
+  "passos": [
+    "Consulte seu papel em Minha conta.",
+    "Peça à gestão uma revisão se uma ação necessária estiver bloqueada.",
+    "Use contas individuais para manter autoria dos lançamentos."
+  ],
+  "campos": [
+    {
+      "nome": "Admin",
+      "preenchimento": "Administra o restaurante e contas de administradores.",
+      "obrigatorio": "Papel"
+    },
+    {
+      "nome": "Gerente",
+      "preenchimento": "Gerencia operação e equipe, sem administrar contas admin.",
+      "obrigatorio": "Papel"
+    },
+    {
+      "nome": "Caixa",
+      "preenchimento": "Vendas, pagamentos, produtos, despesas, fornecedores e relatórios.",
+      "obrigatorio": "Papel"
+    },
+    {
+      "nome": "Garçom",
+      "preenchimento": "Atendimento, pedidos e acompanhamento de entregas.",
+      "obrigatorio": "Papel"
+    },
+    {
+      "nome": "Cozinha",
+      "preenchimento": "Preparo e operações de produção autorizadas.",
+      "obrigatorio": "Papel"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Gestão de usuários",
+      "efeito": "Admin/gerente alteram perfis conforme suas próprias permissões."
+    }
+  ],
+  "depois": "Alterar papel modifica o acesso do usuário. Não transfere a propriedade da plataforma.",
+  "atencao": [
+    "Visibilidade de uma tela não significa autorização para todas as ações. Estoque exige admin/gerente para escrita.",
+    "O último administrador ativo é protegido."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Admin é dono da plataforma?",
+      "resposta": "Não. A plataforma tem autorização separada, fora dos papéis do restaurante."
+    }
+  ],
+  "relacionados": [
+    "usuarios",
+    "minha-conta",
+    "primeiros-passos"
+  ]
+}

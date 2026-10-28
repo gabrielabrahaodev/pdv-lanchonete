@@ -1,0 +1,65 @@
+{
+  "id": "movimentacoes",
+  "titulo": "Movimentar estoque e registrar compra",
+  "para": "Registra entrada, saída ou substituição do saldo de um insumo.",
+  "quando": "Ao receber compra avulsa, registrar consumo ou acertar contagem física.",
+  "passos": [
+    "Abra Movimentar no insumo correto.",
+    "Escolha Entrada / compra, Saída ou Corrigir saldo para.",
+    "Preencha quantidade e unidade compatível. Em compra, informe valor total.",
+    "Explique o motivo, confira a prévia e confirme uma vez."
+  ],
+  "campos": [
+    {
+      "nome": "Operação",
+      "preenchimento": "Entrada soma; saída subtrai; correção substitui o saldo pela contagem informada.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Quantidade / Novo saldo",
+      "preenchimento": "Valor da operação na unidade escolhida; confira conversão.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Unidade informada",
+      "preenchimento": "Controle, unidade compatível ou comercial cadastrada.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Valor total da compra (R$)",
+      "preenchimento": "Total pago pela quantidade desta entrada, não preço por g.",
+      "obrigatorio": "Entrada / compra"
+    },
+    {
+      "nome": "Motivo / observação",
+      "preenchimento": "Justificativa da operação.",
+      "obrigatorio": "Recomendado"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Confirmar",
+      "efeito": "Atualiza saldo/custo e grava movimento."
+    },
+    {
+      "nome": "Tentar novamente",
+      "efeito": "Reutiliza o lançamento pendente após falha de confirmação."
+    }
+  ],
+  "depois": "Entrada recalcula custo médio. Correção substitui saldo; não use quantidade da diferença no campo Novo saldo.",
+  "atencao": [
+    "A entrada manual de estoque não gera automaticamente a despesa de reposição: controle seu lançamento financeiro sem duplicar.",
+    "Só Reposição integra o recebimento ao débito automaticamente. Não registre a mesma compra nas duas telas."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Contagem passou de 10 para 8. O que digito?",
+      "resposta": "Em Corrigir saldo para, digite 8. Em saída seria 2; são operações diferentes."
+    }
+  ],
+  "relacionados": [
+    "estoque",
+    "unidades",
+    "recebimento"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "primeiros-passos",
+  "titulo": "Conhecendo o NexoComanda",
+  "para": "Organiza atendimento, produção, estoque e gestão do restaurante. Cada pessoa utiliza seu próprio login e perfil.",
+  "quando": "No primeiro acesso ou ao treinar uma nova pessoa.",
+  "passos": [
+    "Entre com o login fornecido pela gestão.",
+    "Abra o menu lateral; no celular, toque no ícone de menu no canto superior.",
+    "Confira o restaurante e seu papel em Minha conta.",
+    "Para uma primeira venda, abra o Caixa, escolha Nova venda direta, adicione produtos e pague."
+  ],
+  "campos": [
+    {
+      "nome": "Restaurante e papel",
+      "preenchimento": "Confira em Minha conta; se estiverem incorretos, procure a gestão.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Wiki",
+      "efeito": "Abre este manual; a busca encontra telas, campos e dúvidas."
+    },
+    {
+      "nome": "Como usar esta tela?",
+      "efeito": "Abre o assunto da tela sem apagar o formulário em andamento."
+    },
+    {
+      "nome": "Sair",
+      "efeito": "Encerra sua sessão; não compartilhe seu login."
+    }
+  ],
+  "depois": "Ações operacionais só são registradas quando confirmadas e aceitas pelo servidor.",
+  "atencao": [
+    "Nem todo papel pode executar todas as ações. Administrador de restaurante é diferente de dono da plataforma.",
+    "Sem conexão, aguarde antes de lançar pedidos ou pagamentos."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "A Wiki concede novas permissões?",
+      "resposta": "Não. Ela ensina; as regras do sistema continuam valendo."
+    }
+  ],
+  "relacionados": [
+    "acesso",
+    "venda-direta",
+    "perfis",
+    "pwa"
+  ]
+}

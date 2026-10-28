@@ -1,3 +1,4 @@
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, ShoppingCart, UtensilsCrossed, X } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
@@ -238,6 +239,7 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
         <h1 className="mt-1 break-words text-xl font-bold text-slate-800 dark:text-slate-100">
           {balcao ? 'Venda direta — balcão' : `Mesa ${mesa.data?.numero} — ${adicionando ? 'adicionar itens' : 'novo pedido'}`}
         </h1>
+        <AjudaContextual />
         </div>
 
         {balcao && <p className="mt-3 text-sm text-slate-500">Escolha os produtos e prossiga para o pagamento. Nenhuma mesa será ocupada.</p>}

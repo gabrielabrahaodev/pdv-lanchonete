@@ -1,0 +1,100 @@
+{
+  "id": "produto-formulario",
+  "titulo": "Novo produto / Editar produto",
+  "para": "Configura venda, ficha técnica, variações e modo de estoque.",
+  "quando": "Ao cadastrar um item ou revisar sua receita e preço.",
+  "passos": [
+    "Na aba Dados do produto, preencha nome, categoria, preço e modo de estoque.",
+    "Em antecipado, informe unidade de venda e rendimento. Em revenda, vincule o insumo vendido.",
+    "Cadastre variações e imagem se necessário.",
+    "Abra Precificação para editar ingredientes, quantidades e unidades: por unidade em sob pedido e por receita em antecipado. Confira a sugestão e o preço efetivo.",
+    "Salve e aguarde a confirmação."
+  ],
+  "campos": [
+    {
+      "nome": "Nome e categoria",
+      "preenchimento": "Identifique o produto e selecione uma categoria cadastrada.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Preço (R$)",
+      "preenchimento": "Preço base positivo; variações somam adicionais.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Como controlar o estoque?",
+      "preenchimento": "Sob pedido, produzido antecipadamente ou revenda.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Unidade de venda",
+      "preenchimento": "Descrição como un, fatia ou pão.",
+      "obrigatorio": "Para produção"
+    },
+    {
+      "nome": "Rendimento de uma receita",
+      "preenchimento": "Quantidade de unidades obtidas por receita, maior que zero.",
+      "obrigatorio": "Antecipado"
+    },
+    {
+      "nome": "Item do estoque",
+      "preenchimento": "Insumo vendido como uma unidade na revenda.",
+      "obrigatorio": "Revenda"
+    },
+    {
+      "nome": "Estoque mínimo (produção)",
+      "preenchimento": "Referência de alerta do pronto.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Ingredientes: item, unidade e quantidade",
+      "preenchimento": "Escolha insumo cadastrado e quantidade positiva; unidades compatíveis são convertidas.",
+      "obrigatorio": "Quando houver receita"
+    },
+    {
+      "nome": "Variações: nome e adicional",
+      "preenchimento": "Adicional soma ao preço base; configure opções ativas.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Imagem",
+      "preenchimento": "Selecione arquivo; a interface comprime a imagem. Remover exclui a foto ao salvar.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Ativo e precisa preparar",
+      "preenchimento": "Controlam venda e passagem pela cozinha; no antecipado, preparo pode representar aquecer.",
+      "obrigatorio": "Conforme operação"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Adicionar / remover ingrediente ou variação",
+      "efeito": "Altera a ficha em edição."
+    },
+    {
+      "nome": "Precificação",
+      "efeito": "Calcula sugestão; ainda exige conferir e salvar o preço."
+    },
+    {
+      "nome": "Salvar",
+      "efeito": "Persiste o produto, receita e alterações da imagem."
+    }
+  ],
+  "depois": "A ficha orienta futuras baixas e produções. Alterar receita não corrige automaticamente consumos passados.",
+  "atencao": [
+    "Mudanças de modo com lotes/reservas exigem resolver pendências. Não tente transformar saldo de insumo em lote apenas trocando o modo.",
+    "Observações de atendimento não modificam a receita cadastrada."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Um bolo inteiro rende dez fatias. Onde informo?",
+      "resposta": "No modo antecipado, informe rendimento 10 e ingredientes da receita inteira."
+    }
+  ],
+  "relacionados": [
+    "precificacao",
+    "unidades",
+    "producao"
+  ]
+}

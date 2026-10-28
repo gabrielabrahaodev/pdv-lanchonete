@@ -1,0 +1,72 @@
+{
+  "id": "minha-conta",
+  "titulo": "Minha conta",
+  "para": "Atualiza seu nome e credenciais com verificação de segurança.",
+  "quando": "Para mudar senha/e-mail ou conferir seu vínculo.",
+  "passos": [
+    "Confira login, papel e restaurante.",
+    "Para nome, edite Seu nome e salve.",
+    "Para senha, informe a atual, nova e confirmação; após alterar, entre novamente.",
+    "Para e-mail, informe senha atual e novo endereço; confirme o link recebido.",
+    "Depois, entre novamente ou use Atualizar login verificado."
+  ],
+  "campos": [
+    {
+      "nome": "Seu nome",
+      "preenchimento": "Nome de exibição, até 150 caracteres.",
+      "obrigatorio": "Sim para salvar"
+    },
+    {
+      "nome": "Senha atual",
+      "preenchimento": "Autoriza mudança de credenciais.",
+      "obrigatorio": "Para senha/e-mail"
+    },
+    {
+      "nome": "Nova senha e confirmação",
+      "preenchimento": "Pelo menos 6 caracteres e textos iguais.",
+      "obrigatorio": "Para mudar senha"
+    },
+    {
+      "nome": "Novo e-mail de login",
+      "preenchimento": "Endereço que você controla e poderá verificar.",
+      "obrigatorio": "Para mudar e-mail"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Salvar nome",
+      "efeito": "Atualiza perfil."
+    },
+    {
+      "nome": "Alterar senha e sair",
+      "efeito": "Muda senha e encerra a sessão."
+    },
+    {
+      "nome": "Enviar verificação ao novo e-mail",
+      "efeito": "Solicita confirmação antes da troca efetiva."
+    },
+    {
+      "nome": "Atualizar login verificado",
+      "efeito": "Atualiza autenticação e sincroniza o perfil após verificar."
+    },
+    {
+      "nome": "Receber recuperação de senha",
+      "efeito": "Solicita link de recuperação para seu login."
+    }
+  ],
+  "depois": "A senha não é mostrada à gestão. E-mail novo só passa a valer após verificação.",
+  "atencao": [
+    "Não escreva senhas em observações, mensagens ou Wiki. Atualizar nome não muda papel ou restaurante."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Troquei e-mail e o perfil ainda mostra o antigo.",
+      "resposta": "Conclua a verificação e use Atualizar login verificado ou entre de novo."
+    }
+  ],
+  "relacionados": [
+    "acesso",
+    "perfis",
+    "configuracoes"
+  ]
+}

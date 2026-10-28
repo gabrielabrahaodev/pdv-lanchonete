@@ -1,3 +1,4 @@
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Printer } from 'lucide-react'
@@ -79,6 +80,7 @@ export default function CozinhaPage() {
       <header className="mb-5 flex flex-col gap-3 pl-14 sm:flex-row sm:items-center sm:justify-between sm:pl-0">
         <div>
           <h1 className="text-xl font-bold text-white">👨‍🍳 Cozinha — KDS</h1>
+        <div className="[&>a]:text-orange-200"><AjudaContextual /></div>
           <p className="text-xs text-slate-500">Um cartão por pedido · mesas e balcão · tempo real</p>
         </div>
         <span className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-bold text-emerald-400">

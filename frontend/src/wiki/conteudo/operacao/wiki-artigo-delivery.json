@@ -1,0 +1,59 @@
+{
+  "id": "delivery",
+  "titulo": "Delivery",
+  "para": "Acompanha pedidos de entrega com estados próprios.",
+  "quando": "Para organizar pedidos de entrega registrados manualmente nesta tela.",
+  "passos": [
+    "Use Novo pedido e informe cliente, telefone e endereço.",
+    "Escolha produtos e quantidades.",
+    "Confirme e avance: Confirmar, Preparar, Pronto e Entregar.",
+    "Se necessário, cancele antes de terminar o fluxo."
+  ],
+  "campos": [
+    {
+      "nome": "Cliente",
+      "preenchimento": "Nome do cliente.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Telefone e endereço",
+      "preenchimento": "Contato e destino da entrega.",
+      "obrigatorio": "Não exigidos pelo formulário; preencha para operar"
+    },
+    {
+      "nome": "Itens e quantidade",
+      "preenchimento": "Selecione pelo menos um produto com quantidade positiva.",
+      "obrigatorio": "Sim"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Novo pedido",
+      "efeito": "Cria delivery próprio manual."
+    },
+    {
+      "nome": "Confirmar / Preparar / Pronto / Entregar",
+      "efeito": "Avança estado da entrega."
+    },
+    {
+      "nome": "Cancelar",
+      "efeito": "Cancela um pedido ainda não terminal."
+    }
+  ],
+  "depois": "O registro aparece na lista ativa e depois no histórico de entregues/cancelados.",
+  "atencao": [
+    "O Delivery atual é um fluxo separado: entregar aqui não registra pagamento, receita no Caixa/BI, baixa de ingredientes ou reserva da estufa automaticamente.",
+    "Não há importação automática de iFood/Goomer demonstrada nesta tela. Controle recebimento e estoque sem presumir integração."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Entreguei e o Caixa não mudou.",
+      "resposta": "Este fluxo não quita um pedido de venda. Combine com a gestão o registro financeiro correto, sem duplicar vendas."
+    }
+  ],
+  "relacionados": [
+    "caixa",
+    "pagamento",
+    "estoque"
+  ]
+}

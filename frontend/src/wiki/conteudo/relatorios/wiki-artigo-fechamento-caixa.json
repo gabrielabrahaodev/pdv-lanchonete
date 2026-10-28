@@ -1,0 +1,65 @@
+{
+  "id": "fechamento-caixa",
+  "titulo": "Fechamento de caixa",
+  "para": "Controla abertura, entradas extras, retiradas e encerramento da sessão.",
+  "quando": "No início/fim do turno e ao reforçar ou retirar dinheiro.",
+  "passos": [
+    "Abra com o fundo de troco.",
+    "Lance suprimentos e sangrias com valor e observação.",
+    "Confira os totais da sessão.",
+    "Ao fechar, informe o contado em dinheiro se aplicável e confirme.",
+    "Consulte a sessão encerrada no histórico."
+  ],
+  "campos": [
+    {
+      "nome": "Valor de abertura",
+      "preenchimento": "Fundo inicial em reais, não negativo.",
+      "obrigatorio": "Ao abrir"
+    },
+    {
+      "nome": "Valor entrado / retirado",
+      "preenchimento": "Valor positivo do suprimento ou sangria.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Observação",
+      "preenchimento": "Explique a entrada ou retirada.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Valor contado em dinheiro",
+      "preenchimento": "Campo opcional de conferência; a tela envia vazio/zero como não informado.",
+      "obrigatorio": "Não"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Suprimento",
+      "efeito": "Soma entrada extra."
+    },
+    {
+      "nome": "Sangria",
+      "efeito": "Registra retirada; não é despesa do Financeiro."
+    },
+    {
+      "nome": "Fechar caixa",
+      "efeito": "Encerra a sessão e registra a conferência disponível."
+    }
+  ],
+  "depois": "Esperado = fundo inicial + recebido + suprimentos − sangrias. Despesas não movimentam a sessão.",
+  "atencao": [
+    "O indicador recebido reúne os pagamentos registrados, não apenas dinheiro físico. Confira as formas de pagamento ao comparar com a gaveta.",
+    "Fechar caixa não cancela pedidos nem desliga a baixa de estoque."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Fechar caixa para as vendas?",
+      "resposta": "Encerra a sessão. A venda direta exige uma aberta; pedidos e produção mantêm suas próprias regras."
+    }
+  ],
+  "relacionados": [
+    "caixa",
+    "pagamento",
+    "despesas"
+  ]
+}

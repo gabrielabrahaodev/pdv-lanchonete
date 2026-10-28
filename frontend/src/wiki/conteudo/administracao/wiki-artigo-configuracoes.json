@@ -1,0 +1,78 @@
+{
+  "id": "configuracoes",
+  "titulo": "Configurações",
+  "para": "Ajusta preferências pessoais e, para a gestão, dados e comportamento do restaurante.",
+  "quando": "Ao configurar impressão, baixa automática, cardápio ou equipe.",
+  "passos": [
+    "Escolha Aparência clara/escura para sua conta.",
+    "Admin/gerente revisam os dados do restaurante.",
+    "Confira os efeitos das opções de baixa e cardápio antes de salvar.",
+    "Use Minha conta para login/senha e a seção Usuários para administrar a equipe."
+  ],
+  "campos": [
+    {
+      "nome": "Nome do restaurante",
+      "preenchimento": "Nome exibido no sistema.",
+      "obrigatorio": "Na configuração"
+    },
+    {
+      "nome": "Endereço de entrega",
+      "preenchimento": "Rua, número, bairro, cidade e CEP usados na reposição.",
+      "obrigatorio": "Para gerar reposição"
+    },
+    {
+      "nome": "Moeda e Timezone",
+      "preenchimento": "Identificadores da configuração, como BRL e America/Sao_Paulo; afetam apresentação e datas.",
+      "obrigatorio": "Conforme configuração"
+    },
+    {
+      "nome": "Impressora: tipo e endereço/MAC",
+      "preenchimento": "Selecione o modo compatível; conexão depende do navegador/equipamento.",
+      "obrigatorio": "Conforme impressão"
+    },
+    {
+      "nome": "Baixa de estoque automática",
+      "preenchimento": "Ativa consumo automático dos pedidos; não desativa produção explícita.",
+      "obrigatorio": "Opção"
+    },
+    {
+      "nome": "Cardápio digital ativo",
+      "preenchimento": "Permite consulta pública por QR. Não habilita pedido pelo cliente.",
+      "obrigatorio": "Opção"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Salvar configurações",
+      "efeito": "Persiste ajustes do restaurante."
+    },
+    {
+      "nome": "Testar impressora",
+      "efeito": "Tenta impressão/Bluetooth com fallback do navegador."
+    },
+    {
+      "nome": "Aparência",
+      "efeito": "Salva tema individual."
+    },
+    {
+      "nome": "Abrir Minha conta",
+      "efeito": "Gerencia seus dados e credenciais."
+    }
+  ],
+  "depois": "Opções afetam operações futuras; não recalculam vendas ou movimentos antigos.",
+  "atencao": [
+    "Somente admin/gerente alteram dados globais. O tema pertence a cada usuário.",
+    "Baixa desligada pode deixar custo BI desconhecido; ligar novamente não reconstitui histórico."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Bluetooth funciona em todo celular?",
+      "resposta": "Não. Depende de navegador, permissões e impressora; use o fallback disponível."
+    }
+  ],
+  "relacionados": [
+    "usuarios",
+    "minha-conta",
+    "cardapio"
+  ]
+}

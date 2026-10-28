@@ -1,0 +1,66 @@
+{
+  "id": "recebimento",
+  "titulo": "Receber mercadorias e compra retroativa",
+  "para": "Confirma a mercadoria recebida e cria um débito financeiro único.",
+  "quando": "Quando um pedido gerado for entregue, inclusive se você estiver lançando depois da data real.",
+  "passos": [
+    "Em Aguardando recebimento, toque em Receber mercadorias.",
+    "Informe a data efetiva: hoje ou dia passado; não use data futura.",
+    "Em cada linha, confira quantidade comprada, unidade e valor total.",
+    "Revise a conversão para unidade de estoque e o total da compra.",
+    "Confirme e confira o histórico e a despesa pendente no Financeiro."
+  ],
+  "campos": [
+    {
+      "nome": "Data efetiva do recebimento",
+      "preenchimento": "Data real da chegada; determina competência da entrada e da despesa.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Qtd. comprada",
+      "preenchimento": "Valor positivo que de fato chegou.",
+      "obrigatorio": "Sim por linha"
+    },
+    {
+      "nome": "Unidade de compra",
+      "preenchimento": "Ex.: kg, g ou embalagem com fator cadastrado.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Valor total da linha (R$)",
+      "preenchimento": "Total da quantidade recebida, por exemplo 2 kg por R$ 16.",
+      "obrigatorio": "Sim"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Confirmar recebimento",
+      "efeito": "Atualiza estoque/custo, grava entrada e cria uma despesa pendente."
+    },
+    {
+      "nome": "Voltar",
+      "efeito": "Fecha sem confirmar o recebimento."
+    }
+  ],
+  "depois": "O pedido fica recebido. O débito fica pendente até o pagamento real ser registrado em Despesas.",
+  "atencao": [
+    "Recebimento duplicado é bloqueado para não somar estoque/despesa duas vezes.",
+    "Data retroativa ajusta competência; não reconstitui saldos históricos nem altera custos já congelados das vendas.",
+    "A compra inteira não pode gerar débito fictício de R$ 0. Confira os valores antes da confirmação."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Receber também paga o fornecedor?",
+      "resposta": "Não. Marca chegada física e cria conta pendente; pague/reabra em Despesas."
+    },
+    {
+      "pergunta": "Posso editar a despesa de reposição?",
+      "resposta": "Valor e vínculos são protegidos. Pagar e reabrir continuam disponíveis."
+    }
+  ],
+  "relacionados": [
+    "recebidos",
+    "despesas",
+    "unidades"
+  ]
+}

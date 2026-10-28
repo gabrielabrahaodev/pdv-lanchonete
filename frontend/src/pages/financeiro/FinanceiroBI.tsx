@@ -1,3 +1,4 @@
+import { artigoDaSecao } from '../../wiki/navegacao/contexto'
 import {useMemo,useState} from 'react'
 import {useQuery} from '@tanstack/react-query'
 import {api} from '../../lib/api'
@@ -35,7 +36,7 @@ export default function FinanceiroBI(){
  const pendentes=(contas.data?.items??[]).filter(d=>{const v=d.vencimento?.slice(0,10);return (!fornecedor||d.fornecedorId===fornecedor)&&(!catConta||d.categoria===catConta)&&(filtroConta==='todas'||filtroConta==='sem'&&!v||filtroConta==='vencidas'&&!!v&&v<hoje||filtroConta==='7'&&!!v&&v>=hoje&&v<=emDias(7)||filtroConta==='30'&&!!v&&v>=hoje&&v<=emDias(30))})
  const aplicar=()=>{if(rascunho.inicio>rascunho.fim||!rascunho.inicio||!rascunho.fim){setErro('Informe um período válido.');return}setErro('');setPeriodo(rascunho)}
  const d=painel.data;const entries=(v:Record<string,number>)=>Object.entries(v).map(([label,valor])=>({label,valor}))
- return <div className="min-w-0 space-y-4 p-3 text-slate-800 sm:p-6 dark:text-slate-100"><PageHeader title="Financeiro" subtitle="Inteligência gerencial do restaurante"/>
+ return <div className="min-w-0 space-y-4 p-3 text-slate-800 sm:p-6 dark:text-slate-100"><PageHeader ajuda={artigoDaSecao('financeiro', sec)} title="Financeiro" subtitle="Inteligência gerencial do restaurante"/>
  <Select aria-label="Seção do financeiro" className="md:hidden" value={sec} onChange={e=>setSec(e.target.value)}>{seccoes.map(s=><option key={s}>{s}</option>)}</Select><nav aria-label="Seções do financeiro" className="hidden flex-wrap gap-2 md:flex">{seccoes.map(s=><Button key={s} variant={sec===s?'primary':'secondary'} aria-pressed={sec===s} onClick={()=>setSec(s)}>{s}</Button>)}</nav>
  <p className="text-sm text-slate-500 dark:text-slate-400">{descricoes[sec]}</p>
  <Card className="flex flex-wrap items-end gap-2 p-3">{[7,30,90].map(n=><Button key={n} variant="secondary" onClick={()=>{const p=janela(n);setPeriodo(p);setRascunho(p)}}>{n} dias</Button>)}<label className="min-w-0 text-xs">Início<Input aria-label="Início do período" type="date" value={rascunho.inicio} onChange={e=>setRascunho({...rascunho,inicio:e.target.value})}/></label><label className="min-w-0 text-xs">Fim<Input aria-label="Fim do período" type="date" value={rascunho.fim} onChange={e=>setRascunho({...rascunho,fim:e.target.value})}/></label><Button onClick={aplicar}>Aplicar período</Button><Button variant="secondary" onClick={()=>{void painel.refetch();if(['Contas a pagar','Previsibilidade'].includes(sec))void contas.refetch()}}>Atualizar dados</Button></Card>

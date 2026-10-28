@@ -1,0 +1,27 @@
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright')
+const { spawn } = require('node:child_process')
+const fs = require('node:fs')
+const assert = require('node:assert/strict')
+;(async () => {
+  const servidor = spawn(process.execPath, ['node_modules/vite/bin/vite.js','preview','--host','127.0.0.1','--port','4173','--strictPort'],{stdio:['ignore','pipe','pipe']})
+  await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(Error('Preview indisponivel')),20000);servidor.stdout.on('data',d=>{if(String(d).includes('Local:')){clearTimeout(t);resolve()}});servidor.on('exit',c=>{if(c)reject(Error('Preview encerrou '+c))})})
+  const browser=await chromium.launch({headless:true,args:['--no-sandbox']})
+  try {
+    const context=await browser.newContext();const page=await context.newPage()
+    // Somente infraestrutura PWA. Impede inicializacao de Auth/API do app real.
+    await page.route('**/assets/index-*.js', r=>r.fulfill({contentType:'application/javascript',body:'export {}'}))
+    await page.goto('http://127.0.0.1:4173')
+    await page.evaluate(async()=>{await navigator.serviceWorker.register('/sw.js');await navigator.serviceWorker.ready})
+    await page.reload();await page.waitForFunction(()=>!!navigator.serviceWorker.controller)
+    const nomes=fs.readdirSync('dist/assets').filter(n=>/^wiki-artigo-.*\.js$/.test(n));assert.equal(nomes.length,47)
+    const antes=await page.evaluate(async()=>{const nomes=await caches.keys();const urls=[];for(const n of nomes)for(const req of await(await caches.open(n)).keys())urls.push(req.url);return urls})
+    assert.equal(antes.some(u=>u.includes('/wiki-artigo-')),false)
+    const url='/assets/'+nomes.find(n=>n.startsWith('wiki-artigo-recebimento-'))
+    assert.equal(await page.evaluate(async u=>(await fetch(u)).ok,url),true)
+    await page.waitForFunction(async u=>(await caches.open('wiki-artigos')).match(u).then(Boolean),url)
+    await context.setOffline(true)
+    assert.equal(await page.evaluate(async u=>(await fetch(u)).ok,url),true)
+    console.log('PASS PWA: artigos fora do precache; artigo visitado no CacheFirst e acessivel offline; nenhuma autenticacao/dado real.')
+    await context.close()
+  } finally { await browser.close();servidor.kill() }
+})().catch(e=>{console.error(e);process.exit(1)})

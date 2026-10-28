@@ -1,0 +1,63 @@
+{
+  "id": "categorias",
+  "titulo": "Categorias",
+  "para": "Agrupa produtos no catálogo e no cardápio digital.",
+  "quando": "Ao organizar bebidas, salgados, refeições e outros grupos.",
+  "passos": [
+    "Use Nova categoria.",
+    "Preencha nome, ícone opcional e ordem.",
+    "Marque a situação e salve.",
+    "Para revisar, use Editar na lista."
+  ],
+  "campos": [
+    {
+      "nome": "Nome",
+      "preenchimento": "Nome do grupo, como Bebidas.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Ícone",
+      "preenchimento": "Escolha ou cole um emoji, até 4 caracteres.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Ordem de exibição",
+      "preenchimento": "Número usado na ordenação.",
+      "obrigatorio": "Padrão da tela"
+    },
+    {
+      "nome": "Categoria ativa",
+      "preenchimento": "Controla a exibição da categoria no cardápio público.",
+      "obrigatorio": "Conforme uso"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Salvar / Criar categoria",
+      "efeito": "Persiste o grupo."
+    },
+    {
+      "nome": "Ativa / inativa",
+      "efeito": "Alterna situação."
+    },
+    {
+      "nome": "Excluir",
+      "efeito": "Só permite remover categoria sem produtos vinculados."
+    }
+  ],
+  "depois": "O produto pode ser vinculado à categoria no seu formulário.",
+  "atencao": [
+    "Excluir categoria não deve ser usado para excluir seus produtos; remova os vínculos primeiro."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Por que não consigo excluir?",
+      "resposta": "Há produtos vinculados ou seu perfil não permite a ação."
+    }
+  ],
+  "relacionados": [
+    "produtos",
+    "produto-formulario",
+    "cardapio"
+  ]
+}

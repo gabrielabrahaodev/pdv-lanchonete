@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Bike,
+  BookOpen,
   ChefHat,
   ChevronsLeft,
   ChevronsRight,
@@ -22,6 +23,7 @@ import {
 import { useAuth } from '../../context/AuthContext'
 import { useEstoque, useRealtimeStatus } from '../../hooks/useFirestore'
 import { Badge } from '../ui'
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import type { ReactNode } from 'react'
 
 const NAV: { to: string; label: string; icon: ReactNode }[] = [
@@ -38,6 +40,7 @@ const NAV: { to: string; label: string; icon: ReactNode }[] = [
   { to: '/fornecedores', label: 'Fornecedores', icon: <Wallet className="h-5 w-5" aria-hidden="true" /> },
   { to: '/financeiro', label: 'Financeiro', icon: <Wallet className="h-5 w-5" aria-hidden="true" /> },
   { to: '/minha-conta', label: 'Minha conta', icon: <Settings className="h-5 w-5" aria-hidden="true" /> },
+  { to: '/wiki', label: 'Wiki', icon: <BookOpen className="h-5 w-5" aria-hidden="true" /> },
   { to: '/configuracoes', label: 'Configurações', icon: <Settings className="h-5 w-5" aria-hidden="true" /> },
 ]
 
@@ -232,12 +235,13 @@ export default function AppLayout() {
   )
 }
 
-export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: React.ReactNode }) {
+export function PageHeader({ title, subtitle, actions, ajuda }: { title: string; subtitle?: string; actions?: React.ReactNode; ajuda?: string }) {
   return (
     <div className="mb-4 flex min-w-0 flex-col gap-3 sm:mb-6 md:flex-row md:items-start md:justify-between">
       <div className="min-w-0 pl-14 md:pl-0">
         <h1 className="break-words text-xl font-bold text-slate-800 dark:text-slate-100">{title}</h1>
         {subtitle && <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>}
+        <AjudaContextual artigo={ajuda} />
       </div>
       {actions && <div className="flex w-full min-w-0 flex-wrap items-center gap-2 md:w-auto md:shrink-0">{actions}</div>}
     </div>

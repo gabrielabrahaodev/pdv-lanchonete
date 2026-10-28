@@ -1,0 +1,58 @@
+{
+  "id": "resultados",
+  "titulo": "Financeiro — Resultados",
+  "para": "Explica a composição do resultado gerencial e seus percentuais.",
+  "quando": "Ao avaliar receita, custo das unidades vendidas e despesas operacionais.",
+  "passos": [
+    "Aplique o período.",
+    "Leia Receita de vendas, Custo direto, Lucro bruto, Despesas operacionais e Resultado gerencial.",
+    "Confira a cobertura de custos e os indicadores percentuais.",
+    "Consulte compras separadamente para evitar descontar duas vezes."
+  ],
+  "campos": [
+    {
+      "nome": "Início e fim",
+      "preenchimento": "Datas civis inclusivas, início não posterior ao fim; clique em Aplicar período.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "7 / 30 / 90 dias",
+      "preenchimento": "Atalhos para janela de consulta.",
+      "obrigatorio": "Opcional"
+    },
+    {
+      "nome": "Cobertura",
+      "preenchimento": "Percentual da receita com custo histórico confiável.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Resultados",
+      "efeito": "Mostra o demonstrativo próprio, distinto da Visão geral."
+    },
+    {
+      "nome": "Aplicar período / Atualizar dados",
+      "efeito": "Recalcula a consulta sem editar vendas."
+    }
+  ],
+  "depois": "Lucro bruto = receita − CMV. Resultado gerencial BI = lucro bruto − despesas operacionais. Ex.: receita R$ 100, CMV R$ 20, operacionais R$ 10 e compras R$ 40: lucro bruto R$ 80, resultado R$ 70. Não subtrair os R$ 40 novamente.",
+  "atencao": [
+    "Lucro bruto integral e resultado exigem cobertura completa de vendas BI e custos. Sem base para dividir, percentuais ficam indisponíveis.",
+    "Margem bruta = lucro bruto ÷ receita × 100; CMV sobre receita e operacionais sobre receita usam a receita como base. Variações comparam períodos de igual duração.",
+    "O relatório legado mantém resultadoGerencial = faturamento − total de despesas por competência e CMV estimado informativo. Não é a mesma medida do BI. O painel atual do menu Financeiro usa a fórmula BI.",
+    "Impostos, taxas e indiretos não lançados podem faltar. Nenhum desses indicadores garante lucro líquido contábil."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Por que um relatório antigo difere?",
+      "resposta": "São medidas diferentes. Compare a mesma fórmula, período, competência e cobertura, sem somar CMV às compras já deduzidas no legado."
+    }
+  ],
+  "relacionados": [
+    "financeiro",
+    "lucratividade",
+    "relatorios",
+    "despesas"
+  ]
+}

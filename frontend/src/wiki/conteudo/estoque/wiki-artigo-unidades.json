@@ -1,0 +1,55 @@
+{
+  "id": "unidades",
+  "titulo": "Unidades e custo médio",
+  "para": "Explica a diferença entre unidade comprada e consumida e o cálculo do custo médio.",
+  "quando": "Ao registrar kg, g, litros, mililitros, unidades ou embalagens.",
+  "passos": [
+    "Escolha a unidade de controle adequada à receita.",
+    "Informe a quantidade/unidade comercial e o valor total da compra.",
+    "Confira a quantidade convertida e o custo antes de confirmar."
+  ],
+  "campos": [
+    {
+      "nome": "Quantidade comprada",
+      "preenchimento": "Ex.: 2 kg.",
+      "obrigatorio": "Sim na compra"
+    },
+    {
+      "nome": "Valor total",
+      "preenchimento": "Ex.: R$ 16 pelos 2 kg, não R$ 16 por grama.",
+      "obrigatorio": "Sim na compra"
+    },
+    {
+      "nome": "Fator da embalagem",
+      "preenchimento": "Conteúdo de uma embalagem na unidade de controle.",
+      "obrigatorio": "Quando houver embalagem"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Conferir compra",
+      "efeito": "A tela apresenta conversão e referência por unidade."
+    },
+    {
+      "nome": "Confirmar entrada",
+      "efeito": "Soma quantidade e recalcula o custo médio conforme saldo e valor de entrada."
+    }
+  ],
+  "depois": "Farinha em g: 2 kg por R$ 16 viram 2000 g e R$ 0,008/g. Receita de 150 g custa R$ 1,20.",
+  "atencao": [
+    "Média ponderada considera valor anterior e compra, não média simples de preços. Ex.: 1 kg a R$ 10 + 1 kg a R$ 20 resulta em R$ 15/kg.",
+    "Não se converte massa em volume automaticamente. Embalagens dependem do fator cadastrado.",
+    "O sistema mantém precisão interna; não arredonde custo por grama antes de calcular a receita."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Entrada retroativa muda custo passado?",
+      "resposta": "Não. Atualiza saldo e custo atuais; snapshots históricos de vendas não são recalculados."
+    }
+  ],
+  "relacionados": [
+    "precificacao",
+    "recebimento",
+    "movimentacoes"
+  ]
+}

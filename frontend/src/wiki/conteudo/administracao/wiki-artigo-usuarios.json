@@ -1,0 +1,64 @@
+{
+  "id": "usuarios",
+  "titulo": "Usuários do restaurante",
+  "para": "Gerencia contas e papéis da equipe dentro do restaurante.",
+  "quando": "Ao admitir funcionário ou revisar acesso.",
+  "passos": [
+    "Em Configurações, abra a seção Usuários.",
+    "Use Adicionar usuário e informe nome, e-mail, senha inicial e papel.",
+    "Para revisão, edite nome/papel ou desative acesso.",
+    "Use recuperação administrativa apenas para a conta correta e autorizada."
+  ],
+  "campos": [
+    {
+      "nome": "Nome",
+      "preenchimento": "Identificação da pessoa.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "E-mail",
+      "preenchimento": "Login individual válido.",
+      "obrigatorio": "Sim ao criar"
+    },
+    {
+      "nome": "Senha",
+      "preenchimento": "Inicial com pelo menos 6 caracteres.",
+      "obrigatorio": "Ao criar"
+    },
+    {
+      "nome": "Papel",
+      "preenchimento": "Admin, gerente, caixa, garcom ou cozinha conforme autorização.",
+      "obrigatorio": "Sim"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Adicionar / Salvar",
+      "efeito": "Cria identidade/perfil ou atualiza dados."
+    },
+    {
+      "nome": "Desativar / Reativar",
+      "efeito": "Controla acesso preservando autoria e histórico."
+    },
+    {
+      "nome": "Recuperação",
+      "efeito": "Solicita procedimento autorizado; não mostra a senha atual."
+    }
+  ],
+  "depois": "Permissões mudam conforme perfil ativo. Falhas de sincronização de login são informadas e precisam ser resolvidas.",
+  "atencao": [
+    "Somente admin gerencia contas admin. O último admin ativo não pode ser desativado/rebaixado.",
+    "Não use uma única conta para toda a equipe."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Desativar apaga vendas feitas pela pessoa?",
+      "resposta": "Não. O perfil e a autoria histórica são preservados."
+    }
+  ],
+  "relacionados": [
+    "perfis",
+    "minha-conta",
+    "configuracoes"
+  ]
+}

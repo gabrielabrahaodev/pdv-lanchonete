@@ -1,0 +1,65 @@
+{
+  "id": "venda-direta",
+  "titulo": "Nova venda direta",
+  "para": "Cria uma venda no balcão sem ocupar mesa.",
+  "quando": "Quando o cliente escolhe produtos e paga na hora.",
+  "passos": [
+    "Abra uma sessão no Caixa e toque em Nova venda direta.",
+    "Busque ou filtre os produtos. Toque em adicionar; escolha variação quando houver.",
+    "Use Personalizar para quantidade e observação; confira a comanda.",
+    "No celular, abra a comanda pela barra fixa inferior.",
+    "Confirme para ir ao pagamento; confira o recebimento antes de registrar."
+  ],
+  "campos": [
+    {
+      "nome": "Busca e categoria",
+      "preenchimento": "Filtros opcionais do catálogo.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Quantidade",
+      "preenchimento": "Número de unidades da linha, maior que zero.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Variação",
+      "preenchimento": "Padrão ou opção ativa com seu adicional.",
+      "obrigatorio": "Quando houver"
+    },
+    {
+      "nome": "Observação do item",
+      "preenchimento": "Orientação de preparo; até 200 caracteres.",
+      "obrigatorio": "Não"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Adicionar",
+      "efeito": "Inclui no carrinho local; ainda não confirma a venda."
+    },
+    {
+      "nome": "Personalizar",
+      "efeito": "Abre opções da linha."
+    },
+    {
+      "nome": "Confirmar comanda",
+      "efeito": "Cria pedido e abre pagamento; o preço é validado no servidor."
+    }
+  ],
+  "depois": "O pedido nasce sem mesa. Produtos antecipados reservam lotes; sob pedido segue sua regra de preparo.",
+  "atencao": [
+    "Caixa aberto é obrigatório para balcão. Pagar não confirma automaticamente todos os preparos ou entregas.",
+    "Cancelar após consumo não devolve ingredientes automaticamente."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Fechei a tela antes de pagar. Perdi o pedido?",
+      "resposta": "Se já confirmou a criação, retome no Caixa; o carrinho ainda não enviado não é uma venda."
+    }
+  ],
+  "relacionados": [
+    "novo-pedido",
+    "pagamento",
+    "producao"
+  ]
+}

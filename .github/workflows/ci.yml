@@ -40,8 +40,22 @@ jobs:
       - run: node --test tests/modal-focus.test.mjs
       - run: npm run test:cardapio
       - run: npm run test:reposicao
+      - run: npm run test:wiki
+      - name: Instalar navegador para testes da Wiki
+        run: |
+          npm install --prefix "$RUNNER_TEMP/wiki-browser" --no-audit --no-fund playwright@1.51.1
+          node "$RUNNER_TEMP/wiki-browser/node_modules/playwright/cli.js" install --with-deps chromium --only-shell
+      - name: Wiki - rotas, ajuda, mobile e preservacao de formularios
+        run: npm run test:wiki:ui
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/wiki-browser/node_modules/playwright
       - run: npx tsc --noEmit
       - run: npm run build
+      - run: npm run test:wiki:bundle
+      - name: Wiki - cache PWA sem dados reais
+        run: npm run test:wiki:pwa
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/wiki-browser/node_modules/playwright
 
   # Regras do Firestore no emulador (P0-A). Java p/ binaries do emulador.
   # Roda em PR e push de master; falha bloqueia merge.

@@ -1,0 +1,53 @@
+{
+  "id": "acesso",
+  "titulo": "Acessar o sistema",
+  "para": "Permite entrar com e-mail e senha, criar conta quando necessário e solicitar recuperação de senha.",
+  "quando": "Ao iniciar o trabalho ou esquecer a senha.",
+  "passos": [
+    "Digite o e-mail da sua conta, substituindo qualquer exemplo preenchido.",
+    "Informe a senha e toque em Entrar.",
+    "Se recebeu convite para criar restaurante, siga o link e use Criar conta.",
+    "Para recuperar acesso, preencha seu e-mail e toque em Esqueci minha senha."
+  ],
+  "campos": [
+    {
+      "nome": "E-mail",
+      "preenchimento": "Use o endereço cadastrado, no formato nome@dominio.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Senha",
+      "preenchimento": "Senha da conta; no cadastro são pelo menos 6 caracteres.",
+      "obrigatorio": "Sim"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Entrar / Criar conta",
+      "efeito": "Autentica ou cria identidade; criar conta não cria restaurante automaticamente."
+    },
+    {
+      "nome": "Mostrar senha",
+      "efeito": "Alterna apenas a visibilidade do texto digitado."
+    },
+    {
+      "nome": "Esqueci minha senha",
+      "efeito": "Solicita um e-mail de recuperação; verifique caixa de entrada e spam."
+    }
+  ],
+  "depois": "Quem tem restaurante segue ao Caixa. Quem ainda não tem vínculo segue à seleção/provisionamento.",
+  "atencao": [
+    "O convite é pessoal e não deve ser divulgado. Nunca forneça sua senha a outra pessoa."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Criei conta e não vejo um restaurante.",
+      "resposta": "Seu login precisa ser vinculado pela gestão ou concluir um convite válido."
+    }
+  ],
+  "relacionados": [
+    "onboarding",
+    "minha-conta",
+    "perfis"
+  ]
+}

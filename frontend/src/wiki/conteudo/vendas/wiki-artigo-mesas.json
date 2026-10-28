@@ -1,0 +1,57 @@
+{
+  "id": "mesas",
+  "titulo": "Mesas",
+  "para": "Organiza as mesas e abre o atendimento.",
+  "quando": "Para localizar mesa livre ou ocupada e disponibilizar o cardápio por QR.",
+  "passos": [
+    "Filtre pela situação ou busque o número.",
+    "Escolha grade ou lista.",
+    "Abra o atendimento da mesa ou use Opções.",
+    "Gestão autorizada pode criar uma nova mesa com número único."
+  ],
+  "campos": [
+    {
+      "nome": "Número da mesa",
+      "preenchimento": "Inteiro positivo, sem repetir outro número.",
+      "obrigatorio": "Ao cadastrar"
+    },
+    {
+      "nome": "Situação e busca",
+      "preenchimento": "Filtros da visualização.",
+      "obrigatorio": "Não"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Abrir pedido / Novo pedido",
+      "efeito": "Segue para a comanda da mesa."
+    },
+    {
+      "nome": "Opções",
+      "efeito": "Oferece QR do cardápio e exclusão quando permitida."
+    },
+    {
+      "nome": "Baixar PNG",
+      "efeito": "Salva o QR para imprimir."
+    },
+    {
+      "nome": "Excluir",
+      "efeito": "Remove apenas mesa sem ocupação/pedido ativo."
+    }
+  ],
+  "depois": "Criar pedido ocupa a mesa; quitar o pedido a libera.",
+  "atencao": [
+    "O QR apenas mostra o cardápio. O cliente não faz pedido pelo QR."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Posso excluir uma mesa ocupada?",
+      "resposta": "Não. Finalize o atendimento primeiro."
+    }
+  ],
+  "relacionados": [
+    "mesa",
+    "novo-pedido",
+    "cardapio"
+  ]
+}

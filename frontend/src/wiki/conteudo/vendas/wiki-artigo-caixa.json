@@ -1,0 +1,54 @@
+{
+  "id": "caixa",
+  "titulo": "Caixa",
+  "para": "Centraliza mesas, sessão de caixa e vendas de balcão.",
+  "quando": "No início do turno e durante o atendimento.",
+  "passos": [
+    "Confira se há uma sessão aberta. Se necessário, abra o caixa com o fundo de troco.",
+    "Para venda sem mesa, use Nova venda direta.",
+    "Para atendimento na mesa, abra o cartão da mesa.",
+    "Retome vendas de balcão pelos links Continuar pagamento ou Ver venda / entrega."
+  ],
+  "campos": [
+    {
+      "nome": "Valor de abertura",
+      "preenchimento": "Informe o fundo de troco em reais, por exemplo 50,00. Não é receita de venda.",
+      "obrigatorio": "Ao abrir caixa"
+    },
+    {
+      "nome": "Fundo, vendas, recebido, suprimentos e sangrias",
+      "preenchimento": "Indicadores da sessão atual.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Abrir caixa",
+      "efeito": "Inicia uma sessão; só pode existir uma aberta por restaurante."
+    },
+    {
+      "nome": "Sessão de caixa",
+      "efeito": "Abre suprimento, sangria, fechamento e histórico."
+    },
+    {
+      "nome": "Nova venda direta",
+      "efeito": "Inicia pedido de balcão sem ocupar mesa."
+    }
+  ],
+  "depois": "A quitação de vendas compõe os totais; a mesa é liberada quando o pedido é quitado.",
+  "atencao": [
+    "Somente admin/gerente/caixa operam sessão e venda direta. Garçom usa o atendimento de mesas.",
+    "A lista de balcão não é um relatório completo de todas as vendas antigas."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Abrir caixa baixa o estoque?",
+      "resposta": "Não. A baixa depende dos produtos, pedidos e produção."
+    }
+  ],
+  "relacionados": [
+    "venda-direta",
+    "mesas",
+    "fechamento-caixa"
+  ]
+}

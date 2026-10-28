@@ -57,3 +57,10 @@ Ao modificar regra de negócio, atualizar no mesmo PR:
 - Endpoints/roles afetados.
 - Exceções e erros HTTP.
 - Testes de regressão necessários.
+
+## Wiki de uso — manutenção de telas novas
+
+Nova tela/aba operacional deve incluir artigo estático, campos e efeitos das ações,
+palavras-chave, mapeamento de rota/seção e AjudaContextual. Rodar `npm run wiki:indice`
+e `npm run test:wiki` em frontend. Atualizar fontes no manifesto e conferir relacionados.
+Ver [[Wiki-Central-de-Ajuda]]. Não armazenar artigos no Firestore ou expor dados reais na documentação.

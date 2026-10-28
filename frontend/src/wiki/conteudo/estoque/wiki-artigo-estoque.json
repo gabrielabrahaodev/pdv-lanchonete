@@ -1,0 +1,68 @@
+{
+  "id": "estoque",
+  "titulo": "Estoque",
+  "para": "Controla insumos, quantidades, mínimos, custos e movimentações.",
+  "quando": "Ao conferir o que há disponível para preparo e compra.",
+  "passos": [
+    "Busque o insumo e use filtros de alertas/arquivados.",
+    "Confira saldo, mínimo, unidade e preço de referência.",
+    "Use Novo insumo para cadastrar; Movimentar para entrada, saída ou correção.",
+    "Abra Histórico para rastrear um item."
+  ],
+  "campos": [
+    {
+      "nome": "Busca",
+      "preenchimento": "Nome do insumo.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Somente alertas",
+      "preenchimento": "Mostra ativos com saldo menor ou igual ao mínimo.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Arquivados",
+      "preenchimento": "Inclui os itens fora do uso normal.",
+      "obrigatorio": "Não"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Novo insumo / Editar",
+      "efeito": "Abre cadastro e unidades."
+    },
+    {
+      "nome": "Movimentar",
+      "efeito": "Registra alteração física e seu motivo."
+    },
+    {
+      "nome": "Histórico",
+      "efeito": "Consulta movimentos do item."
+    },
+    {
+      "nome": "Arquivar / Reativar",
+      "efeito": "Controla uso do insumo preservando registros."
+    },
+    {
+      "nome": "CSV",
+      "efeito": "Exporta os dados oferecidos na tela."
+    }
+  ],
+  "depois": "Entradas, saídas, compras e baixas de receita alteram o saldo conforme sua operação.",
+  "atencao": [
+    "Somente admin/gerente alteram estoque. Não lance uma entrada manual se a mesma mercadoria será recebida por Reposição.",
+    "Saldo negativo pode ocorrer; investigue origem, receita e contagem antes de corrigir."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Alerta significa produto acabado?",
+      "resposta": "Não. Aqui é insumo. O pronto está em Produção e Estufa."
+    }
+  ],
+  "relacionados": [
+    "insumos",
+    "movimentacoes",
+    "reposicao",
+    "unidades"
+  ]
+}

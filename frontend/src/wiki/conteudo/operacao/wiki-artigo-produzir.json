@@ -1,0 +1,74 @@
+{
+  "id": "produzir",
+  "titulo": "Produzir em lotes",
+  "para": "Registra uma fornada e o rendimento realmente aproveitado.",
+  "quando": "Depois de produzir fisicamente uma receita ou fração dela.",
+  "passos": [
+    "Abra Produzir e escolha o produto antecipado.",
+    "Informe receitas utilizadas e quantidade realmente produzida.",
+    "Informe validade futura, local e observação se necessário.",
+    "Confira os ingredientes consumidos e confirme a produção."
+  ],
+  "campos": [
+    {
+      "nome": "Produto",
+      "preenchimento": "Antecipado com ingredientes válidos.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Receitas utilizadas",
+      "preenchimento": "Número positivo; aceita fração, como 0,5 receita.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Quantidade realmente produzida",
+      "preenchimento": "Unidades inteiras positivas aproveitáveis, não só o previsto.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Validade do lote",
+      "preenchimento": "Data/hora futura.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Local de armazenamento",
+      "preenchimento": "Ex.: Estufa ou geladeira; até 80 caracteres.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Observação",
+      "preenchimento": "Notas até 300 caracteres.",
+      "obrigatorio": "Não"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Conferir produção",
+      "efeito": "Mostra o consumo calculado."
+    },
+    {
+      "nome": "Confirmar produção",
+      "efeito": "Consome ingredientes e cria lote com custo registrado."
+    },
+    {
+      "nome": "Tentar novamente",
+      "efeito": "Confere a mesma operação se a resposta falhar."
+    }
+  ],
+  "depois": "Consumo é ingredientes da receita × receitas utilizadas. Custo do lote é distribuído pela quantidade realmente produzida.",
+  "atencao": [
+    "Produção explícita consome ingredientes mesmo com baixa automática de pedidos desligada.",
+    "A produção pode armazenar custo numérico zero quando falta custo de insumo; isso não prova custo realizado zero no Financeiro, que exige confiabilidade."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Rendeu menos do que o previsto.",
+      "resposta": "Informe o aproveitado; o custo unitário do lote aumenta porque o consumo foi dividido por menos unidades."
+    }
+  ],
+  "relacionados": [
+    "producao",
+    "precificacao",
+    "perdas-producao"
+  ]
+}

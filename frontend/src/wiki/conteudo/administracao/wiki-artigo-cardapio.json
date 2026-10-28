@@ -1,0 +1,54 @@
+{
+  "id": "cardapio",
+  "titulo": "Cardápio digital",
+  "para": "Mostra o menu público do restaurante sem exigir login do cliente.",
+  "quando": "Para compartilhar por QR nas mesas ou consultar opções e preços.",
+  "passos": [
+    "Gestão obtém o QR nas opções da mesa e baixa o PNG para imprimir.",
+    "O cliente abre o QR, busca produtos e filtra categorias.",
+    "Toque em um produto para consultar detalhes e opções.",
+    "Solicite o pedido ao atendente."
+  ],
+  "campos": [
+    {
+      "nome": "Busca e categorias",
+      "preenchimento": "Filtros do catálogo público ativo.",
+      "obrigatorio": "Não"
+    },
+    {
+      "nome": "Opções e preços",
+      "preenchimento": "Variações somam adicional; o catálogo pode mostrar a partir de.",
+      "obrigatorio": "Consulta"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Ver detalhes",
+      "efeito": "Abre foto/opções do produto."
+    },
+    {
+      "nome": "Limpar busca",
+      "efeito": "Remove filtro textual."
+    },
+    {
+      "nome": "Tentar novamente",
+      "efeito": "Repete carregamento se a API estiver indisponível."
+    }
+  ],
+  "depois": "Consulta não cria pedido, não reserva estoque e não ocupa mesa.",
+  "atencao": [
+    "Pedido pelo QR está desativado. Não há carrinho público nem pagamento online neste fluxo.",
+    "Conteúdo público pode ficar em cache por até 30 segundos; não depende da conta ou tema do funcionário."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Cliente precisa de login?",
+      "resposta": "Não. O cardápio é público e separado da área operacional."
+    }
+  ],
+  "relacionados": [
+    "mesas",
+    "produtos",
+    "configuracoes"
+  ]
+}

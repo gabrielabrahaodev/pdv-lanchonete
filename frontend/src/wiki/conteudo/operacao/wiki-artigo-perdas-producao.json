@@ -1,0 +1,63 @@
+{
+  "id": "perdas-producao",
+  "titulo": "Perdas e conversão de produtos prontos",
+  "para": "Registra descarte ou transformação física de saldo pronto.",
+  "quando": "Ao vencer, queimar, quebrar ou transformar um produto em outro.",
+  "passos": [
+    "Na Estufa, escolha o lote e Perda ou Converter.",
+    "Informe quantidade de origem disponível.",
+    "Para perda, escolha motivo; para conversão, escolha produto de destino e quantidade obtida.",
+    "Descreva a operação e confirme."
+  ],
+  "campos": [
+    {
+      "nome": "Quantidade de origem",
+      "preenchimento": "Positiva e não maior que o saldo livre; reservado não pode ser descartado por esta ação.",
+      "obrigatorio": "Sim"
+    },
+    {
+      "nome": "Motivo",
+      "preenchimento": "Vencimento, queima, quebra, consumo interno ou ajuste de contagem (saída).",
+      "obrigatorio": "Perda"
+    },
+    {
+      "nome": "Produto de destino e quantidade obtida",
+      "preenchimento": "Produto antecipado de destino e unidades obtidas.",
+      "obrigatorio": "Conversão"
+    },
+    {
+      "nome": "Observação obrigatória",
+      "preenchimento": "Descreva o motivo real.",
+      "obrigatorio": "Sim"
+    }
+  ],
+  "acoes": [
+    {
+      "nome": "Confirmar perda",
+      "efeito": "Baixa saldo livre e registra perda."
+    },
+    {
+      "nome": "Converter",
+      "efeito": "Transfere o custo proporcional para o destino, preservando validade/proveniência."
+    },
+    {
+      "nome": "Cancelar",
+      "efeito": "Fecha sem gravar."
+    }
+  ],
+  "depois": "Não há receita nem venda. A conversão não consome ingredientes outra vez.",
+  "atencao": [
+    "Não use perda para corrigir pagamentos. Resolva reservas antes de registrar a perda de unidades comprometidas."
+  ],
+  "duvidas": [
+    {
+      "pergunta": "Posso zerar um lote reservado?",
+      "resposta": "Não por perda. Confira os pedidos e resolva a reserva primeiro."
+    }
+  ],
+  "relacionados": [
+    "reservas",
+    "producao",
+    "producao-historico"
+  ]
+}

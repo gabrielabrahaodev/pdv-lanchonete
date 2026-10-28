@@ -1,3 +1,4 @@
+import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { recuperarSenha, erroConta } from '../../lib/conta'
@@ -62,7 +63,7 @@ export default function ConfiguracoesPage() {
             <ConfigForm initial={config.data!} />
             <Card className="overflow-hidden">
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-                <h3 className="font-bold text-slate-700 dark:text-slate-200">Usuários</h3>
+                <div><h3 className="font-bold text-slate-700 dark:text-slate-200">Usuários</h3><AjudaContextual artigo="usuarios" rotulo="Como gerenciar usuários?" /></div>
                 {(usuarios.data ?? []).length > 0 && (
                   <span className="text-xs text-slate-500">
                     {usuarios.data!.length} usuário(s)

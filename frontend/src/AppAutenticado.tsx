@@ -1,10 +1,13 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { lazy, Suspense, type ReactNode } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import AppLayout from './components/layout/AppLayout'
 import { AtualizacaoPwa } from './components/AtualizacaoPwa'
 import { LoadingScreen } from './components/ui'
+import { origemValida, consultaDaOrigem } from './wiki/navegacao/contexto'
+const WikiPage = lazy(() => import('./wiki/WikiPage'))
+const WikiOverlay = lazy(() => import('./wiki/componentes/WikiOverlay'))
 
 // Code-splitting por rota: cada página vira um chunk carregado sob demanda.
 const MinhaContaPage = lazy(() => import('./pages/conta/MinhaContaPage'))
@@ -83,7 +86,29 @@ export default function AppAutenticado() {
       <ThemeProvider>
         <Suspense fallback={<LoadingScreen />}>
           <AtualizacaoPwa />
-        <Routes>
+          <RotasAutenticadas />
+        </Suspense>
+      </ThemeProvider>
+    </AuthProvider>
+  )
+}
+
+function WikiLayout() {
+  const { me } = useAuth()
+  return me?.restaurantId ? <AppLayout /> : <main className="h-full overflow-y-auto"><Outlet /></main>
+}
+
+function RotasAutenticadas() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { me } = useAuth()
+  const origem = location.pathname.startsWith('/wiki') ? origemValida(location.state, me) : null
+  return <>
+        <Routes location={origem ? { ...origem, search: consultaDaOrigem(origem) } : location}>
+        <Route path="/wiki" element={<RequireAuthFallback><WikiLayout /></RequireAuthFallback>}>
+          <Route index element={<WikiPage />} />
+          <Route path=":artigoId" element={<WikiPage />} />
+        </Route>
         <Route
           path="/login"
           element={
@@ -142,10 +167,8 @@ export default function AppAutenticado() {
         </Route>
         <Route path="*" element={<Navigate to="/caixa" replace />} />
         </Routes>
-        </Suspense>
-      </ThemeProvider>
-    </AuthProvider>
-  )
+        {origem && <Routes><Route path="/wiki/:artigoId?" element={<RequireAuthFallback><WikiOverlay fechar={() => navigate(origem.pathname + consultaDaOrigem(origem), { replace: true, state: null })}><WikiPage /></WikiOverlay></RequireAuthFallback>} /></Routes>}
+      </>
 }
 
 /** Tela de seleção exige login mas NÃO exige claim restaurantId.
