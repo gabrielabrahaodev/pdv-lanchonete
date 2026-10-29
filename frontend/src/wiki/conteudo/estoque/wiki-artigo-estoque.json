@@ -4,10 +4,11 @@
   "para": "Controla insumos, quantidades, mínimos, custos e movimentações.",
   "quando": "Ao conferir o que há disponível para preparo e compra.",
   "passos": [
-    "Busque o insumo e use filtros de alertas/arquivados.",
+    "Busque o insumo e use os botões Somente alertas e Incluir arquivados. No celular, aparecem como Alertas e Arquivados.",
     "Confira saldo, mínimo, unidade e preço de referência.",
     "Use Novo insumo para cadastrar; Movimentar para entrada, saída ou correção.",
-    "Abra Histórico para rastrear um item."
+    "Abra Histórico para rastrear um item.",
+    "Expanda Últimas movimentações, abaixo da lista, para consultar a atividade recente."
   ],
   "campos": [
     {
@@ -24,6 +25,11 @@
       "nome": "Arquivados",
       "preenchimento": "Inclui os itens fora do uso normal.",
       "obrigatorio": "Não"
+    },
+    {
+      "nome": "Resumo do estoque",
+      "preenchimento": "Contagem de ativos, em alerta e arquivados de todo o estoque carregado. Não muda com os filtros da lista.",
+      "obrigatorio": "Consulta"
     }
   ],
   "acoes": [
