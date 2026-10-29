@@ -84,3 +84,6 @@ O aviso preexistente de chunk Firebase maior que500kB permanece.
 Capturas foram inspecionadas após estabilizar as transições de tema. CI remoto deve
 ser conferido na PR; aprovação visual pessoal e homologação com dados de teste ficam
 para o usuário. Nenhum teste desta implementação gravou no Firebase real.
+
+
+A PR #30 também foi estendida às demais telas, por solicitação do usuário. O roteiro geral está em `docs/04-testes/visual-sistema.md`; a branch de teste e os dois terminais continuam os mesmos.

@@ -125,7 +125,7 @@ export default function WikiPage() {
           id="wiki-titulo"
           ref={tituloRef}
           tabIndex={-1}
-          className="flex items-center gap-2 text-2xl font-bold outline-none"
+          className="flex items-center gap-2 text-xl font-semibold tracking-tight outline-none"
         >
           <BookOpen
             className="h-6 w-6 shrink-0 text-brand-600"
@@ -242,7 +242,7 @@ export default function WikiPage() {
                   const lista = autorizados.filter((a) => a.categoria === id)
                   return lista.length ? (
                     <section key={id}>
-                      <h2 className="mb-3 text-lg font-bold">{nome}</h2>
+                      <h2 className="mb-3 text-base font-semibold">{nome}</h2>
                       <div className="grid gap-2 sm:grid-cols-2">
                         {lista.map((a) => (
                           <Card key={a.id} className="p-3">
@@ -302,7 +302,7 @@ export default function WikiPage() {
                   <h3
                     id={id}
                     tabIndex={-1}
-                    className="scroll-mt-4 text-lg font-bold outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                    className="scroll-mt-4 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                   >
                     {titulo}
                   </h3>

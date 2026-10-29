@@ -12,16 +12,42 @@ import {
   type TextareaHTMLAttributes,
 } from 'react'
 import { Inbox } from 'lucide-react'
+import { Link, type LinkProps } from 'react-router-dom'
 
 // ------------------------------------------------------------------ Button
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'success'
+type Variant =
+  | 'primary'
+  | 'secondary'
+  | 'danger'
+  | 'ghost'
+  | 'success'
+  | 'selected'
 const variants: Record<Variant, string> = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-300',
+  selected:
+    'border-brand-300 bg-brand-50 text-brand-800 dark:border-brand-800 dark:bg-brand-900/25 dark:text-brand-200',
+  primary:
+    'border-brand-700 bg-brand-700 text-white hover:border-brand-800 hover:bg-brand-800 disabled:opacity-40',
   secondary:
-    'bg-slate-200 text-slate-800 hover:bg-slate-300 disabled:opacity-50 dark:bg-slate-700 dark:text-slate-100 dark:hover:bg-slate-600',
-  danger: 'bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50',
-  success: 'bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50',
-  ghost: 'border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700',
+    'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800',
+  danger:
+    'border-rose-700 bg-rose-700 text-white hover:bg-rose-800 disabled:opacity-40',
+  success:
+    'border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-40',
+  ghost:
+    'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800',
+}
+
+/** Mesmo contrato visual para ações e navegação, sem controles interativos aninhados. */
+export function buttonClasses(variant: Variant = 'primary', className = '') {
+  return `pdv-button inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium no-underline transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed lg:min-h-9 lg:rounded-lg dark:focus-visible:ring-offset-slate-900 ${variants[variant]} ${className}`
+}
+
+export function ButtonLink({
+  variant = 'primary',
+  className = '',
+  ...props
+}: LinkProps & { variant?: Variant }) {
+  return <Link {...props} className={buttonClasses(variant, className)} />
 }
 
 export function Button({
@@ -30,10 +56,13 @@ export function Button({
   className = '',
   children,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; loading?: boolean }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: Variant
+  loading?: boolean
+}) {
   return (
     <button
-      className={`inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed dark:focus-visible:ring-offset-slate-900 ${variants[variant]} ${className}`}
+      className={buttonClasses(variant, className)}
       {...props}
       disabled={loading || props.disabled}
     >
@@ -44,19 +73,26 @@ export function Button({
 }
 
 // ------------------------------------------------------------------ Inputs
-export function Input({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function Input({
+  className = '',
+  ...props
+}: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={`w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-brand-900/50 ${className}`}
+      className={`min-h-11 min-w-0 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm lg:min-h-9 lg:rounded-lg outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-900/50 ${className}`}
       {...props}
     />
   )
 }
 
-export function Select({ className = '', children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({
+  className = '',
+  children,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
-      className={`w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-brand-900/50 ${className}`}
+      className={`min-h-11 min-w-0 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm lg:min-h-9 lg:rounded-lg outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-900/50 ${className}`}
       {...props}
     >
       {children}
@@ -64,10 +100,13 @@ export function Select({ className = '', children, ...props }: SelectHTMLAttribu
   )
 }
 
-export function Textarea({ className = '', ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function Textarea({
+  className = '',
+  ...props
+}: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className={`w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-brand-900/50 ${className}`}
+      className={`min-h-11 min-w-0 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm lg:min-h-9 lg:rounded-lg outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-900/50 ${className}`}
       {...props}
     />
   )
@@ -89,7 +128,9 @@ export function Field({
   const id = useId()
   const erroId = `${id}-erro`
   const ajudaId = `${id}-ajuda`
-  const describedBy = [error ? erroId : null, hint ? ajudaId : null].filter(Boolean).join(' ') || undefined
+  const describedBy =
+    [error ? erroId : null, hint ? ajudaId : null].filter(Boolean).join(' ') ||
+    undefined
   const controle =
     isValidElement(children) && typeof children !== 'string'
       ? cloneElement(children as ReactElement<Record<string, unknown>>, {
@@ -99,7 +140,7 @@ export function Field({
       : children
   return (
     <label className="block">
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">
         {label}
         {required && (
           <span aria-hidden="true" className="ml-0.5 text-rose-500">
@@ -110,12 +151,19 @@ export function Field({
       </span>
       {controle}
       {hint && !error && (
-        <span id={ajudaId} className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
+        <span
+          id={ajudaId}
+          className="mt-1 block text-xs text-slate-500 dark:text-slate-400"
+        >
           {hint}
         </span>
       )}
       {error && (
-        <span id={erroId} role="alert" className="mt-1 block text-xs font-semibold text-rose-600 dark:text-rose-300">
+        <span
+          id={erroId}
+          role="alert"
+          className="mt-1 block text-xs font-semibold text-rose-600 dark:text-rose-300"
+        >
           {error}
         </span>
       )}
@@ -124,40 +172,71 @@ export function Field({
 }
 
 // ------------------------------------------------------------------ Card
-export function Card({ className = '', children }: { className?: string; children: ReactNode }) {
-  return <div className={`rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 ${className}`}>{children}</div>
+export function Card({
+  className = '',
+  children,
+}: {
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <div
+      className={`pdv-card min-w-0 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 ${className}`}
+    >
+      {children}
+    </div>
+  )
 }
 
 // ------------------------------------------------------------------ Badge
 const badgeColors: Record<string, string> = {
-  livre: 'bg-emerald-100 text-emerald-700',
-  ocupada: 'bg-amber-100 text-amber-700',
-  reservada: 'bg-sky-100 text-sky-700',
-  inativa: 'bg-slate-200 text-slate-500',
-  aberto: 'bg-amber-100 text-amber-700',
-  pago: 'bg-emerald-100 text-emerald-700',
-  cancelado: 'bg-rose-100 text-rose-700',
-  pendente: 'bg-slate-200 text-slate-600',
-  preparo: 'bg-sky-100 text-sky-700',
-  pronto: 'bg-violet-100 text-violet-700',
-  entregue: 'bg-emerald-100 text-emerald-700',
-  pending: 'bg-slate-200 text-slate-600',
-  confirmed: 'bg-sky-100 text-sky-700',
-  preparing: 'bg-amber-100 text-amber-700',
-  ready: 'bg-violet-100 text-violet-700',
-  delivered: 'bg-emerald-100 text-emerald-700',
-  cancelled: 'bg-rose-100 text-rose-700',
-  fechado: 'bg-slate-200 text-slate-500',
-  admin: 'bg-violet-100 text-violet-700',
-  gerente: 'bg-sky-100 text-sky-700',
-  caixa: 'bg-emerald-100 text-emerald-700',
-  garcom: 'bg-amber-100 text-amber-700',
-  cozinha: 'bg-rose-100 text-rose-700',
+  ativo:
+    'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
+  livre:
+    'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
+  ocupada:
+    'bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
+  reservada: 'bg-sky-50 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300',
+  inativa: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+  aberto: 'bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
+  pago: 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
+  cancelado: 'bg-rose-50 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300',
+  pendente: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+  preparo: 'bg-sky-50 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300',
+  pronto:
+    'bg-violet-50 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300',
+  entregue:
+    'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
+  pending: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+  confirmed: 'bg-sky-50 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300',
+  preparing:
+    'bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
+  ready:
+    'bg-violet-50 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300',
+  delivered:
+    'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
+  cancelled: 'bg-rose-50 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300',
+  fechado: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+  admin:
+    'bg-violet-50 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300',
+  gerente: 'bg-sky-50 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300',
+  caixa:
+    'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
+  garcom: 'bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
+  cozinha: 'bg-rose-50 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300',
 }
 
 export function Badge({ value, label }: { value: string; label?: string }) {
-  const color = badgeColors[value] ?? 'bg-slate-100 text-slate-600'
-  return <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${color}`}>{label ?? value}</span>
+  const color =
+    badgeColors[value] ??
+    'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+  return (
+    <span
+      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium capitalize ${color}`}
+    >
+      {label ?? value}
+    </span>
+  )
 }
 
 // ------------------------------------------------------------------ Modal
@@ -222,22 +301,28 @@ export function Modal({
       document.body.style.overflow = anterior
       window.clearTimeout(t)
     }
-  // O foco inicial e o listener pertencem ao ciclo abrir/fechar.
-  // Não reexecutar por alterações de texto no conteúdo do modal.
+    // O foco inicial e o listener pertencem ao ciclo abrir/fechar.
+    // Não reexecutar por alterações de texto no conteúdo do modal.
   }, [open])
 
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+    >
       <div
         ref={caixaRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
-        className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-xl bg-white p-4 shadow-xl sm:p-6 dark:bg-slate-900"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-xl sm:p-5 dark:border-slate-800 dark:bg-slate-900"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id={tituloId} className="mb-4 text-lg font-bold text-slate-800 dark:text-slate-100">
+        <h2
+          id={tituloId}
+          className="mb-4 text-lg font-bold text-slate-800 dark:text-slate-100"
+        >
           {title}
         </h2>
         {children}
@@ -265,30 +350,92 @@ export function LoadingScreen() {
   )
 }
 
-export function EmptyState({ icon, message }: { icon?: ReactNode; message: string }) {
+export function EmptyState({
+  icon,
+  message,
+}: {
+  icon?: ReactNode
+  message: string
+}) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 py-16 text-slate-500">
+    <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-center text-slate-500 dark:text-slate-400">
       {typeof icon === 'string' ? (
         <span aria-hidden="true" className="text-4xl">
           {icon}
         </span>
       ) : (
-        (icon ?? <Inbox className="h-10 w-10 text-slate-300" strokeWidth={1.5} aria-hidden="true" />)
+        (icon ?? (
+          <Inbox
+            className="h-10 w-10 text-slate-300"
+            strokeWidth={1.5}
+            aria-hidden="true"
+          />
+        ))
       )}
       <p className="text-sm">{message}</p>
     </div>
   )
 }
 
-export function ErrorState({ error, onRetry, retryLabel = 'Tentar novamente' }: { error: unknown; onRetry?: () => void; retryLabel?: string }) {
+export function ErrorState({
+  error,
+  onRetry,
+  retryLabel = 'Tentar novamente',
+}: {
+  error: unknown
+  onRetry?: () => void
+  retryLabel?: string
+}) {
   return (
     <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
-      <p role="alert">{error instanceof Error ? error.message : 'Erro ao carregar dados'}</p>
+      <p role="alert">
+        {error instanceof Error ? error.message : 'Erro ao carregar dados'}
+      </p>
       {onRetry && (
         <Button variant="secondary" className="mt-3" onClick={onRetry}>
           {retryLabel}
         </Button>
       )}
     </div>
+  )
+}
+
+/** Barra de busca/filtros com quebra natural e superfície igual à lista. */
+export function FilterBar({
+  children,
+  className = '',
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div
+      className={`mb-3 flex min-w-0 flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 ${className}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+export function SummaryStrip({
+  items,
+}: {
+  items: { label: string; value: ReactNode; alert?: boolean }[]
+}) {
+  return (
+    <dl className="mb-4 flex min-w-0 divide-x divide-slate-200 rounded-xl border border-slate-200 bg-white py-3 dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+      {items.map((item) => (
+        <div key={item.label} className="min-w-0 flex-1 px-3 sm:px-4">
+          <dt className="text-xs text-slate-500 dark:text-slate-400">
+            {item.label}
+          </dt>
+          <dd
+            className={`mt-1 text-lg font-semibold tabular-nums ${item.alert ? 'text-amber-800 dark:text-amber-300' : 'text-slate-800 dark:text-slate-100'}`}
+          >
+            {item.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
   )
 }

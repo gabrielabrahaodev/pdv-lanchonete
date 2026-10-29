@@ -21,7 +21,7 @@ export default function FechamentoCaixaPage() {
   const historico = (sessoes.data ?? []).filter((s) => s.status === 'fechado')
 
   return (
-    <div className="p-3 sm:p-6">
+    <div className="pdv-page p-3 sm:p-5 lg:p-6">
       <PageHeader
         title="Fechamento de caixa"
         subtitle="Sessões de caixa do restaurante"
@@ -41,7 +41,7 @@ export default function FechamentoCaixaPage() {
       {atual ? (
         <Card className="mb-4 p-4 sm:mb-6 sm:p-6">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="font-bold text-slate-700">Sessão aberta · {dataHora(atual.abertoEm ?? atual.criadoEm)}</h3>
+            <h3 className="font-bold text-slate-700 dark:text-slate-100">Sessão aberta · {dataHora(atual.abertoEm ?? atual.criadoEm)}</h3>
             <Badge value="aberto" />
           </div>
           <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-5">
@@ -54,17 +54,17 @@ export default function FechamentoCaixaPage() {
 
           {Object.keys(atual.vendasPorFormaPagamento ?? {}).length > 0 && (
             <div className="mt-4 border-t border-dashed pt-3">
-              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Vendas por forma de pagamento</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Vendas por forma de pagamento</p>
               <div className="flex flex-wrap gap-4 text-sm">
                 {Object.entries(atual.vendasPorFormaPagamento ?? {}).map(([forma, v]) => (
-                  <span key={forma} className="capitalize text-slate-600">{forma}: <b>{brl(v)}</b></span>
+                  <span key={forma} className="capitalize text-slate-600 dark:text-slate-300">{forma}: <b>{brl(v)}</b></span>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="mt-4 rounded-lg bg-slate-50 p-4">
-            <p className="text-sm font-semibold text-slate-600">
+          <div className="mt-4 rounded-lg bg-slate-50 p-4 dark:bg-slate-800">
+            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
               Esperado em caixa:{' '}
               <b className="text-slate-800 dark:text-slate-100">
                 {brl(atual.valorInicial + atual.totalRecebido + atual.suprimentos - atual.sangrias)}
@@ -73,34 +73,34 @@ export default function FechamentoCaixaPage() {
           </div>
         </Card>
       ) : (
-        <Card className="mb-6 p-8 text-center text-sm text-slate-500">
+        <Card className="mb-6 p-8 text-center text-sm text-slate-500 dark:text-slate-400">
           Nenhuma sessão de caixa aberta.
         </Card>
       )}
 
-      <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-500">Histórico</h2>
+      <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Histórico</h2>
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-sm">
-          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+          <table className="pdv-table pdv-records w-full min-w-[560px] text-sm">
+          <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
             <tr>
-              <th className="px-5 py-3">Abertura</th>
-              <th className="px-5 py-3">Fechamento</th>
-              <th className="px-5 py-3">Vendas</th>
-              <th className="px-5 py-3">Esperado</th>
-              <th className="px-5 py-3">Contado</th>
-              <th className="px-5 py-3">Diferença</th>
+              <th scope="col" className="px-5 py-3">Abertura</th>
+              <th scope="col" className="px-5 py-3">Fechamento</th>
+              <th scope="col" className="px-5 py-3">Vendas</th>
+              <th scope="col" className="px-5 py-3">Esperado</th>
+              <th scope="col" className="px-5 py-3">Contado</th>
+              <th scope="col" className="px-5 py-3">Diferença</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {historico.map((s) => (
               <tr key={s.id}>
-                <td className="px-5 py-3 text-slate-500">{dataHora(s.abertoEm ?? s.criadoEm)}</td>
-                <td className="px-5 py-3 text-slate-500">{dataHora(s.fechadoEm)}</td>
-                <td className="px-5 py-3 font-semibold">{brl(s.totalVendas)}</td>
-                <td className="px-5 py-3">{brl(s.resumoFechamento?.esperadoEmCaixa ?? 0)}</td>
-                <td className="px-5 py-3">{s.resumoFechamento?.valorContado != null ? brl(s.resumoFechamento.valorContado) : '—'}</td>
-                <td className={`px-5 py-3 font-bold ${
+                <td data-label="Abertura" className="px-5 py-3 text-slate-500 dark:text-slate-400">{dataHora(s.abertoEm ?? s.criadoEm)}</td>
+                <td data-label="Fechamento" className="px-5 py-3 text-slate-500 dark:text-slate-400">{dataHora(s.fechadoEm)}</td>
+                <td data-label="Vendas" className="px-5 py-3 font-semibold">{brl(s.totalVendas)}</td>
+                <td data-label="Esperado" className="px-5 py-3">{brl(s.resumoFechamento?.esperadoEmCaixa ?? 0)}</td>
+                <td data-label="Contado" className="px-5 py-3">{s.resumoFechamento?.valorContado != null ? brl(s.resumoFechamento.valorContado) : '—'}</td>
+                <td data-label="Diferença" className={`px-5 py-3 font-bold ${
                   s.resumoFechamento?.diferenca == null
                     ? 'text-slate-300'
                     : Math.abs(s.resumoFechamento.diferenca) < 0.01
@@ -114,7 +114,7 @@ export default function FechamentoCaixaPage() {
           </tbody>
         </table>
         </div>
-        {historico.length === 0 && <p className="px-5 py-8 text-center text-sm text-slate-500">Sem sessões fechadas ainda.</p>}
+        {historico.length === 0 && <p className="px-5 py-8 text-center text-sm text-slate-500 dark:text-slate-400">Sem sessões fechadas ainda.</p>}
       </Card>
 
       <SessaoModais modal={modal} onClose={() => setModal(null)} onDone={() => setModal(null)} sessaoAtual={atual} />
@@ -125,7 +125,7 @@ export default function FechamentoCaixaPage() {
 function Linha({ label, valor, destaque }: { label: string; valor: string; destaque?: boolean }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
         <p className={`text-lg font-bold tabular-nums ${destaque ? 'text-brand-600' : 'text-slate-800 dark:text-slate-100'}`}>{valor}</p>
     </div>
   )
@@ -173,10 +173,10 @@ function SessaoModais({
     <Modal title={modal ? titulos[modal] : ''} open={!!modal} onClose={onClose}>
       <div className="space-y-4">
         {modal && modal !== 'abrir' && sessaoAtual && modal !== 'fechar' && (
-          <p className="text-xs text-slate-500">Sessão aberta desde {dataHora(sessaoAtual.abertoEm ?? sessaoAtual.criadoEm)}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Sessão aberta desde {dataHora(sessaoAtual.abertoEm ?? sessaoAtual.criadoEm)}</p>
         )}
         {modal === 'fechar' && sessaoAtual && (
-          <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
+          <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-300">
             Esperado: <b>{brl(sessaoAtual.valorInicial + sessaoAtual.totalRecebido + sessaoAtual.suprimentos - sessaoAtual.sangrias)}</b>
           </p>
         )}
@@ -188,7 +188,7 @@ function SessaoModais({
             <Input value={obs} onChange={(e) => setObs(e.target.value)} />
           </Field>
         )}
-        {acao.isError && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{String(acao.error)}</p>}
+        {acao.isError && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{String(acao.error)}</p>}
         <Button
           variant={modal === 'fechar' ? 'danger' : 'primary'}
           className="w-full"

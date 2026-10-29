@@ -68,24 +68,24 @@ export default function MesasPage() {
   }
 
   return (
-    <div className="p-3 text-slate-800 sm:p-6 dark:text-slate-100">
+    <div className="pdv-page p-3 text-slate-800 sm:p-5 lg:p-6 dark:text-slate-100">
       <PageHeader
         title="Mesas"
         subtitle={`${lista.length} mesas · ${lista.filter((m) => m.status === 'ocupada').length} ocupadas · ${lista.filter((m) => m.status === 'livre').length} livres`}
         actions={gerencia ? <Button onClick={() => setNovaAberta(true)}>+ Nova mesa</Button> : undefined}
       />
 
-      <div className="sticky top-0 z-10 mb-4 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 p-2 dark:bg-slate-950">
+      <div className="sticky top-0 z-10 mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-wrap gap-1" role="group" aria-label="Filtrar mesas">
           {[['todas', 'Todas'], ['ocupada', 'Ocupadas'], ['livre', 'Livres']].map(([valor, nome]) => (
-            <button key={valor} aria-pressed={filtro === valor} onClick={() => setFiltro(valor)} className={`min-h-11 rounded-lg px-3 text-sm font-semibold ${filtro === valor ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800'}`}>
+            <button key={valor} aria-pressed={filtro === valor} onClick={() => setFiltro(valor)} className={`min-h-11 rounded-xl px-3 text-sm lg:min-h-9 lg:rounded-lg font-semibold ${filtro === valor ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200 dark:bg-brand-900/25 dark:text-brand-200 dark:ring-brand-800' : 'text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-800'}`}>
               {nome} ({valor === 'todas' ? lista.length : lista.filter((m) => m.status === valor).length})
             </button>
           ))}
         </div>
         <Input aria-label="Buscar mesa por número" placeholder="Número da mesa" inputMode="numeric" value={busca} onChange={(e) => setBusca(e.target.value)} className="w-full sm:w-44" />
         <div role="group" aria-label="Visualização" className="flex gap-1 sm:ml-auto">
-          {[['grade', 'Grade'], ['lista', 'Lista']].map(([valor, nome]) => <button key={valor} aria-pressed={visual === valor} onClick={() => setVisual(valor)} className={`min-h-11 rounded-lg px-3 text-sm ${visual === valor ? 'bg-slate-200 font-semibold dark:bg-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>{nome}</button>)}
+          {[['grade', 'Grade'], ['lista', 'Lista']].map(([valor, nome]) => <button key={valor} aria-pressed={visual === valor} onClick={() => setVisual(valor)} className={`min-h-11 rounded-xl px-3 text-sm lg:min-h-9 lg:rounded-lg ${visual === valor ? 'bg-slate-200 font-semibold dark:bg-slate-700' : 'text-slate-500 dark:text-slate-400'}`}>{nome}</button>)}
         </div>
       </div>
       {remover.isError && <p role="alert" className="mb-3 text-sm text-rose-600 dark:text-rose-400">{remover.error.message}</p>}
@@ -101,7 +101,7 @@ export default function MesasPage() {
                   <Badge value={m.status} />
                 </div>
                 <div className={`text-sm ${visual === 'grade' ? 'min-h-10' : 'sm:flex-1'}`}>
-                  {m.status === 'ocupada' ? (pedido ? <><strong>{brl(pedido.total)}</strong><p className="text-xs text-slate-500 dark:text-slate-400">Há {tempo(pedido.criadoEm)}</p></> : <p className="text-xs text-slate-500">{pedidos.isLoading ? 'Carregando…' : 'Ver pedido'}</p>) : <p className="text-xs text-slate-500 dark:text-slate-400">{m.status === 'livre' ? 'Disponível para pedido' : m.status === 'reservada' ? 'Mesa reservada' : 'Mesa indisponível'}</p>}
+                  {m.status === 'ocupada' ? (pedido ? <><strong>{brl(pedido.total)}</strong><p className="text-xs text-slate-500 dark:text-slate-400">Há {tempo(pedido.criadoEm)}</p></> : <p className="text-xs text-slate-500 dark:text-slate-400">{pedidos.isLoading ? 'Carregando…' : 'Ver pedido'}</p>) : <p className="text-xs text-slate-500 dark:text-slate-400">{m.status === 'livre' ? 'Disponível para pedido' : m.status === 'reservada' ? 'Mesa reservada' : 'Mesa indisponível'}</p>}
                 </div>
                 <Button
                   variant={m.status === 'ocupada' ? 'primary' : 'secondary'}
@@ -133,13 +133,13 @@ export default function MesasPage() {
         {qrDataUrl ? (
           <div className="space-y-3 text-center">
             <img src={qrDataUrl} alt="QR do cardápio" className="mx-auto w-56 rounded-xl border border-slate-200" />
-            <p className="text-xs text-slate-500">Cliente escaneia e vê o cardápio — pedidos só com o atendente.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Cliente escaneia e vê o cardápio — pedidos só com o atendente.</p>
             <a href={qrDataUrl} download={`qrcode-mesa-${qrMesa?.numero}.png`}>
               <Button variant="secondary" className="w-full !py-1.5 !text-xs">⬇ Baixar PNG</Button>
             </a>
           </div>
         ) : (
-          <p role={erroQr ? "alert" : "status"} className="text-center text-sm text-slate-500">{erroQr || 'Gerando QR…'}</p>
+          <p role={erroQr ? "alert" : "status"} className="text-center text-sm text-slate-500 dark:text-slate-400">{erroQr || 'Gerando QR…'}</p>
         )}
       </Modal>
 

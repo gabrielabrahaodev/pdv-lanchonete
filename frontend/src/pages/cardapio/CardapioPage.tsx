@@ -202,7 +202,7 @@ export default function CardapioPage() {
                 type="button"
                 onClick={() => setBusca('')}
                 aria-label="Limpar busca"
-                className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+                className="absolute right-2 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-400"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -364,7 +364,7 @@ export default function CardapioPage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 {(produtoDetalhe.variacoes?.length ?? 0) > 0 && (
-                  <span className="text-xs text-slate-500">Preço inicial</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Preço inicial</span>
                 )}
                 <p className="text-2xl font-extrabold text-orange-600 dark:text-orange-400">{brl(produtoDetalhe.preco)}</p>
               </div>

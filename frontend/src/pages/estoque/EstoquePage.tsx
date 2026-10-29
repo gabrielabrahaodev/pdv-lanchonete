@@ -185,7 +185,7 @@ export default function EstoquePage() {
         : 'bg-amber-50/50 dark:bg-amber-950/15'
       : ''
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 text-slate-800 sm:p-6 dark:text-slate-200">
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 pdv-page p-3 text-slate-800 sm:p-5 lg:p-6 dark:text-slate-200">
       <PageHeader
         title="Estoque"
         subtitle="Saldos, compras e consumo."
@@ -257,7 +257,7 @@ export default function EstoquePage() {
               <button
                 type="button"
                 aria-label="Limpar busca"
-                className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-lg text-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600"
+                className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-lg text-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-slate-400"
                 onClick={() => setBusca('')}
               >
                 <X className="h-4 w-4" aria-hidden="true" />
@@ -349,7 +349,7 @@ export default function EstoquePage() {
           </div>
         )}
         <div className="hidden overflow-x-auto lg:block">
-          <table className="w-full text-left text-sm">
+          <table className="pdv-table w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs font-medium text-slate-500 dark:bg-slate-950/40 dark:text-slate-400">
               <tr>
                 <th scope="col" className="w-[36%] px-4 py-3 font-medium">
@@ -477,9 +477,9 @@ export default function EstoquePage() {
       </section>
       <details className="group min-w-0 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
         <summary className="flex min-h-14 cursor-pointer list-none items-center gap-2 rounded-xl px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 [&::-webkit-details-marker]:hidden">
-          <History className="h-4 w-4 text-slate-500" aria-hidden="true" />
+          <History className="h-4 w-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
           Últimas movimentações
-          <span className="ml-auto text-xs font-normal text-slate-500">
+          <span className="ml-auto text-xs font-normal text-slate-500 dark:text-slate-400">
             {movimentos.data?.length ?? 0} {(movimentos.data?.length ?? 0) === 1 ? 'recente' : 'recentes'}
           </span>
           <ChevronDown
@@ -520,7 +520,7 @@ export default function EstoquePage() {
             <ErrorState error={historico.error} />
           ) : (
             <>
-              <p className="mb-3 text-sm text-slate-500">
+              <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
                 Até 100 movimentos mais recentes deste insumo.
               </p>
               <Movimentos lista={historico.data ?? []} itens={[histItem]} />
@@ -564,7 +564,7 @@ function Movimentos({
               {custoUnitario(m.custoUnitario ?? 0)} por unidade de controle
             </p>
           )}
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             {dataHora(m.dataMovimentacao ?? m.criadoEm)} ·{' '}
             {m.observacao ?? 'Sem observação'}
             {m.dataMovimentacao && (
@@ -576,7 +576,7 @@ function Movimentos({
         </li>
       ))}
       {!lista.length && (
-        <li className="text-sm text-slate-500">Sem movimentações.</li>
+        <li className="text-sm text-slate-500 dark:text-slate-400">Sem movimentações.</li>
       )}
     </ul>
   )
@@ -844,7 +844,7 @@ function Cadastro({
             />
           </Field>
           {custoInterno != null && Number.isFinite(custoInterno) && (
-            <p className="text-xs text-slate-500 sm:col-span-2">
+            <p className="text-xs text-slate-500 sm:col-span-2 dark:text-slate-400">
               Referência:{' '}
               {formatarPrecoReferencia({
                 ...unidadeAtual,

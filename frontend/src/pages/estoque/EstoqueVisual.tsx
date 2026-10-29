@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from 'react'
 import { AlertTriangle, Archive, Check, CircleX } from 'lucide-react'
 import type { InventoryItem } from '../../types'
 
-/** Componentes locais do piloto: nao alteram o visual das demais telas. */
+/** Estados específicos do Estoque, alinhados ao padrão visual compartilhado. */
 export function BotaoEstoque({
   destaque = false,
   ativo = false,

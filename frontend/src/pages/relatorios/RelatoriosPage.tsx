@@ -5,7 +5,7 @@ import { Banknote, Clock3, ReceiptText, TrendingUp } from 'lucide-react'
 import { api } from '../../lib/api'
 import { baixarCsv } from '../../lib/csv'
 import type { ReportSummary } from '../../types'
-import { Button, Card, ErrorState, LoadingScreen, Select } from '../../components/ui'
+import { ButtonLink, Button, Card, ErrorState, LoadingScreen, Select } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl, diasAtrasISO } from '../../lib/format'
 
@@ -34,7 +34,7 @@ export default function RelatoriosPage() {
   const maxHora = Math.max(0, ...horas.map(([, valor]) => Number(valor) || 0))
 
   return (
-    <div className="min-w-0 w-full max-w-full overflow-x-hidden p-3 sm:p-6">
+    <div className="min-w-0 w-full max-w-full overflow-x-hidden pdv-page p-3 sm:p-5 lg:p-6">
       <PageHeader
         title="Relatórios"
         subtitle="Vendas do período (pedidos pagos)"
@@ -46,9 +46,7 @@ export default function RelatoriosPage() {
               ))}
             </Select>
             <Button variant="secondary" onClick={exportarResumo(r, periodo)}>⬇ CSV</Button>
-            <Link to="/relatorios/fechamento-caixa">
-              <Button variant="secondary">Fechamento de caixa</Button>
-            </Link>
+            <ButtonLink to="/relatorios/fechamento-caixa" variant="secondary">Fechamento de caixa</ButtonLink>
           </>
         }
       />
@@ -64,10 +62,10 @@ export default function RelatoriosPage() {
         <Card className="min-w-0 w-full max-w-full overflow-hidden p-4 sm:p-5">
           <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">Vendas por hora</h3>
-            <span className="text-xs text-slate-500">Deslize para ver todas as horas.</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Deslize para ver todas as horas.</span>
           </div>
           {maxHora <= 0 ? (
-            <div className="flex h-40 items-center justify-center text-sm text-slate-500">Sem vendas no período.</div>
+            <div className="flex h-40 items-center justify-center text-sm text-slate-500 dark:text-slate-400">Sem vendas no período.</div>
           ) : (
             <div className="w-full min-w-0 overflow-x-auto overscroll-x-contain pb-1">
               <div className="flex h-44 w-max min-w-full items-end gap-2 px-1 pb-1">
@@ -87,7 +85,7 @@ export default function RelatoriosPage() {
                           style={{ height: `${alturaPx}px`, opacity: valor > 0 ? 1 : 0.15 }}
                         />
                       </div>
-                      <span className="mt-1 shrink-0 text-[10px] text-slate-500">{hora}</span>
+                      <span className="mt-1 shrink-0 text-[10px] text-slate-500 dark:text-slate-400">{hora}</span>
                     </div>
                   )
                 })}
@@ -97,9 +95,9 @@ export default function RelatoriosPage() {
         </Card>
 
         <Card className="p-5">
-          <h3 className="mb-4 text-sm font-bold text-slate-700">Por forma de pagamento</h3>
+          <h3 className="mb-4 text-sm font-bold text-slate-700 dark:text-slate-100">Por forma de pagamento</h3>
           {Object.keys(r.vendasPorFormaPagamento ?? {}).length === 0 ? (
-            <p className="text-sm text-slate-500">Sem vendas no período.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Sem vendas no período.</p>
           ) : (
             <ul className="space-y-3">
               {Object.entries(r.vendasPorFormaPagamento).map(([forma, valor]) => {
@@ -107,8 +105,8 @@ export default function RelatoriosPage() {
                 return (
                   <li key={forma}>
                     <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-sm">
-                      <span className="font-semibold capitalize text-slate-600">{forma}</span>
-                      <span className="text-slate-500">{brl(valor)} · {pct.toFixed(0)}%</span>
+                      <span className="font-semibold capitalize text-slate-600 dark:text-slate-300">{forma}</span>
+                      <span className="text-slate-500 dark:text-slate-400">{brl(valor)} · {pct.toFixed(0)}%</span>
                     </div>
                     <div className="h-2 rounded-full bg-slate-100">
                       <div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} />
@@ -121,12 +119,12 @@ export default function RelatoriosPage() {
         </Card>
 
         <Card className="p-5">
-          <h3 className="mb-3 text-sm font-bold text-slate-700">Top produtos</h3>
+          <h3 className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-100">Top produtos</h3>
           <RankingList data={r.topProdutos} />
         </Card>
 
         <Card className="p-5">
-          <h3 className="mb-3 text-sm font-bold text-slate-700">Top categorias</h3>
+          <h3 className="mb-3 text-sm font-bold text-slate-700 dark:text-slate-100">Top categorias</h3>
           <RankingList data={r.topCategorias} />
         </Card>
       </div>
@@ -171,7 +169,7 @@ function KpiCard({ icon, label, value, highlight }: { icon: ReactNode; label: st
         {icon}
       </span>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
         <p className={`truncate text-lg font-bold tabular-nums ${highlight ? 'text-brand-600' : 'text-slate-800 dark:text-slate-100'}`}>{value}</p>
       </div>
     </Card>
@@ -180,17 +178,17 @@ function KpiCard({ icon, label, value, highlight }: { icon: ReactNode; label: st
 
 function RankingList({ data }: { data: Record<string, number> }) {
   const entries = Object.entries(data ?? {})
-  if (entries.length === 0) return <p className="text-sm text-slate-500">Sem dados.</p>
+  if (entries.length === 0) return <p className="text-sm text-slate-500 dark:text-slate-400">Sem dados.</p>
   const max = Math.max(1, ...entries.map(([, value]) => Number(value) || 0))
   return (
     <ul className="space-y-2">
       {entries.map(([nome, qtd]) => (
         <li key={nome} className="flex items-center gap-2 text-sm">
-          <span className="w-32 truncate font-semibold text-slate-700" title={nome}>{nome}</span>
+          <span className="w-32 truncate font-semibold text-slate-700 dark:text-slate-100" title={nome}>{nome}</span>
           <div className="h-2 flex-1 rounded-full bg-slate-100">
             <div className="h-full rounded-full bg-sky-500" style={{ width: `${(qtd / max) * 100}%` }} />
           </div>
-          <span className="w-8 text-right font-bold text-slate-500">{qtd}</span>
+          <span className="w-8 text-right font-bold text-slate-500 dark:text-slate-400">{qtd}</span>
         </li>
       ))}
     </ul>

@@ -53,6 +53,10 @@ jobs:
         run: npm run test:estoque:ui
         env:
           PLAYWRIGHT_MODULE: ${{ runner.temp }}/wiki-browser/node_modules/playwright
+      - name: Visual do sistema - desktop, mobile e comanda
+        run: npm run test:visual:ui
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/wiki-browser/node_modules/playwright
       - run: npx tsc --noEmit
       - run: npm run build
       - run: npm run test:wiki:bundle

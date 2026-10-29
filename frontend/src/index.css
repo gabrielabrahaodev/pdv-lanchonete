@@ -26,6 +26,8 @@ html, body, #root {
   min-height: 100dvh;
 }
 
+html.dark { color-scheme: dark; }
+
 html {
   touch-action: manipulation;
 }
@@ -47,5 +49,44 @@ body {
 
 /* Ações compactas: superfície visível, foco e área de toque consistente. */
 .action-button {
-  @apply inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-semibold no-underline transition-colors hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700;
+  @apply inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium no-underline transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50 lg:min-h-9 lg:rounded-lg dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800;
+}
+
+/* Padrão visual do PDV: densidade de escritório com alvos de toque no celular.
+   Classes opt-in preservam o catálogo público e a gaveta operacional da comanda. */
+.pdv-page { min-width: 0; }
+.pdv-table { width: 100%; text-align: left; }
+.pdv-table thead {
+  @apply bg-slate-50 text-xs font-medium text-slate-500 dark:bg-slate-950/40 dark:text-slate-400;
+}
+.pdv-table th {
+  @apply px-3 py-2.5 font-medium normal-case tracking-normal;
+}
+.pdv-table td { @apply px-3 py-2; }
+.pdv-table tbody tr {
+  @apply border-b border-slate-100 last:border-0 dark:border-slate-800;
+}
+.pdv-table tbody tr:hover { @apply bg-slate-50/70 dark:bg-slate-800/40; }
+.pdv-table td, .pdv-table th { overflow-wrap: anywhere; }
+
+/* Tabelas históricas/cadastros viram registros rotulados; dados e ações continuam
+   na mesma árvore, sem duplicar botões nem alterar a navegação por teclado. */
+@media (max-width: 1023px) {
+  .pdv-records { min-width: 0; }
+  .pdv-records, .pdv-records tbody { display: block; }
+  .pdv-records thead {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
+  .pdv-records tbody tr { display: block; padding: 0.75rem; }
+  .pdv-records td[data-label] {
+    display: flex; min-width: 0; max-width: none; align-items: center;
+    justify-content: space-between; gap: 1rem; padding: 0.25rem 0;
+    text-align: right; white-space: normal;
+  }
+  .pdv-records td[data-label]::before {
+    content: attr(data-label); flex-shrink: 0; font-size: 0.75rem;
+    font-weight: 400; @apply text-slate-500 dark:text-slate-400;
+  }
+  .pdv-records td[data-label] > * { min-width: 0; }
 }

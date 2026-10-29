@@ -33,7 +33,7 @@ function mesAtual(): { inicio: string; fim: string } {
 
 export default function FinanceiroPage() {
   return (
-    <div className="min-w-0 w-full max-w-full overflow-x-hidden p-3 sm:p-6">
+    <div className="min-w-0 w-full max-w-full overflow-x-hidden pdv-page p-3 sm:p-5 lg:p-6">
       <PageHeader title="Financeiro" subtitle="Despesas e resultado do mês" />
       <div className="grid min-w-0 w-full max-w-full gap-4 sm:gap-6 lg:grid-cols-2">
         <ResumoMesCard />
@@ -83,7 +83,7 @@ function ResumoMesCard() {
           <span className="text-rose-600 dark:text-rose-400">− {brl(f.totalDespesas)}</span>
         </li>
       </ul>
-      <p className="text-xs text-slate-500">CMV estimado (baixas de receita × custo médio): {brl(f.cmvEstimado)}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">CMV estimado (baixas de receita × custo médio): {brl(f.cmvEstimado)}</p>
       <div className={`rounded-xl p-4 ${positivo ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'bg-rose-50 dark:bg-rose-950/40'}`}>
         <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
           <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">Resultado</span>
@@ -229,7 +229,7 @@ export function DespesasCard({periodo}: {periodo?: {inicio:string;fim:string}}) 
   return (
     <Card className="overflow-hidden">
       <div className="flex min-w-0 flex-col items-stretch gap-2 border-b border-slate-100 px-3 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:px-5 sm:py-4 dark:border-slate-800">
-        <h3 className="mr-auto font-bold text-slate-700 dark:text-slate-200">Despesas</h3>{periodo && <p className="w-full text-xs text-slate-500">Competência de {periodo.inicio} a {periodo.fim} (fuso configurado do restaurante). Vencimento e pagamento são datas distintas.</p>}
+        <h3 className="mr-auto font-bold text-slate-700 dark:text-slate-200">Despesas</h3>{periodo && <p className="w-full text-xs text-slate-500 dark:text-slate-400">Competência de {periodo.inicio} a {periodo.fim} (fuso configurado do restaurante). Vencimento e pagamento são datas distintas.</p>}
         <Select value={filtroStatus} onChange={(e) => {setFiltroStatus(e.target.value); setCursores([null])}} className="w-full !py-2 !text-xs sm:!w-auto sm:!py-1.5">
           <option value="">Todos os status</option>
           <option value="pendente">Pendentes</option>
@@ -255,14 +255,14 @@ export function DespesasCard({periodo}: {periodo?: {inicio:string;fim:string}}) 
       ) : despesas.isError ? (
         <div className="p-5"><ErrorState error={despesas.error} /></div>
       ) : lista.length === 0 ? (
-        <p className="px-5 py-10 text-center text-sm text-slate-500">Nenhuma despesa encontrada.</p>
+        <p className="px-5 py-10 text-center text-sm text-slate-500 dark:text-slate-400">Nenhuma despesa encontrada.</p>
       ) : (
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {lista.map((d) => (
             <li key={d.id} className="flex min-w-0 flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-5">
               <div className="min-w-0 flex-1">
                 <p className="break-words text-sm font-semibold text-slate-700 dark:text-slate-200">{d.descricao}</p>
-                <p className="break-words text-xs text-slate-500">
+                <p className="break-words text-xs text-slate-500 dark:text-slate-400">
                   {labelCategoria(d.categoria)} · competência {dataHora(d.data)}
                   {d.status === 'pago' && ` · paga em ${dataHora(d.pagoEm)}`}
                 </p>
@@ -287,7 +287,7 @@ export function DespesasCard({periodo}: {periodo?: {inicio:string;fim:string}}) 
         </ul>
       )}
 
-      <div className="flex flex-wrap gap-2 p-3"><Button variant="secondary" disabled={cursores.length===1} onClick={()=>setCursores(c=>c.slice(0,-1))}>Anterior</Button><Button variant="secondary" disabled={!despesas.data?.nextCursor} onClick={()=>setCursores(c=>[...c,despesas.data!.nextCursor])}>Próxima página</Button><span className="text-xs text-slate-500">CSV exporta somente esta página. Páginas filtradas podem ficar vazias.</span></div>
+      <div className="flex flex-wrap gap-2 p-3"><Button variant="secondary" disabled={cursores.length===1} onClick={()=>setCursores(c=>c.slice(0,-1))}>Anterior</Button><Button variant="secondary" disabled={!despesas.data?.nextCursor} onClick={()=>setCursores(c=>[...c,despesas.data!.nextCursor])}>Próxima página</Button><span className="text-xs text-slate-500 dark:text-slate-400">CSV exporta somente esta página. Páginas filtradas podem ficar vazias.</span></div>
       <Modal title={editandoId ? 'Editar despesa' : 'Nova despesa'} open={aberto} onClose={() => setAberto(false)}>
         <AjudaContextual artigo="despesas" ancora="campos" rotulo="Como preencher esta despesa?" />
         <div className="space-y-3">

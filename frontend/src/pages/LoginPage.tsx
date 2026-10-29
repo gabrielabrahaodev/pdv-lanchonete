@@ -60,9 +60,9 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-full place-items-center bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 p-4">
-      <Card className="w-full max-w-sm p-8">
+      <Card className="w-full max-w-sm p-5 sm:p-6">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-200">
+          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-brand-600 text-white shadow-sm">
             <UtensilsCrossed className="h-7 w-7" aria-hidden="true" />
           </div>
           <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">NexoComanda</h1>
@@ -126,7 +126,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={alternarModo}
-          className="mt-4 w-full text-xs font-semibold text-slate-500 transition hover:text-brand-600 dark:hover:text-brand-300"
+          className="mt-4 w-full text-xs font-semibold text-slate-500 transition hover:text-brand-600 dark:hover:text-brand-300 dark:text-slate-400"
         >
           {criando ? 'Já tem conta? Entrar' : 'Novo por aqui? Criar conta'}
         </button>

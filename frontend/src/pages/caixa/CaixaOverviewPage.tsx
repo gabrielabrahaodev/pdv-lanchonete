@@ -5,7 +5,7 @@ import { api } from '../../lib/api'
 import { useMesas, useSessaoAtual, useVendasBalcao } from '../../hooks/useFirestore'
 import type { Mesa } from '../../types'
 import { useAuth } from '../../context/AuthContext'
-import { Badge, Button, Card, EmptyState, ErrorState, LoadingScreen } from '../../components/ui'
+import { Badge, ButtonLink, Button, Card, EmptyState, ErrorState, LoadingScreen } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl, dataHora } from '../../lib/format'
 
@@ -37,16 +37,14 @@ export default function CaixaOverviewPage() {
   }
 
   return (
-    <div className="p-3 sm:p-6">
+    <div className="pdv-page p-3 sm:p-5 lg:p-6">
       <PageHeader
         title="Caixa"
         subtitle={`${ocupadas} mesa(s) ocupada(s) de ${lista.length}`}
         actions={podeCaixa &&
           <>
-            <Link to="/caixa/venda-direta"><Button>Nova venda direta</Button></Link>
-            <Link to="/relatorios/fechamento-caixa">
-              <Button variant="secondary">Sessão de caixa</Button>
-            </Link>
+            <ButtonLink to="/caixa/venda-direta">Nova venda direta</ButtonLink>
+            <ButtonLink to="/relatorios/fechamento-caixa" variant="secondary">Sessão de caixa</ButtonLink>
             {!s && <Button loading={abrirCaixa.isPending} onClick={handleAbrir}>Abrir caixa</Button>}
           </>
         }
@@ -57,7 +55,7 @@ export default function CaixaOverviewPage() {
         <Card className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-2 p-4">
           <div className="flex items-center gap-2">
             <Badge value="aberto" label="Caixa aberto" />
-            <span className="text-xs text-slate-500">desde {new Date(s.abertoEm ?? s.criadoEm).toLocaleString('pt-BR')}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">desde {new Date(s.abertoEm ?? s.criadoEm).toLocaleString('pt-BR')}</span>
           </div>
           <Stat label="Fundo de troco" value={brl(s.valorInicial)} />
           <Stat label="Vendas" value={brl(s.totalVendas)} />
@@ -69,10 +67,10 @@ export default function CaixaOverviewPage() {
 
       {podeCaixa && <Card className="mb-5 p-4">
         <h2 className="font-bold">Vendas de balcão</h2>
-        <p className="mb-3 text-xs text-slate-500">Vendas em aberto, entregas pendentes e vendas de balcão entre os últimos 25 pedidos.</p>
-        {balcao.error ? <ErrorState error={balcao.error} /> : balcao.isLoading ? <p>Carregando…</p> : balcao.data.length === 0 ? <p className="text-sm text-slate-500">Nenhuma venda de balcão nesta lista.</p> :
+        <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">Vendas em aberto, entregas pendentes e vendas de balcão entre os últimos 25 pedidos.</p>
+        {balcao.error ? <ErrorState error={balcao.error} /> : balcao.isLoading ? <p>Carregando…</p> : balcao.data.length === 0 ? <p className="text-sm text-slate-500 dark:text-slate-400">Nenhuma venda de balcão nesta lista.</p> :
           <ul className="divide-y divide-slate-200">{balcao.data.map(p => <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-            <div><p className="text-sm font-semibold">Balcão #{p.id.slice(-6)} · {brl(p.total)} <Badge value={p.status} /></p><p className="text-xs text-slate-500">{dataHora(p.criadoEm)}{p.itens.some(i => ['pendente','preparo','pronto'].includes(i.status)) ? ' · entrega pendente' : ''}</p></div>
+            <div><p className="text-sm font-semibold">Balcão #{p.id.slice(-6)} · {brl(p.total)} <Badge value={p.status} /></p><p className="text-xs text-slate-500 dark:text-slate-400">{dataHora(p.criadoEm)}{p.itens.some(i => ['pendente','preparo','pronto'].includes(i.status)) ? ' · entrega pendente' : ''}</p></div>
             <Link className="action-button text-sm font-semibold text-brand-600" to={`/caixa/pagamento/${p.id}`}>{p.status === 'aberto' ? 'Continuar pagamento' : 'Ver venda / entrega'}</Link>
           </li>)}</ul>}
       </Card>}
@@ -96,8 +94,8 @@ export default function CaixaOverviewPage() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="text-sm font-bold text-slate-700">{value}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="text-sm font-bold text-slate-700 dark:text-slate-100">{value}</p>
     </div>
   )
 }
@@ -121,7 +119,7 @@ function MesaCard({ mesa }: { mesa: Mesa }) {
           <span className="text-sm font-bold text-slate-800 dark:text-slate-100">Mesa {mesa.numero}</span>
         <Badge value={mesa.status} />
       </div>
-      <p className="mt-4 text-xs text-slate-500">
+      <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
         {ocupada ? 'Abrir pedido em andamento →' : 'Livre — iniciar pedido →'}
       </p>
     </button>

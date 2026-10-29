@@ -29,3 +29,8 @@ Os testes automatizados usam dados/API/Auth simulados e não acessam produção.
 `frontend/tests/estoque-piloto-ui.cjs` exercita responsividade, temas, filtro, CSV,
 histórico lazy e contratos dos formulários. Roteiro em
 `docs/04-testes/estoque-piloto-visual.md`. Avaliar visualmente antes de estender a outras telas.
+
+
+## Evolução na mesma PR
+
+O usuário aprovou estender o conceito às demais telas. A PR #30 agora contém o padrão compartilhado descrito em `obsidian/Padrao-Visual-PDV.md`; os componentes de estoque continuam específicos para seus estados, e o guia de validação geral está em `docs/04-testes/visual-sistema.md`. Mantida a mesma branch, sem merge/deploy.
