@@ -53,11 +53,27 @@
     {
       "pergunta": "Posso zerar um lote reservado?",
       "resposta": "Não por perda. Confira os pedidos e resolva a reserva primeiro."
+    },
+    {
+      "pergunta": "Perda de produto pronto devolve os ingredientes?",
+      "resposta": "Não. A perda retira unidades prontas livres e mantém registro do motivo/custo. Os ingredientes já foram consumidos na produção; descarte não desfaz esse consumo."
+    },
+    {
+      "pergunta": "Posso converter unidades reservadas?",
+      "resposta": "A operação exige saldo livre suficiente. Resolva corretamente as reservas antes de converter ou descartar; não libere artificialmente produto comprometido só para permitir a ação."
     }
   ],
   "relacionados": [
     "reservas",
     "producao",
     "producao-historico"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Converter um bolo em fatias",
+      "cenario": "Exemplo hipotético: 1 bolo tem custo de R$ 24 e é convertido em 12 fatias.",
+      "resultado": "O custo total transferido é R$ 24; cada fatia recebe R$ 2 de custo. Local e validade são preservados.",
+      "interpretacao": "A conversão não registra nova compra, nova receita de venda ou novo consumo de ingredientes. Só pode usar o saldo livre autorizado."
+    }
   ]
 }

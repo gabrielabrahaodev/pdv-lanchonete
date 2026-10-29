@@ -49,12 +49,14 @@
     {
       "nome": "Ingredientes: item, unidade e quantidade",
       "preenchimento": "Escolha insumo cadastrado e quantidade positiva; unidades compatíveis são convertidas.",
-      "obrigatorio": "Quando houver receita"
+      "obrigatorio": "Quando houver receita",
+      "exemplo": "Com controle em g, informar 0,15 kg equivale a 150 g. No antecipado, os ingredientes representam a receita completa, não uma unidade do rendimento."
     },
     {
       "nome": "Variações: nome e adicional",
       "preenchimento": "Adicional soma ao preço base; configure opções ativas.",
-      "obrigatorio": "Não"
+      "obrigatorio": "Não",
+      "exemplo": "Base R$ 10 e adicional R$ 2 resultam em R$ 12 para a opção. Adicional não é preço final independente."
     },
     {
       "nome": "Imagem",
@@ -90,11 +92,27 @@
     {
       "pergunta": "Um bolo inteiro rende dez fatias. Onde informo?",
       "resposta": "No modo antecipado, informe rendimento 10 e ingredientes da receita inteira."
+    },
+    {
+      "pergunta": "Qual diferença entre Sob pedido, Antecipado e Revenda?",
+      "resposta": "Sob pedido usa a ficha de ingredientes no fluxo de preparo/baixa. Antecipado consome ingredientes ao produzir e depois vende saldo pronto de lotes. Revenda vincula uma unidade vendida a uma unidade do item de estoque. Escolha conforme a operação física, não só pela preferência de tela."
+    },
+    {
+      "pergunta": "Posso trocar de modo sem tratar o saldo anterior?",
+      "resposta": "A alteração pode ser bloqueada por lotes e reservas. Resolva os vínculos e o destino físico primeiro; trocar o modo não transforma por si só insumos em produtos prontos."
     }
   ],
   "relacionados": [
     "precificacao",
     "unidades",
     "producao"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Ficha técnica de uma fornada",
+      "cenario": "Exemplo hipotético: uma receita de bolo usa 1 kg de farinha e rende 12 fatias vendidas separadamente.",
+      "resultado": "No modo antecipado, cadastre os ingredientes da receita completa e rendimento de 12 fatias. Produzir uma receita consome 1 kg.",
+      "interpretacao": "Não cadastre os ingredientes de uma fatia como se fossem de uma fornada inteira; isso reduziria indevidamente o consumo e o custo."
+    }
   ]
 }

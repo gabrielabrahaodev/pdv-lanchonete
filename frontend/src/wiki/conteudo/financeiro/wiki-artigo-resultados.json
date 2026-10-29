@@ -24,6 +24,82 @@
       "nome": "Cobertura",
       "preenchimento": "Percentual da receita com custo histórico confiável.",
       "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Receita de vendas",
+      "preenchimento": "Receita reconhecida das vendas quitadas no período; pedidos apenas abertos não entram.",
+      "obrigatorio": "Consulta",
+      "exemplo": "Duas vendas quitadas de R$ 40 e R$ 60 somam R$ 100."
+    },
+    {
+      "nome": "Custo direto dos produtos (CMV)",
+      "preenchimento": "Custo histórico dos produtos vendidos, exigindo cobertura completa para exibir o custo integral. Não é o total comprado no mês.",
+      "obrigatorio": "Consulta",
+      "exemplo": "Comprar R$ 40 em ingredientes e consumir R$ 20 nas unidades vendidas produz CMV de R$ 20.",
+      "indisponivel": "Fica indisponível na composição integral quando há custos ou vendas sem cobertura completa."
+    },
+    {
+      "nome": "Lucro bruto",
+      "preenchimento": "Sobra antes das despesas operacionais.",
+      "obrigatorio": "Consulta",
+      "calculo": "Receita − custo direto das vendas.",
+      "exemplo": "R$ 100 − R$ 20 = R$ 80.",
+      "indisponivel": "Fica indisponível quando faltam vendas individualizadas ou custos históricos para a cobertura integral."
+    },
+    {
+      "nome": "Despesas operacionais",
+      "preenchimento": "Despesas por competência fora da categoria insumo. Pendentes também entram no período da competência.",
+      "obrigatorio": "Consulta",
+      "calculo": "Total de despesas − despesas classificadas como insumo.",
+      "exemplo": "R$ 50 de despesas totais, sendo R$ 40 de insumos, deixam R$ 10 de operacionais."
+    },
+    {
+      "nome": "Resultado gerencial",
+      "preenchimento": "Receita menos custo direto e despesas operacionais. Não é saldo bancário nem lucro contábil.",
+      "obrigatorio": "Consulta",
+      "calculo": "Receita − CMV − despesas operacionais.",
+      "exemplo": "R$ 100 − R$ 20 − R$ 10 = R$ 70.",
+      "indisponivel": "Exige cobertura completa das vendas e dos custos. Não é preenchido supondo custo zero para uma venda desconhecida."
+    },
+    {
+      "nome": "Margem bruta",
+      "preenchimento": "Participação do lucro bruto na receita.",
+      "obrigatorio": "Consulta",
+      "calculo": "Lucro bruto ÷ receita × 100.",
+      "exemplo": "R$ 80 ÷ R$ 100 × 100 = 80%.",
+      "indisponivel": "Exige lucro bruto disponível e receita diferente de zero."
+    },
+    {
+      "nome": "CMV sobre receita",
+      "preenchimento": "Percentual da receita consumido pelo custo direto.",
+      "obrigatorio": "Consulta",
+      "calculo": "CMV ÷ receita × 100.",
+      "exemplo": "R$ 20 de CMV em R$ 100 de receita = 20%.",
+      "indisponivel": "Exige cobertura completa de custos e receita diferente de zero."
+    },
+    {
+      "nome": "Operacionais sobre receita",
+      "preenchimento": "Percentual da receita comprometido com despesas operacionais.",
+      "obrigatorio": "Consulta",
+      "calculo": "Operacionais ÷ receita × 100.",
+      "exemplo": "R$ 10 em R$ 100 = 10%.",
+      "indisponivel": "Sem receita diferente de zero, o percentual fica indisponível mesmo que existam despesas."
+    },
+    {
+      "nome": "Variação da receita / das despesas operacionais",
+      "preenchimento": "Compara o período aplicado com o período anterior de igual duração. Não é comparação automática com o mês fechado anterior.",
+      "obrigatorio": "Consulta",
+      "calculo": "(Valor atual − valor anterior) ÷ valor anterior × 100.",
+      "exemplo": "Receita de R$ 120 contra R$ 100 no período anterior = aumento de 20%.",
+      "indisponivel": "Se a base anterior é zero, não há percentual calculável; indisponível é diferente de variação de 0%."
+    },
+    {
+      "nome": "Cobertura de custos na receita",
+      "preenchimento": "Parcela da receita total que corresponde a unidades com custo histórico confiável.",
+      "obrigatorio": "Consulta",
+      "calculo": "Receita coberta ÷ receita total × 100.",
+      "exemplo": "R$ 60 de receita coberta em R$ 100 totais = 60%.",
+      "indisponivel": "Sem receita para dividir, o percentual fica indisponível. Cobertura da receita não substitui a conferência das vendas individualizadas."
     }
   ],
   "acoes": [
@@ -47,6 +123,14 @@
     {
       "pergunta": "Por que um relatório antigo difere?",
       "resposta": "São medidas diferentes. Compare a mesma fórmula, período, competência e cobertura, sem somar CMV às compras já deduzidas no legado."
+    },
+    {
+      "pergunta": "Receita existe, mas resultado e margem estão Indisponível. É falha de tela?",
+      "resposta": "Pode ser a proteção contra custo histórico incompleto. Confira a cobertura e as mensagens. Falha de conexão costuma aparecer como erro de carregamento; Indisponível em um indicador significa falta de base para aquele cálculo, não prova que a página falhou."
+    },
+    {
+      "pergunta": "Despesas pendentes já reduzem o resultado?",
+      "resposta": "Sim, conforme sua data de competência. Marcar paga resolve a pendência, mas não muda automaticamente a competência nem lança uma retirada na sessão de caixa."
     }
   ],
   "relacionados": [
@@ -54,5 +138,13 @@
     "lucratividade",
     "relatorios",
     "despesas"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Compra não deve ser descontada duas vezes",
+      "cenario": "Exemplo hipotético: receita R$ 100, compra de insumos R$ 40, CMV das unidades vendidas R$ 20 e operacionais R$ 10, com cobertura completa.",
+      "resultado": "Lucro bruto R$ 80; resultado gerencial BI R$ 70. A compra de R$ 40 é mostrada separadamente.",
+      "interpretacao": "Descontar compra mais CMV como dois custos da mesma venda distorceria o resultado. O relatório legado pode apresentar R$ 50 porque usa faturamento menos todas as despesas por competência."
+    }
   ]
 }

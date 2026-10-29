@@ -44,11 +44,27 @@
     {
       "pergunta": "Abrir caixa baixa o estoque?",
       "resposta": "Não. A baixa depende dos produtos, pedidos e produção."
+    },
+    {
+      "pergunta": "Qual diferença entre Vendas e Recebido?",
+      "resposta": "Vendas é o total comercial dos pedidos quitados creditados à sessão; Recebido soma os pagamentos desses pedidos, incluindo formas eletrônicas. Na implementação atual, a sessão é creditada ao quitar o pedido; um pagamento parcial isolado ainda não credita esses totais. Recebido não é sinônimo de dinheiro físico na gaveta."
+    },
+    {
+      "pergunta": "Por que não consigo iniciar venda direta?",
+      "resposta": "Confira se seu papel permite operar o caixa e se existe sessão aberta. Abrir o catálogo não substitui a abertura exigida para confirmar uma venda de balcão."
     }
   ],
   "relacionados": [
     "venda-direta",
     "mesas",
     "fechamento-caixa"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Fundo de troco não é venda",
+      "cenario": "Exemplo hipotético: o caixa abre com R$ 100 e recebe uma venda quitada de R$ 25.",
+      "resultado": "O fundo continua sendo a abertura; a venda compõe os totais comerciais da sessão.",
+      "interpretacao": "Não registre os R$ 100 de abertura como faturamento. Para retirada ou aporte de dinheiro, use a operação de sessão apropriada."
+    }
   ]
 }

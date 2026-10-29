@@ -38,11 +38,27 @@
     {
       "pergunta": "Por que não vejo uma compra antiga aqui?",
       "resposta": "Pedidos recebidos e cancelados ficam em telas próprias."
+    },
+    {
+      "pergunta": "A entrega chegou com valor diferente. Onde informar?",
+      "resposta": "O valor definitivo da mercadoria é conferido no recebimento. Preencha as quantidades e o total real de cada linha antes de confirmar, em vez de supor que a solicitação contém o preço final."
+    },
+    {
+      "pergunta": "Cancelar aqui retira estoque?",
+      "resposta": "Cancelar uma solicitação ainda não recebida não precisa retirar estoque, pois gerar a solicitação não o aumentou. Não use esse cancelamento para corrigir uma compra já recebida."
     }
   ],
   "relacionados": [
     "recebimento",
     "recebidos",
     "reposicao-cancelados"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Mercadoria ainda em trânsito",
+      "cenario": "Exemplo hipotético: a solicitação de farinha está aberta, mas o fornecedor ainda não entregou.",
+      "resultado": "Ela permanece em Aguardando recebimento. Se não será atendida, o pedido pode ser cancelado pela ação disponível.",
+      "interpretacao": "Confirmar recebimento apenas para limpar a lista criaria saldo e débito sem correspondência física."
+    }
   ]
 }

@@ -126,7 +126,7 @@ async function ajuda(page, id) {
   assert.equal(new URL(page.url()).pathname, origem)
   return wiki
 }
-;(async () => {
+if (require.main === module) (async () => {
   const servidor = process.env.WIKI_TEST_URL ? null : await require('./wiki-servidor.cjs').iniciarServidor()
   const browser = await chromium.launch({headless:true,args:['--no-sandbox']})
   try {
@@ -197,3 +197,5 @@ async function ajuda(page, id) {
     await context.close()
   } finally { await browser.close();servidor?.kill() }
 })().catch(e=>{console.error(e);process.exit(1)})
+
+module.exports = { preparar }

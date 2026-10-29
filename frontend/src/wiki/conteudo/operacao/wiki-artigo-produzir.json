@@ -18,12 +18,16 @@
     {
       "nome": "Receitas utilizadas",
       "preenchimento": "Número positivo; aceita fração, como 0,5 receita.",
-      "obrigatorio": "Sim"
+      "obrigatorio": "Sim",
+      "calculo": "Consumo de cada ingrediente = quantidade da ficha completa × receitas utilizadas.",
+      "exemplo": "Ficha de 1 kg de farinha com 0,5 receita consome 500 g, independentemente do número de unidades aproveitadas."
     },
     {
       "nome": "Quantidade realmente produzida",
       "preenchimento": "Unidades inteiras positivas aproveitáveis, não só o previsto.",
-      "obrigatorio": "Sim"
+      "obrigatorio": "Sim",
+      "calculo": "Custo unitário do lote = custo total dos ingredientes usados ÷ unidades aproveitáveis.",
+      "exemplo": "R$ 60 distribuídos em 18 unidades dão aproximadamente R$ 3,33/un., não R$ 3 que seriam esperados se rendesse 20."
     },
     {
       "nome": "Validade do lote",
@@ -64,11 +68,27 @@
     {
       "pergunta": "Rendeu menos do que o previsto.",
       "resposta": "Informe o aproveitado; o custo unitário do lote aumenta porque o consumo foi dividido por menos unidades."
+    },
+    {
+      "pergunta": "Por que quantidade realmente produzida difere do previsto?",
+      "resposta": "Previsto vem do rendimento cadastrado multiplicado pelas receitas usadas. Quantidade real é o que ficou aproveitável. A diferença modifica o custo por unidade do lote, sem reduzir os ingredientes já consumidos."
+    },
+    {
+      "pergunta": "O custo do lote aparece zero. Isso prova produção gratuita?",
+      "resposta": "Não. Insumos sem custo podem gerar custo numérico incompleto na produção. O Financeiro exige confiabilidade para afirmar custo realizado; revise os ingredientes e custos antes das próximas produções. Não invente valores históricos."
     }
   ],
   "relacionados": [
     "producao",
     "precificacao",
     "perdas-producao"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Rendimento real altera custo por unidade",
+      "cenario": "Exemplo hipotético: uma receita consumiu R$ 60 de ingredientes confiáveis e previa 20 unidades, mas só 18 ficaram aproveitáveis.",
+      "resultado": "Custo do lote R$ 60; custo realizado por unidade aproximadamente R$ 3,33; referência teórica R$ 3 por unidade prevista.",
+      "interpretacao": "Informe 18 como realmente produzido. O consumo depende das receitas utilizadas, não de reduzir a quantidade produzida. Não diminua ingredientes artificialmente para esconder a perda de rendimento."
+    }
   ]
 }

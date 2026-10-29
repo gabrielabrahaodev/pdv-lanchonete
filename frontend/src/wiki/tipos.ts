@@ -4,7 +4,20 @@ export interface Artigo {
   para: string
   quando: string
   passos: string[]
-  campos: { nome: string; preenchimento: string; obrigatorio: string }[]
+  campos: {
+    nome: string
+    preenchimento: string
+    obrigatorio: string
+    calculo?: string
+    exemplo?: string
+    indisponivel?: string
+  }[]
+  exemplos: {
+    titulo: string
+    cenario: string
+    resultado: string
+    interpretacao: string
+  }[]
   acoes: { nome: string; efeito: string }[]
   depois: string
   atencao: string[]
@@ -18,6 +31,7 @@ export const secoesArtigo = [
   ['campos', 'Campos da tela'],
   ['acoes', 'Botões e ações'],
   ['depois', 'O que acontece depois?'],
+  ['exemplos', 'Exemplos práticos'],
   ['atencao', 'Atenção'],
   ['duvidas', 'Dúvidas frequentes'],
   ['veja-tambem', 'Veja também'],

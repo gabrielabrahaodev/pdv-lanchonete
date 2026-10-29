@@ -46,11 +46,27 @@
     {
       "pergunta": "A mesa está livre mas havia produto reservado.",
       "resposta": "Confira Produção e Estufa para confirmar consumo ou liberação da reserva."
+    },
+    {
+      "pergunta": "Posso acrescentar produto depois de o pedido estar pago?",
+      "resposta": "Não nesse pedido quitado. Alterações comerciais são bloqueadas. Use um novo atendimento autorizado se houver nova venda, sem tentar modificar o histórico quitado."
+    },
+    {
+      "pergunta": "Por que a mesa foi liberada antes de confirmar uma reserva?",
+      "resposta": "A quitação libera o atendimento comercial. Reservas sem destino confirmado são tratadas na conferência de mesas encerradas para evitar nova venda indevida do mesmo produto pronto."
     }
   ],
   "relacionados": [
     "novo-pedido",
     "pagamento",
     "reservas"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Cobrança e entrega são conferências separadas",
+      "cenario": "Exemplo hipotético: uma mesa possui itens solicitados, alguns preparados e outros ainda não entregues.",
+      "resultado": "A tela mostra os estados para acompanhamento; o pagamento trata a quitação comercial.",
+      "interpretacao": "Antes de encerrar, confira o que realmente foi atendido. Pedido quitado não permite novas alterações comerciais, e reservas pendentes podem exigir conferência física."
+    }
   ]
 }

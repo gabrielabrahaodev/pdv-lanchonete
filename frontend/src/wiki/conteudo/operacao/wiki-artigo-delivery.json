@@ -49,11 +49,27 @@
     {
       "pergunta": "Entreguei e o Caixa não mudou.",
       "resposta": "Este fluxo não quita um pedido de venda. Combine com a gestão o registro financeiro correto, sem duplicar vendas."
+    },
+    {
+      "pergunta": "Por que a entrega não aumentou receita no BI?",
+      "resposta": "Neste módulo separado, avançar até entregue não integra pagamento ao Caixa/BI. É uma limitação funcional atual, não motivo para presumir custo ou receita zero. Alinhe o controle financeiro da entrega com a gestão."
+    },
+    {
+      "pergunta": "O estoque é reduzido automaticamente neste Delivery?",
+      "resposta": "Não pelo fluxo atual do módulo Delivery. Ele também não reserva lotes da estufa automaticamente. Não conte com baixa só porque o estado mudou para entregue."
     }
   ],
   "relacionados": [
     "caixa",
     "pagamento",
     "estoque"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Entregar não registra pagamento no Caixa",
+      "cenario": "Exemplo hipotético: um pedido de delivery de R$ 30 é marcado entregue neste módulo.",
+      "resultado": "O registro segue para o histórico do Delivery. Essa ação não reconhece automaticamente os R$ 30 no Caixa/BI, nem baixa ingredientes ou reserva estufa.",
+      "interpretacao": "Use o controle financeiro/operacional definido para a entrega. Não suponha integração com vendas ou plataformas externas que este módulo não realiza."
+    }
   ]
 }

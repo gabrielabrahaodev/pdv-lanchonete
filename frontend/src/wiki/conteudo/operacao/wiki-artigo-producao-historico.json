@@ -34,11 +34,27 @@
     {
       "pergunta": "Por que há reserva e entrega para o mesmo lote?",
       "resposta": "A reserva bloqueia unidades; a entrega confirma saída física."
+    },
+    {
+      "pergunta": "Por que não encontro todos os movimentos antigos?",
+      "resposta": "Esta tela carrega os últimos 100 movimentos. Ausência nessa janela não prova que a produção nunca ocorreu; considere o limite e os identificadores antes de repetir um lançamento."
+    },
+    {
+      "pergunta": "Quantidade no histórico significa faturamento?",
+      "resposta": "Não. Quantidades indicam etapas físicas e reservas. Não some produção, reserva e entrega como três vendas. Para receita, consulte os pagamentos reconhecidos."
     }
   ],
   "relacionados": [
     "producao",
     "reservas",
     "perdas-producao"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Movimentos não são vendas somáveis",
+      "cenario": "Exemplo hipotético: foram produzidos 20 pães, reservados 5 e entregues 5.",
+      "resultado": "O histórico contém etapas distintas: produção, reserva e entrega.",
+      "interpretacao": "Somar todas as quantidades como vendas resultaria em contagem incorreta. Reserva compromete saldo; entrega confirma saída física; faturamento depende do pagamento no fluxo de vendas."
+    }
   ]
 }

@@ -29,12 +29,14 @@
     {
       "nome": "Data (competência)",
       "preenchimento": "Dia ao qual a despesa pertence; é o filtro do período.",
-      "obrigatorio": "Sim"
+      "obrigatorio": "Sim",
+      "exemplo": "Aluguel referente a outubro deve manter a competência de outubro, mesmo que o pagamento ocorra em novembro."
     },
     {
       "nome": "Vencimento",
       "preenchimento": "Data limite para pagar; não substitui competência.",
-      "obrigatorio": "Não"
+      "obrigatorio": "Não",
+      "exemplo": "Prazo de 10 de novembro não muda a competência de uma obrigação de outubro."
     },
     {
       "nome": "Forma de pagamento",
@@ -89,11 +91,27 @@
     {
       "pergunta": "Posso mudar o valor da despesa de reposição?",
       "resposta": "Não por esta tela; o vínculo protege a coerência com o recebimento. Pagar e reabrir são permitidos."
+    },
+    {
+      "pergunta": "Recebi uma reposição. Preciso cadastrar a compra novamente?",
+      "resposta": "Não. O recebimento da reposição já cria um débito vinculado. Localize essa despesa e registre seu pagamento real; lançar outra duplicaria a obrigação."
+    },
+    {
+      "pergunta": "O filtro voltou vazio, mas existe Próxima página. O que faço?",
+      "resposta": "Continue a paginação. Uma página filtrada pode estar vazia mesmo com registros em páginas seguintes. Lista vazia nessa página não comprova ausência de despesas no período todo."
     }
   ],
   "relacionados": [
     "contas-pagar",
     "recebimento",
     "resultados"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Pagar não muda a competência",
+      "cenario": "Exemplo hipotético: aluguel de R$ 800 com competência em outubro e vencimento em novembro.",
+      "resultado": "Mesmo pendente, compõe as despesas operacionais de outubro. Marcar pago em novembro resolve a pendência.",
+      "interpretacao": "Não aparece como sangria automática do caixa e não vira uma segunda despesa por ter sido pago depois."
+    }
   ]
 }

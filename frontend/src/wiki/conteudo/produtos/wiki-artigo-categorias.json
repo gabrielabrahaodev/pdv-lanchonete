@@ -53,11 +53,27 @@
     {
       "pergunta": "Por que não consigo excluir?",
       "resposta": "Há produtos vinculados ou seu perfil não permite a ação."
+    },
+    {
+      "pergunta": "Por que não consigo excluir uma categoria?",
+      "resposta": "Há produtos vinculados. Reclassifique esses produtos primeiro ou mantenha a categoria inativa quando apropriado. Excluir categoria não deve apagar o histórico de produtos."
+    },
+    {
+      "pergunta": "A ordem é quantidade em estoque?",
+      "resposta": "Não. É um número de organização da apresentação. Use números menores para aparecer antes, sem confundir com saldo, quantidade vendida ou preço."
     }
   ],
   "relacionados": [
     "produtos",
     "produto-formulario",
     "cardapio"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Organização do cardápio",
+      "cenario": "Exemplo hipotético: Bebidas tem ordem 1 e Lanches ordem 2. Café está vinculado a Bebidas.",
+      "resultado": "A ordem organiza a sequência, e o vínculo permite filtrar Café pela categoria.",
+      "interpretacao": "Se precisar excluir Bebidas, mova primeiro os produtos vinculados. Não exclua produtos apenas para reorganizar a apresentação."
+    }
   ]
 }

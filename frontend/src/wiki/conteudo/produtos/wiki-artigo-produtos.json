@@ -46,11 +46,27 @@
     {
       "pergunta": "Alterar preço muda vendas passadas?",
       "resposta": "Não. As linhas do pedido mantêm seu preço registrado."
+    },
+    {
+      "pergunta": "Não encontro o produto. O que conferir?",
+      "resposta": "Limpe busca e categoria e confira se o cadastro está ativo quando procurar em telas de venda. A lista administrativa e o catálogo de vendas têm finalidades diferentes; confirme a mensagem antes de cadastrar uma duplicata."
+    },
+    {
+      "pergunta": "Mudar o preço altera uma comanda já registrada?",
+      "resposta": "Os itens de pedidos guardam o preço resolvido no servidor quando são adicionados. Salvar um preço novo no cadastro não reprecifica automaticamente itens antigos."
     }
   ],
   "relacionados": [
     "produto-formulario",
     "categorias",
     "precificacao"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Inativar preserva o histórico",
+      "cenario": "Exemplo hipotético: um sanduíche de R$ 20 saiu do cardápio depois de já ter sido vendido.",
+      "resultado": "Inativar controla sua disponibilidade para novas seleções; não elimina os itens registrados nas vendas antigas.",
+      "interpretacao": "Alterar o preço do cadastro para R$ 22 também não recalcula automaticamente as vendas anteriores. Confira sempre o estado ativo antes de interpretar ausência no catálogo."
+    }
   ]
 }

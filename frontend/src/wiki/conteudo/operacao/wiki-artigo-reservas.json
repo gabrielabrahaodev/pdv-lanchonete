@@ -44,11 +44,27 @@
     {
       "pergunta": "Lote venceu com pedido reservado.",
       "resposta": "Renove a reserva por lote válido antes de entregar. O saldo vencido deve ter destino registrado."
+    },
+    {
+      "pergunta": "Qual lote é usado primeiro?",
+      "resposta": "O fluxo prioriza lotes válidos com vencimento mais próximo e saldo livre. Isso ajuda a consumir o pronto antes de vencer, sem permitir vender novamente o que já está reservado."
+    },
+    {
+      "pergunta": "Posso liberar o que o cliente já consumiu?",
+      "resposta": "Não. Liberação volta a disponibilizar unidades. Para o que foi entregue/consumido, registre o destino físico correspondente; escolher liberação por engano pode permitir nova venda de algo que já saiu."
     }
   ],
   "relacionados": [
     "mesa",
     "producao",
     "pagamento"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Reserva pendente após pagamento da mesa",
+      "cenario": "Exemplo hipotético: 2 fatias foram reservadas no pedido; a mesa foi paga, mas o destino físico dessas reservas não foi confirmado.",
+      "resultado": "A mesa pode estar liberada e ainda existir conferência pendente das reservas.",
+      "interpretacao": "Se foram consumidas, confirme o destino correspondente; se não foram entregues e continuam disponíveis fisicamente, libere conforme a ação autorizada. Pagar, entregar e liberar são eventos diferentes."
+    }
   ]
 }

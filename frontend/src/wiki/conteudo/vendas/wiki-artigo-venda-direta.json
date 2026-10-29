@@ -55,11 +55,27 @@
     {
       "pergunta": "Fechei a tela antes de pagar. Perdi o pedido?",
       "resposta": "Se já confirmou a criação, retome no Caixa; o carrinho ainda não enviado não é uma venda."
+    },
+    {
+      "pergunta": "Uma mesa será ocupada ao confirmar?",
+      "resposta": "Não. O fluxo é de balcão e não vincula uma mesa. Precisa de caixa aberto e segue para pagamento imediato."
+    },
+    {
+      "pergunta": "Pagamento imediato encerra também o preparo?",
+      "resposta": "Não. Produtos que exigem preparo podem continuar no KDS. Só confirme entrega dos itens prontos se eles realmente foram entregues."
     }
   ],
   "relacionados": [
     "novo-pedido",
     "pagamento",
     "producao"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Venda rápida sem ocupar mesa",
+      "cenario": "Exemplo hipotético: com caixa aberto, você adiciona 2 cafés e vai ao pagamento da venda direta.",
+      "resultado": "O pedido é de balcão, sem mesa, e segue ao pagamento imediato.",
+      "interpretacao": "Se houver item com preparo, ele pode continuar na cozinha mesmo depois de pago. Itens antecipados seguem as reservas e a confirmação física próprias."
+    }
   ]
 }

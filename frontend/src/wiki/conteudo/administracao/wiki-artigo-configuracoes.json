@@ -68,11 +68,27 @@
     {
       "pergunta": "Bluetooth funciona em todo celular?",
       "resposta": "Não. Depende de navegador, permissões e impressora; use o fallback disponível."
+    },
+    {
+      "pergunta": "Alterar meu tema muda o da equipe inteira?",
+      "resposta": "Não. Aparência é preferência da sua conta. Dados do restaurante, ao contrário, são globais para a loja e exigem permissão adequada."
+    },
+    {
+      "pergunta": "Cadastrar impressora garante impressão direta?",
+      "resposta": "Não. A conexão depende do equipamento e das capacidades do navegador. Use a opção de teste e confira compatibilidade; preencher endereço/MAC sozinho não instala integração."
     }
   ],
   "relacionados": [
     "usuarios",
     "minha-conta",
     "cardapio"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Desligar baixa não desliga produção",
+      "cenario": "Exemplo hipotético: a baixa automática dos pedidos foi desativada e a equipe registra uma fornada no módulo Produzir.",
+      "resultado": "A produção explícita ainda consome os ingredientes usados naquela fornada.",
+      "interpretacao": "A opção trata baixas automáticas do fluxo de pedidos; não é uma pausa de toda movimentação de estoque. Reativá-la não reconstrói automaticamente consumos e custos do passado."
+    }
   ]
 }

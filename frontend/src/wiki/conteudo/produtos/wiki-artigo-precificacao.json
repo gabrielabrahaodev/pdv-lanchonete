@@ -19,22 +19,30 @@
     {
       "nome": "Custo total da receita",
       "preenchimento": "Soma de ingredientes antes de dividir por rendimento.",
-      "obrigatorio": "Calculado"
+      "obrigatorio": "Calculado",
+      "calculo": "Soma de quantidade convertida × custo médio de cada ingrediente.",
+      "exemplo": "Farinha R$ 1,20 + demais ingredientes R$ 3,80 = R$ 5.",
+      "indisponivel": "Ingrediente sem custo positivo ou ficha/unidade inválida impede uma sugestão completa; não assuma zero."
     },
     {
       "nome": "Custo dos ingredientes por produto",
       "preenchimento": "Custo total dividido pelo rendimento; em sob pedido o rendimento é uma unidade.",
-      "obrigatorio": "Calculado"
+      "obrigatorio": "Calculado",
+      "calculo": "Custo total ÷ rendimento da receita.",
+      "exemplo": "Fornada de R$ 60 com rendimento de 20 unidades dá referência de R$ 3/un."
     },
     {
       "nome": "Acréscimo desejado sobre o custo (%)",
       "preenchimento": "Percentual não negativo, como 50 ou 100. É markup, não margem sobre venda.",
-      "obrigatorio": "Sim para sugestão"
+      "obrigatorio": "Sim para sugestão",
+      "exemplo": "100% sobre custo de R$ 5 acrescenta R$ 5 e sugere preço R$ 10. Margem sobre venda resultante é 50%."
     },
     {
       "nome": "Preço sugerido",
       "preenchimento": "Custo × (1 + acréscimo/100), arredondado para cima nos centavos.",
-      "obrigatorio": "Calculado"
+      "obrigatorio": "Calculado",
+      "calculo": "Custo unitário × (1 + acréscimo ÷ 100), arredondado para cima nos centavos.",
+      "indisponivel": "Confira ficha, custo de todos os ingredientes e rendimento; ausência de sugestão não autoriza preencher qualquer custo."
     },
     {
       "nome": "Preço de venda",
@@ -67,11 +75,27 @@
     {
       "pergunta": "Estimado e realizado são iguais?",
       "resposta": "A sugestão usa referências atuais. O realizado usa os custos congelados das vendas com cobertura disponível."
+    },
+    {
+      "pergunta": "Por que o preço sugerido não aparece?",
+      "resposta": "Confira se há ingredientes válidos, quantidades positivas, unidades compatíveis, custo positivo de cada ingrediente e rendimento válido quando houver. Sem ficha completa a sugestão pode ficar indisponível. Não preencha custos fictícios só para obter um preço."
+    },
+    {
+      "pergunta": "O preço sugerido já foi aplicado ao produto?",
+      "resposta": "Não automaticamente. Confira e aplique a sugestão pela ação da tela e salve o preço de venda. O preço efetivo é o que fica gravado no cadastro; a sugestão não muda vendas antigas."
     }
   ],
   "relacionados": [
     "unidades",
     "insumos",
     "lucratividade"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Acréscimo sobre custo não é margem sobre venda",
+      "cenario": "Exemplo hipotético: 150 g de farinha a R$ 8/kg custam R$ 1,20; os demais ingredientes somam R$ 3,80. Custo por produto R$ 5 e acréscimo escolhido 100%.",
+      "resultado": "Preço sugerido R$ 10; sobra bruta R$ 5 e margem sobre venda 50%.",
+      "interpretacao": "O acréscimo divide a sobra pelo custo; a margem divide a sobra pela venda. A sugestão ainda não inclui despesas indiretas nem muda o preço salvo sozinha."
+    }
   ]
 }

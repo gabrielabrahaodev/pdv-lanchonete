@@ -62,11 +62,27 @@
     {
       "pergunta": "Troquei e-mail e o perfil ainda mostra o antigo.",
       "resposta": "Conclua a verificação e use Atualizar login verificado ou entre de novo."
+    },
+    {
+      "pergunta": "Mudei o e-mail e ainda preciso verificar. O que faço?",
+      "resposta": "Abra a mensagem no endereço novo e conclua a verificação. Depois entre novamente ou use Atualizar login verificado conforme a tela. Não trate o formulário enviado como troca finalizada."
+    },
+    {
+      "pergunta": "Mudar o nome altera o papel?",
+      "resposta": "Não. Nome é apresentação. Papel e vínculo são gerenciados pelas operações autorizadas de equipe/restaurante."
     }
   ],
   "relacionados": [
     "acesso",
     "perfis",
     "configuracoes"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Nome de exibição não é acesso administrativo",
+      "cenario": "Exemplo hipotético: a pessoa altera Seu nome de Atendente para Ana.",
+      "resultado": "O nome de exibição muda; o papel e o restaurante continuam os mesmos.",
+      "interpretacao": "Para alterar credenciais, siga o fluxo próprio e verifique o novo e-mail quando solicitado. Não envie senhas em mensagens nem use o nome para tentar alterar permissões."
+    }
   ]
 }

@@ -39,11 +39,27 @@
     {
       "pergunta": "E se a conexão cair?",
       "resposta": "Entre de novo com a mesma conta; o sistema confere o vínculo antes de tentar criar outra loja."
+    },
+    {
+      "pergunta": "Recebi convite inválido ou já usado. Posso tentar criar outra loja?",
+      "resposta": "Não use tentativas para contornar o convite. Confirme com o dono da plataforma se ele expirou, foi revogado ou consumido e solicite a orientação apropriada para a conta correta."
+    },
+    {
+      "pergunta": "Admin do restaurante é dono de toda a plataforma?",
+      "resposta": "Não. O onboarding vincula a administração da nova loja; não concede o acesso global de dono da plataforma."
     }
   ],
   "relacionados": [
     "acesso",
     "configuracoes",
     "plataforma"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Restaurante com operação somente de balcão",
+      "cenario": "Exemplo hipotético: o responsável recebe um convite válido e escolhe criar a loja com 0 mesas.",
+      "resultado": "O restaurante pode iniciar sem mesas, com operação de balcão e suas configurações iniciais.",
+      "interpretacao": "Isso cria um restaurante novo; não recupera nem importa automaticamente dados de uma loja existente. Confira a conta correta antes de consumir o convite."
+    }
   ]
 }

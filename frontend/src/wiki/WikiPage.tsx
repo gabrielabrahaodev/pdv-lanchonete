@@ -292,6 +292,14 @@ export default function WikiPage() {
                     className={botao}
                     state={estado}
                     to={'/wiki/' + artigo.id + '#' + id}
+                    onClick={(e) => {
+                      if (location.hash !== '#' + id) return
+                      // Repetir o mesmo salto também deve funcionar após rolar a página.
+                      e.preventDefault()
+                      const alvo = document.getElementById(id)
+                      alvo?.focus({ preventScroll: true })
+                      alvo?.scrollIntoView({ block: 'start' })
+                    }}
                   >
                     {titulo}
                   </Link>
@@ -302,7 +310,7 @@ export default function WikiPage() {
                   <h3
                     id={id}
                     tabIndex={-1}
-                    className="scroll-mt-4 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                    className="scroll-mt-20 md:scroll-mt-4 text-base font-semibold outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                   >
                     {titulo}
                   </h3>
@@ -317,37 +325,46 @@ export default function WikiPage() {
                       ))}
                     </ol>
                   ) : id === 'campos' ? (
-                    <div className="max-w-full overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
-                      <table className="w-full table-fixed text-left text-sm">
-                        <thead className="bg-slate-100 dark:bg-slate-800">
-                          <tr>
-                            {[
-                              'Campo',
-                              'Como preencher / significado',
-                              'Obrigatório?',
-                            ].map((t) => (
-                              <th key={t} scope="col" className="p-2">
-                                {t}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {artigo.campos.map((c) => (
-                            <tr
-                              key={c.nome}
-                              className="border-t border-slate-200 align-top dark:border-slate-700"
-                            >
-                              <th scope="row" className="p-2 font-semibold">
-                                {c.nome}
-                              </th>
-                              <td className="p-2">{c.preenchimento}</td>
-                              <td className="p-2">{c.obrigatorio}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                    <dl className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+                      {artigo.campos.map((c) => (
+                        <div
+                          key={c.nome}
+                          className="grid min-w-0 gap-2 p-3 sm:p-4 lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-4"
+                        >
+                          <dt className="min-w-0">
+                            <span className="block font-semibold">
+                              {c.nome}
+                            </span>
+                            <span className="mt-1 block text-xs font-normal text-slate-500 dark:text-slate-400">
+                              {c.obrigatorio === 'Consulta'
+                                ? 'Indicador de consulta'
+                                : `Preenchimento: ${c.obrigatorio}`}
+                            </span>
+                          </dt>
+                          <dd className="min-w-0 space-y-2 break-words text-sm [overflow-wrap:anywhere]">
+                            <p>{c.preenchimento}</p>
+                            {c.calculo && (
+                              <p>
+                                <strong>Como é calculado: </strong>
+                                {c.calculo}
+                              </p>
+                            )}
+                            {c.exemplo && (
+                              <p className="rounded-lg bg-slate-50 p-2 dark:bg-slate-800/60">
+                                <strong>Exemplo: </strong>
+                                {c.exemplo}
+                              </p>
+                            )}
+                            {c.indisponivel && (
+                              <p className="text-amber-900 dark:text-amber-200">
+                                <strong>Disponibilidade e limites: </strong>
+                                {c.indisponivel}
+                              </p>
+                            )}
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
                   ) : id === 'acoes' ? (
                     <dl className="space-y-3">
                       {artigo.acoes.map((a) => (
@@ -361,6 +378,40 @@ export default function WikiPage() {
                     </dl>
                   ) : id === 'depois' ? (
                     <p>{artigo.depois}</p>
+                  ) : id === 'exemplos' ? (
+                    <div className="space-y-3">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        Situações hipotéticas para entender o sistema. Estes
+                        exemplos não consultam nem alteram os dados do
+                        restaurante.
+                      </p>
+                      {artigo.exemplos.map((e) => (
+                        <div
+                          key={e.titulo}
+                          className="min-w-0 space-y-3 rounded-xl border border-slate-200 p-3 sm:p-4 dark:border-slate-800"
+                        >
+                          <h4 className="font-semibold">{e.titulo}</h4>
+                          <dl className="space-y-2 text-sm">
+                            <div>
+                              <dt className="font-semibold">Situação</dt>
+                              <dd className="mt-1">{e.cenario}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-semibold">
+                                O que o sistema mostra ou faz
+                              </dt>
+                              <dd className="mt-1">{e.resultado}</dd>
+                            </div>
+                            <div>
+                              <dt className="font-semibold">
+                                Como interpretar
+                              </dt>
+                              <dd className="mt-1">{e.interpretacao}</dd>
+                            </div>
+                          </dl>
+                        </div>
+                      ))}
+                    </div>
                   ) : id === 'atencao' ? (
                     <ul className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
                       {artigo.atencao.map((a) => (

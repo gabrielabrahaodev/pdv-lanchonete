@@ -58,11 +58,27 @@
     {
       "pergunta": "Mesmo produto aparece em duas linhas.",
       "resposta": "Variações e observações diferentes ficam em linhas separadas."
+    },
+    {
+      "pergunta": "No celular, preciso rolar todos os produtos para conferir?",
+      "resposta": "Não. Use Ver comanda na barra fixa inferior; a gaveta permite conferir itens e prosseguir. No computador, a comanda fica no painel lateral."
+    },
+    {
+      "pergunta": "Adicionar ao carrinho já fez a venda?",
+      "resposta": "Ainda é a seleção local até a confirmação prevista na tela. Confira o retorno do envio e, em caso de falha, siga a tentativa oferecida para não duplicar o pedido."
     }
   ],
   "relacionados": [
     "mesa",
     "pagamento",
     "cozinha"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Personalização não muda a receita",
+      "cenario": "Exemplo hipotético: você adiciona 1 sanduíche normal e 1 com observação sem cebola.",
+      "resultado": "A comanda mantém linhas distintas conforme personalização; o preço é validado pelo servidor.",
+      "interpretacao": "O texto é orientação de preparo. Não retira automaticamente a cebola do consumo cadastrado. No celular, use Ver comanda na barra fixa para conferir sem percorrer o catálogo inteiro."
+    }
   ]
 }

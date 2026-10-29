@@ -30,6 +30,21 @@
       "nome": "Valor contado em dinheiro",
       "preenchimento": "Campo opcional de conferência; a tela envia vazio/zero como não informado.",
       "obrigatorio": "Não"
+    },
+    {
+      "nome": "Esperado",
+      "preenchimento": "Referência calculada da sessão. O recebido pode reunir dinheiro e meios eletrônicos.",
+      "obrigatorio": "Consulta",
+      "calculo": "Fundo + recebido + suprimentos − sangrias.",
+      "exemplo": "100 + 200 + 30 − 20 = R$ 310."
+    },
+    {
+      "nome": "Diferença",
+      "preenchimento": "Diferença da contagem registrada em relação ao esperado. Não substitui conciliação por forma.",
+      "obrigatorio": "Consulta",
+      "calculo": "Contado − esperado.",
+      "exemplo": "R$ 300 contados contra R$ 310 esperados = −R$ 10.",
+      "indisponivel": "Se a contagem não foi informada, o histórico pode não ter diferença calculada. Ausência não significa diferença zero."
     }
   ],
   "acoes": [
@@ -55,11 +70,27 @@
     {
       "pergunta": "Fechar caixa para as vendas?",
       "resposta": "Encerra a sessão. A venda direta exige uma aberta; pedidos e produção mantêm suas próprias regras."
+    },
+    {
+      "pergunta": "Fechar o caixa interrompe o estoque ou cancela pedidos?",
+      "resposta": "Não. Fechamento encerra a sessão financeira; as regras de baixa, preparo e pedidos continuam próprias. Uma venda direta nova exige caixa aberto."
+    },
+    {
+      "pergunta": "Informar zero em Valor contado registra uma contagem de R$ 0?",
+      "resposta": "Na interface atual, vazio e zero são enviados como não informado. Portanto, não use esse campo para concluir que uma contagem física zero ficou registrada. Confira o histórico e essa limitação antes de interpretar a diferença."
     }
   ],
   "relacionados": [
     "caixa",
     "pagamento",
     "despesas"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Conferência da sessão",
+      "cenario": "Exemplo hipotético: fundo R$ 100, recebido registrado R$ 200, suprimento R$ 30 e sangria R$ 20.",
+      "resultado": "Esperado da fórmula da sessão = R$ 100 + R$ 200 + R$ 30 − R$ 20 = R$ 310.",
+      "interpretacao": "Recebido reúne formas de pagamento. Se os R$ 200 incluem PIX/cartão, R$ 310 não significa necessariamente R$ 310 físicos na gaveta. Confira as formas antes de concluir que há falta de dinheiro."
+    }
   ]
 }

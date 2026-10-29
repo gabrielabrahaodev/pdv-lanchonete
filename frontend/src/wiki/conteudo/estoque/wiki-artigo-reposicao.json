@@ -48,11 +48,27 @@
     {
       "pergunta": "Abrir WhatsApp já enviou?",
       "resposta": "Não. Envio e confirmação de registro são etapas diferentes."
+    },
+    {
+      "pergunta": "Gerar pedido já reduz a falta do estoque?",
+      "resposta": "Não. É solicitação comercial. O saldo só muda no recebimento confirmado ou em outra movimentação própria; confira também o que já está aguardando entrega para evitar compras duplicadas."
+    },
+    {
+      "pergunta": "Por que preciso de fornecedor e endereço?",
+      "resposta": "A solicitação usa os contatos e o destino de entrega dos cadastros/configurações. Revise esses dados antes de gerar a mensagem; enviar texto incorreto não é corrigido pelo sistema fora dele."
     }
   ],
   "relacionados": [
     "aguardando",
     "recebimento",
     "fornecedores"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Solicitar é diferente de receber",
+      "cenario": "Exemplo hipotético: o estoque está baixo e você gera solicitação de 2 kg de farinha ao fornecedor.",
+      "resultado": "O pedido passa a aguardar recebimento; saldo e despesas ainda não aumentam.",
+      "interpretacao": "Só confirme recebimento quando a mercadoria chegar. Não lance uma entrada manual se a mesma chegada será confirmada na Reposição."
+    }
   ]
 }

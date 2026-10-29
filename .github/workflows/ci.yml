@@ -49,6 +49,10 @@ jobs:
         run: npm run test:wiki:ui
         env:
           PLAYWRIGHT_MODULE: ${{ runner.temp }}/wiki-browser/node_modules/playwright
+      - name: Wiki - explicacoes, exemplos e campos responsivos
+        run: npm run test:wiki:explicacoes
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/wiki-browser/node_modules/playwright
       - name: Estoque - piloto visual e operacoes simuladas
         run: npm run test:estoque:ui
         env:

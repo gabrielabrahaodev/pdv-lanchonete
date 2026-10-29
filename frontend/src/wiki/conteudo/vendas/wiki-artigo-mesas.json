@@ -47,11 +47,27 @@
     {
       "pergunta": "Posso excluir uma mesa ocupada?",
       "resposta": "Não. Finalize o atendimento primeiro."
+    },
+    {
+      "pergunta": "O cliente pode fazer o pedido pelo QR da mesa?",
+      "resposta": "Não. O QR atual é somente consulta do cardápio. O pedido deve ser registrado pelo atendente na conta autorizada."
+    },
+    {
+      "pergunta": "A mesa está livre. Isso significa que tudo foi entregue?",
+      "resposta": "Não necessariamente. O estado comercial da mesa pode ser liberado após quitação enquanto ainda existe conferência de reservas. Verifique o destino físico na Produção quando indicado."
     }
   ],
   "relacionados": [
     "mesa",
     "novo-pedido",
     "cardapio"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Mesa livre depois de quitar",
+      "cenario": "Exemplo hipotético: Mesa 4 recebe um pedido e passa a ocupada. Depois, o pedido é quitado.",
+      "resultado": "A mesa é liberada para outro atendimento.",
+      "interpretacao": "Isso não comprova entrega física de todas as reservas da estufa. Confira reservas pendentes quando indicado. O QR da mesa serve para consulta pública do cardápio."
+    }
   ]
 }

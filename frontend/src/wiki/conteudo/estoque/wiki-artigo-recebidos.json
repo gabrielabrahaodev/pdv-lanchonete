@@ -28,7 +28,8 @@
     {
       "nome": "Total, responsável e débito",
       "preenchimento": "Snapshots do recebimento; ausências históricas são indicadas.",
-      "obrigatorio": "Consulta"
+      "obrigatorio": "Consulta",
+      "indisponivel": "Não registrado ou vínculo ausente em histórico antigo indica falta desse dado; não confirma compra gratuita, ausência de obrigação nem pagamento realizado."
     }
   ],
   "acoes": [
@@ -53,11 +54,27 @@
     {
       "pergunta": "A data da operação difere da chegada.",
       "resposta": "É normal em lançamento retroativo: são datas com finalidades diferentes."
+    },
+    {
+      "pergunta": "Não registrado quer dizer que a compra foi gratuita?",
+      "resposta": "Não. Um registro legado pode não ter guardado total comercial, data ou vínculo financeiro. Ausência de registro não é confirmação de R$ 0 ou de dívida quitada."
+    },
+    {
+      "pergunta": "Abrir o débito vinculado paga a despesa?",
+      "resposta": "Não. A consulta serve para conferência. O pagamento deve ser registrado pela operação autorizada em Despesas, quando tiver ocorrido de fato."
     }
   ],
   "relacionados": [
     "recebimento",
     "despesas",
     "reposicao-cancelados"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Duas datas do mesmo recebimento",
+      "cenario": "Exemplo hipotético: mercadoria chegou no dia 10, mas o lançamento foi confirmado no dia 12, informando chegada real no dia 10.",
+      "resultado": "Recebimento efetivo mostra dia 10; operação registrada em mostra dia 12.",
+      "interpretacao": "A primeira data explica a competência; a segunda explica quando o sistema recebeu a confirmação. Ausência de valor ou data em registro antigo não prova que o valor era zero."
+    }
   ]
 }

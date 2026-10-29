@@ -38,10 +38,26 @@
     {
       "pergunta": "Posso reutilizar convite consumido?",
       "resposta": "Não. Gere outro convite quando houver autorização para outro restaurante."
+    },
+    {
+      "pergunta": "Código de convite significa restaurante já cadastrado?",
+      "resposta": "Não. O link autoriza o início do fluxo dentro da validade. A criação só ocorre quando o onboarding é concluído."
+    },
+    {
+      "pergunta": "Posso divulgar o convite em grupo aberto?",
+      "resposta": "Não. Encaminhe apenas ao responsável autorizado. O link deve ser tratado como acesso à criação de uma loja, não como publicidade do sistema."
     }
   ],
   "relacionados": [
     "onboarding",
     "perfis"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Convite gerado ainda não é loja criada",
+      "cenario": "Exemplo hipotético: o dono da plataforma gera um convite e copia seu link.",
+      "resultado": "O convite fica disponível dentro de sua validade; o restaurante só nasce ao concluir o onboarding com a conta correta.",
+      "interpretacao": "Revogar ou expirar o convite impede seu uso futuro. Envie apenas ao responsável autorizado, pois o link permite iniciar a criação de uma loja."
+    }
   ]
 }

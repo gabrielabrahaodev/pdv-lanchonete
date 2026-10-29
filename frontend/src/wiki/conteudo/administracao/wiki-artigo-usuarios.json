@@ -54,11 +54,27 @@
     {
       "pergunta": "Desativar apaga vendas feitas pela pessoa?",
       "resposta": "Não. O perfil e a autoria histórica são preservados."
+    },
+    {
+      "pergunta": "A falha de sincronização do login pode ser ignorada?",
+      "resposta": "Não. Pode existir divergência entre perfil e autenticação que precisa ser corrigida pelo fluxo autorizado. Leia o erro; repetir cadastros de conta não garante reparar o vínculo."
+    },
+    {
+      "pergunta": "Posso deixar só um login compartilhado para todo o turno?",
+      "resposta": "Use contas individuais. O sistema registra autoria e aplica permissões por pessoa; compartilhar acesso dificulta identificar quem confirmou vendas, ajustes e pagamentos."
     }
   ],
   "relacionados": [
     "perfis",
     "minha-conta",
     "configuracoes"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Proteger o último administrador",
+      "cenario": "Exemplo hipotético: existe apenas um admin ativo no restaurante e alguém tenta desativá-lo ou rebaixá-lo.",
+      "resultado": "A operação é bloqueada para preservar acesso administrativo à loja.",
+      "interpretacao": "Quando necessário, outro administrador autorizado precisa existir e estar ativo antes de alterar o anterior. Gerente não administra contas admin, e contas devem ser individuais."
+    }
   ]
 }

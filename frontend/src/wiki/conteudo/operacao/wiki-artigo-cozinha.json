@@ -35,11 +35,27 @@
     {
       "pergunta": "Produto sem preparo não aparece.",
       "resposta": "Ele pode nascer entregue; confira o cadastro e o modo de estoque."
+    },
+    {
+      "pergunta": "Paguei no balcão e o pedido continua na cozinha. É duplicado?",
+      "resposta": "Não necessariamente. O pagamento encerra a cobrança, mas os itens podem ainda precisar de preparo e entrega. Confira o pedido e os estados antes de criar outro."
+    },
+    {
+      "pergunta": "Marcar pronto é o mesmo que entregar?",
+      "resposta": "Não. Pronto indica que o preparo terminou; entregue confirma a etapa física seguinte. Use a ação correspondente ao que aconteceu, porque reservas e disponibilidade dependem desses estados."
     }
   ],
   "relacionados": [
     "novo-pedido",
     "producao",
     "pagamento"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Mesmo pedido, etapas diferentes",
+      "cenario": "Exemplo hipotético: um sanduíche sob pedido ainda está pendente, e uma bebida sem preparo já nasceu entregue.",
+      "resultado": "A cozinha acompanha o que precisa de preparo, e o sanduíche avança até pronto/entregue pelas ações autorizadas.",
+      "interpretacao": "Iniciar preparo pode consumir os ingredientes da ficha conforme configuração. A observação sem cebola orienta a equipe, mas não reescreve automaticamente essa ficha."
+    }
   ]
 }

@@ -44,11 +44,27 @@
     {
       "pergunta": "Cliente precisa de login?",
       "resposta": "Não. O cardápio é público e separado da área operacional."
+    },
+    {
+      "pergunta": "O QR reserva o último produto da estufa?",
+      "resposta": "Não. Consulta pública não faz pedido nem reserva saldo. A disponibilidade operacional precisa ser confirmada pelo atendimento autorizado."
+    },
+    {
+      "pergunta": "O cliente precisa fazer login para ver o cardápio?",
+      "resposta": "Não. A consulta pública é independente da conta do funcionário. Ela pode ter cache próprio; uma atualização de cadastro pode levar um curto intervalo para aparecer."
     }
   ],
   "relacionados": [
     "mesas",
     "produtos",
     "configuracoes"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Preço base e adicional de opção",
+      "cenario": "Exemplo hipotético: um produto tem preço base de R$ 10 e opção ativa com adicional de R$ 2.",
+      "resultado": "A opção custa R$ 12; a apresentação pode mostrar a partir de para indicar opções de preço.",
+      "interpretacao": "O cliente consulta o QR e pede ao atendente. Abrir o cardápio não cria carrinho, pedido, pagamento ou reserva de estoque."
+    }
   ]
 }

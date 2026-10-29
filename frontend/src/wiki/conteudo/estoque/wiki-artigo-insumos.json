@@ -29,7 +29,8 @@
     {
       "nome": "Quantidade mínima",
       "preenchimento": "Limite de alerta, não uma compra automática.",
-      "obrigatorio": "Não"
+      "obrigatorio": "Não",
+      "exemplo": "Mínimo 2.000 g produz alerta com saldo de 2.000 g ou menos. Não cria uma solicitação automaticamente."
     },
     {
       "nome": "Preço de referência",
@@ -49,7 +50,8 @@
     {
       "nome": "Quantidade por unidade de compra",
       "preenchimento": "Fator positivo, como 1000 g por pacote.",
-      "obrigatorio": "Para embalagem"
+      "obrigatorio": "Para embalagem",
+      "exemplo": "Uma caixa com 12 unidades usa fator 12 quando o controle é un. Um pacote com 1.000 g usa fator 1.000 quando o controle é g."
     }
   ],
   "acoes": [
@@ -71,11 +73,27 @@
     {
       "pergunta": "Compro em kg e uso g.",
       "resposta": "Controle em g e selecione kg na compra; a conversão entre massa é automática."
+    },
+    {
+      "pergunta": "Por que não posso alterar a unidade de controle?",
+      "resposta": "Saldo, movimentos ou fichas podem depender da unidade antiga. A operação pode ser bloqueada para evitar interpretar 1 kg como 1 g, por exemplo. Revise vínculos e unidade de compra em vez de apenas renomear o controle."
+    },
+    {
+      "pergunta": "O preço por kg e o custo por g são dois custos diferentes?",
+      "resposta": "São representações do mesmo valor. R$ 8/kg equivalem a R$ 0,008/g. A receita usa a quantidade convertida; não multiplique 150 g diretamente por R$ 8/kg."
     }
   ],
   "relacionados": [
     "unidades",
     "movimentacoes",
     "fornecedores"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Unidade de saldo e preço comercial",
+      "cenario": "Exemplo hipotético: farinha é controlada em g, mas a referência de preço é R$ 8/kg. Uma embalagem habitual contém 1.000 g.",
+      "resultado": "O custo equivalente é R$ 0,008/g; 150 g na receita representam R$ 1,20.",
+      "interpretacao": "R$ 8 é preço por kg, não por grama. Saldo inicial informa a contagem de partida; não gera uma compra nem despesa automaticamente."
+    }
   ]
 }

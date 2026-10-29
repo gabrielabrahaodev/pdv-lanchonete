@@ -39,6 +39,14 @@
     {
       "pergunta": "A Wiki concede novas permissões?",
       "resposta": "Não. Ela ensina; as regras do sistema continuam valendo."
+    },
+    {
+      "pergunta": "Não vejo todas as ações do manual. Por quê?",
+      "resposta": "Os artigos seguem o acesso autorizado; algumas ações de uma tela exigem papel específico. Confira sua conta e papel em Minha conta e peça à gestão a revisão necessária."
+    },
+    {
+      "pergunta": "Como sei se meu lançamento foi concluído?",
+      "resposta": "Confira a mensagem e o estado confirmado pelo servidor. Não confunda rascunho, carrinho ou tela aberta com operação gravada; na dúvida, consulte o registro antes de repetir."
     }
   ],
   "relacionados": [
@@ -46,5 +54,13 @@
     "venda-direta",
     "perfis",
     "pwa"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Primeira venda de balcão",
+      "cenario": "Exemplo hipotético: uma pessoa com papel autorizado entra no restaurante correto, abre o caixa, adiciona um café na venda direta e confirma o pagamento.",
+      "resultado": "A venda é criada sem mesa e a quitação passa a compor os registros correspondentes.",
+      "interpretacao": "Apenas abrir uma tela ou adicionar ao carrinho ainda não equivale a confirmar uma venda. Use sua conta individual para manter a autoria."
+    }
   ]
 }
