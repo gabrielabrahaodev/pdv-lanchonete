@@ -72,11 +72,27 @@
     {
       "pergunta": "Não consigo excluir um fornecedor.",
       "resposta": "Há estoque, pedidos, despesas ou movimentos vinculados; preserve o histórico e inative."
+    },
+    {
+      "pergunta": "Inativar apaga compras e despesas antigas?",
+      "resposta": "A finalidade da inativação é retirar o fornecedor do uso normal preservando referências. Consulte os vínculos históricos; não recadastre outra pessoa com os mesmos dados para tentar corrigir um histórico."
+    },
+    {
+      "pergunta": "Por que a mensagem de WhatsApp não abre?",
+      "resposta": "Confira número com DDD e se há aplicativo/navegador compatível. Gerar ou abrir a mensagem não comprova que o fornecedor recebeu ou aceitou a solicitação."
     }
   ],
   "relacionados": [
     "insumos",
     "reposicao",
     "despesas"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Contato não é obrigação financeira",
+      "cenario": "Exemplo hipotético: fornecedor cadastrado com condição de pagamento em 7 dias e prazo de entrega de 2 dias.",
+      "resultado": "Os dados ajudam no contato e planejamento; cadastrar o fornecedor não gera compra, vencimento nem despesa.",
+      "interpretacao": "Confirme os prazos e valores reais ao operar a reposição e a despesa. O texto da condição não agenda automaticamente pagamentos."
+    }
   ]
 }

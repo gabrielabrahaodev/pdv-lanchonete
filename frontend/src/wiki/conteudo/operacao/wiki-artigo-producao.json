@@ -19,7 +19,9 @@
     {
       "nome": "Saldo, reservado e disponível",
       "preenchimento": "Disponível é saldo livre, sem reservas; vencidos não ficam disponíveis para nova venda.",
-      "obrigatorio": "Consulta"
+      "obrigatorio": "Consulta",
+      "calculo": "Saldo livre = saldo físico do lote − reservado, respeitando validade para nova venda.",
+      "exemplo": "Saldo 20, reservado 6: livre 14. Entregar 2 reservados deixa saldo 18 e reservado 4; livre continua 14."
     },
     {
       "nome": "Validade e local",
@@ -54,11 +56,27 @@
     {
       "pergunta": "Produzi 40 e vendi 25.",
       "resposta": "A produção forma 40 unidades prontas. As 25 vendidas têm custo atribuído; as outras 15 permanecem no lote, descontadas eventuais perdas."
+    },
+    {
+      "pergunta": "Produzi 20 e só vendi 5. Qual custo entra na venda?",
+      "resposta": "Quando os custos são confiáveis, a venda considera o custo das unidades vendidas; o restante continua representando produtos prontos. Produzir a fornada inteira não deve virar custo de uma única venda."
+    },
+    {
+      "pergunta": "Vencido com saldo pode ser reservado?",
+      "resposta": "Não para novas vendas pelo fluxo normal de reserva. Confira o destino real e registre a perda apropriada se houve descarte; prazo vencido não significa descarte físico automaticamente registrado."
     }
   ],
   "relacionados": [
     "produzir",
     "reservas",
     "perdas-producao"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Saldo físico, reservado e livre",
+      "cenario": "Exemplo hipotético: um lote válido tem saldo de 20 pães, dos quais 6 estão reservados em pedidos.",
+      "resultado": "Saldo livre é 14. Reservar ainda não reduz o saldo físico; entregar confirma a saída correspondente.",
+      "interpretacao": "Não prometa as mesmas 6 unidades a outro pedido. Lotes vencidos não ficam disponíveis para novas reservas, mesmo que conservem saldo físico."
+    }
   ]
 }

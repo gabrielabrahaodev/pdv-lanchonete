@@ -1,7 +1,7 @@
 {
   "id": "lucratividade",
   "titulo": "Financeiro — Lucratividade por produto",
-  "para": "Compara quantidade, receita e margem da parcela vendida com custo conhecido.",
+  "para": "Explica quanto cada produto vendeu, quanto custou a parcela conhecida e o que pode ser concluído sobre sua margem. Distingue falta de dados, custo zero, referência teórica e custo realizado.",
   "quando": "Ao avaliar produtos e variações sem confundir margem estimada e realizada.",
   "passos": [
     "Aplique o período e filtre produto/categoria.",
@@ -26,24 +26,96 @@
       "obrigatorio": "Não"
     },
     {
-      "nome": "Quantidade vendida",
-      "preenchimento": "Unidades do produto, não número de pedidos.",
-      "obrigatorio": "Consulta"
+      "nome": "Quantidade",
+      "preenchimento": "Unidades vendidas do produto no período consultado; não é a quantidade de pedidos.",
+      "obrigatorio": "Consulta",
+      "exemplo": "Um pedido com 3 cafés representa 3 unidades e 1 pedido."
     },
     {
-      "nome": "Receita atribuída e preço médio",
-      "preenchimento": "Receita alocada à linha; preço médio = receita ÷ quantidade.",
-      "obrigatorio": "Consulta"
+      "nome": "Receita",
+      "preenchimento": "Parte do valor final das vendas atribuída a esse produto. Descontos e ajustes do total são distribuídos entre os itens.",
+      "obrigatorio": "Consulta",
+      "exemplo": "Um café de R$ 10 em uma venda com desconto pode ter receita atribuída menor que R$ 10."
     },
     {
-      "nome": "Custo teórico / realizado",
-      "preenchimento": "Referência da receita e custo histórico direto, quando confiáveis.",
-      "obrigatorio": "Consulta"
+      "nome": "Preço médio",
+      "preenchimento": "Valor médio de receita por unidade vendida, já considerando a distribuição do total final. Não é necessariamente o preço atual do cadastro.",
+      "obrigatorio": "Consulta",
+      "calculo": "Receita do produto ÷ quantidade vendida.",
+      "exemplo": "Receita de R$ 29 em 2 unidades resulta em R$ 14,50 por unidade.",
+      "indisponivel": "Sem unidades vendidas, não existe base para dividir."
     },
     {
-      "nome": "Margens e cobertura",
-      "preenchimento": "Realizada usa só receita coberta; teórica exige referência completa.",
-      "obrigatorio": "Consulta"
+      "nome": "Custo direto conhecido",
+      "preenchimento": "Soma do custo histórico confiável registrado nas unidades vendidas. Com cobertura parcial, mostra apenas o custo da parte conhecida.",
+      "obrigatorio": "Consulta",
+      "calculo": "Soma dos custos registrados das unidades com custo conhecido.",
+      "exemplo": "Se 3 unidades têm custo conhecido de R$ 5 cada, o total conhecido é R$ 15. Unidades sem custo ficam fora desse total.",
+      "indisponivel": "Fica indisponível quando nenhuma unidade do produto possui custo histórico confiável. Custo cadastrado hoje não preenche automaticamente a venda passada."
+    },
+    {
+      "nome": "Custo médio realizado / un.",
+      "preenchimento": "Custo por unidade calculado somente sobre as unidades com custo conhecido. Não divide pelo total de unidades desconhecidas.",
+      "obrigatorio": "Consulta",
+      "calculo": "Custo direto conhecido ÷ quantidade com custo conhecido.",
+      "exemplo": "R$ 15 de custo conhecido em 3 unidades conhecidas resulta em R$ 5/un., mesmo se houver outras unidades sem custo.",
+      "indisponivel": "Sem unidades com custo confiável, não há média realizada."
+    },
+    {
+      "nome": "Custo teórico de referência",
+      "preenchimento": "Custo esperado guardado no registro da venda. Não consulta a receita atual do produto para reescrever o passado.",
+      "obrigatorio": "Consulta",
+      "calculo": "Soma das referências teóricas registradas para todas as unidades do produto no período.",
+      "exemplo": "Uma referência de R$ 4 para cada uma de 2 unidades resulta em R$ 8 no total.",
+      "indisponivel": "Exige referência teórica para todas as unidades vendidas do produto no período; uma referência parcial não é exibida como total completo."
+    },
+    {
+      "nome": "Custo teórico / un.",
+      "preenchimento": "Referência teórica média por unidade vendida, quando a referência está completa.",
+      "obrigatorio": "Consulta",
+      "calculo": "Custo teórico de referência ÷ quantidade vendida.",
+      "exemplo": "Total teórico de R$ 8 em 2 unidades resulta em R$ 4/un.",
+      "indisponivel": "Fica indisponível se faltam referências teóricas ou não há quantidade para dividir."
+    },
+    {
+      "nome": "Lucro bruto (coberto)",
+      "preenchimento": "Valor que sobra da receita das unidades com custo conhecido, depois do custo direto dessas mesmas unidades. Não desconta aluguel, salários, taxas ou tributos não alocados.",
+      "obrigatorio": "Consulta",
+      "calculo": "Receita das unidades com custo conhecido − custo direto conhecido.",
+      "exemplo": "Venda de R$ 14,50 com custo confiável de R$ 5 resulta em R$ 9,50 de lucro bruto coberto.",
+      "indisponivel": "Sem unidades com custo conhecido, não é seguro mostrar lucro. Com cobertura parcial, o valor não representa o lucro de todas as vendas."
+    },
+    {
+      "nome": "Margem realizada (coberta)",
+      "preenchimento": "Percentual que sobra da receita coberta após o custo direto. A base é a receita das unidades com custo conhecido.",
+      "obrigatorio": "Consulta",
+      "calculo": "Lucro bruto coberto ÷ receita coberta × 100.",
+      "exemplo": "R$ 9,50 ÷ R$ 14,50 × 100 = 65,52%.",
+      "indisponivel": "Sem receita coberta diferente de zero, a divisão não pode ser calculada. Custos parciais não representam a margem do produto inteiro."
+    },
+    {
+      "nome": "Margem teórica",
+      "preenchimento": "Percentual esperado de sobra considerando a receita atribuída e as referências teóricas completas. Não é a meta de margem do cadastro.",
+      "obrigatorio": "Consulta",
+      "calculo": "(Receita − custo teórico total) ÷ receita × 100.",
+      "exemplo": "Receita de R$ 20 e referência teórica de R$ 8 resultam em 60%.",
+      "indisponivel": "Exige custo teórico para todas as unidades e receita diferente de zero."
+    },
+    {
+      "nome": "Diferença de margem",
+      "preenchimento": "Compara a margem realizada com a teórica. É expressa em pontos percentuais (p.p.), não em reais nem como variação percentual relativa.",
+      "obrigatorio": "Consulta",
+      "calculo": "Margem realizada − margem teórica.",
+      "exemplo": "Margem realizada de 55% e teórica de 60% resultam em −5 p.p.",
+      "indisponivel": "Exige cobertura realizada completa e as duas margens disponíveis. Não compara uma margem parcial com a referência integral."
+    },
+    {
+      "nome": "Cobertura de custo",
+      "preenchimento": "Percentual das unidades vendidas que possuem custo histórico confiável. Neste detalhe por produto, a base é quantidade; o indicador geral do Financeiro usa receita.",
+      "obrigatorio": "Consulta",
+      "calculo": "Quantidade com custo conhecido ÷ quantidade vendida × 100.",
+      "exemplo": "Em 10 unidades, 6 com custo conhecido representam 60% de cobertura. Isso não implica necessariamente 60% da receita.",
+      "indisponivel": "0% significa que nenhuma unidade tem custo confiável registrado. Não significa custo zero nem lucro de 100%."
     }
   ],
   "acoes": [
@@ -67,11 +139,47 @@
     {
       "pergunta": "Alterar a receita muda o custo das vendas passadas?",
       "resposta": "Não. O BI usa snapshots históricos; o formulário de precificação usa referências atuais."
+    },
+    {
+      "pergunta": "O que conferir quando tudo está Indisponível e a cobertura é 0%?",
+      "resposta": "Confira a receita do produto, as quantidades/unidades dos ingredientes e o custo dos insumos. Para sob pedido/revenda, confira a baixa automática e se o custo foi capturado antes da quitação; para antecipados, confira o lote e a confiabilidade do custo de produção. Esses pontos ajudam a diagnosticar; a tela sozinha não identifica a causa exata da venda antiga."
+    },
+    {
+      "pergunta": "Corrigir o cadastro hoje preenche o custo de ontem?",
+      "resposta": "Não automaticamente. O BI usa os custos guardados nas vendas e os agregados do histórico. Uma reconstrução exige análise própria dos registros disponíveis; não deve inventar custos passados usando preços atuais."
+    },
+    {
+      "pergunta": "Paguei antes de preparar. O custo aparecerá depois?",
+      "resposta": "Pode continuar indisponível. Se a quitação foi agregada antes da captura do custo, o preparo posterior não reconstrói automaticamente o agregado daquela venda. Não refaça pagamento nem estoque para tentar forçar o indicador."
+    },
+    {
+      "pergunta": "A aba Precificação e este painel devem mostrar o mesmo valor?",
+      "resposta": "Não necessariamente. Precificação usa a ficha e os custos de referência atuais para sugerir preço futuro. Este painel usa registros históricos das vendas. O preço médio também pode refletir descontos e variações."
     }
   ],
   "relacionados": [
     "precificacao",
     "resultados",
     "produzir"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Uma venda sem custo registrado",
+      "cenario": "Exemplo hipotético: 1 Pão com Ovos é vendido por R$ 14,50, mas o item da venda não tem custo confiável registrado.",
+      "resultado": "Quantidade 1, receita e preço médio R$ 14,50, cobertura 0%. Custos e margens dependentes desses custos aparecem como Indisponível.",
+      "interpretacao": "O sistema conhece a venda, mas não pode concluir quanto ela custou. Não interpreta a ausência de custo como lucro total."
+    },
+    {
+      "titulo": "A mesma venda com custo completo",
+      "cenario": "Exemplo hipotético: 1 unidade vendida por R$ 14,50, custo direto confiável R$ 5 e referência teórica R$ 5.",
+      "resultado": "Custo médio R$ 5/un., lucro bruto R$ 9,50, margem realizada e teórica 65,52%, diferença 0 p.p. e cobertura 100%.",
+      "interpretacao": "Os R$ 9,50 são sobra antes de despesas operacionais e outros custos não alocados. A coincidência de margens não prova ausência de perdas físicas."
+    },
+    {
+      "titulo": "Cobertura parcial não é lucro integral",
+      "cenario": "Exemplo hipotético: 10 unidades são vendidas por R$ 10 cada; somente 6 têm custo conhecido de R$ 4/un.",
+      "resultado": "Receita total R$ 100; cobertura por quantidade 60%; receita coberta R$ 60; custo conhecido R$ 24; lucro coberto R$ 36 e margem coberta 60%.",
+      "interpretacao": "Não se pode afirmar que as 10 unidades deram R$ 60 de lucro. As 4 unidades restantes ainda não têm custo conhecido."
+    }
   ]
 }

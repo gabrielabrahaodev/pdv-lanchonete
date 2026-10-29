@@ -24,6 +24,26 @@
       "nome": "Total selecionado",
       "preenchimento": "Soma das pendências do filtro.",
       "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Vencidas",
+      "preenchimento": "Obrigações pendentes com vencimento anterior a hoje. Sem vencimento não entra como vencida.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "A vencer em 7 / 30 / 90 dias",
+      "preenchimento": "Valores pendentes com vencimento conhecido de hoje até o limite do horizonte. Não cria projeção para contas sem data.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Sem vencimento",
+      "preenchimento": "Pendências que ainda não têm prazo registrado. Precisam de revisão para planejamento por dia.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Visão parcial",
+      "preenchimento": "A consulta alcançou o limite de 200 pendências. Totais apresentados referem-se à base carregada, não garantem o saldo completo do restaurante.",
+      "obrigatorio": "Consulta"
     }
   ],
   "acoes": [
@@ -45,11 +65,27 @@
     {
       "pergunta": "Mudei o período de vendas e a conta continua.",
       "resposta": "Contas a pagar usa vencimento/pendência, não competência da receita."
+    },
+    {
+      "pergunta": "O total pode deixar de incluir alguma conta?",
+      "resposta": "Sim, se houver aviso de visão parcial pelo limite de pendências. Use Despesas e percorra as páginas; não trate o resumo limitado como total integral."
+    },
+    {
+      "pergunta": "Como resolver Sem vencimento?",
+      "resposta": "Confirme o prazo real no documento ou com o fornecedor e edite a despesa quando autorizado. Não invente uma data apenas para melhorar o gráfico ou ocultar o aviso."
     }
   ],
   "relacionados": [
     "despesas",
     "previsibilidade",
     "financeiro"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Competência e vencimento têm funções diferentes",
+      "cenario": "Exemplo hipotético: uma conta tem competência em outubro, vence em novembro e continua pendente.",
+      "resultado": "Ela entra no resultado por competência de outubro e nas contas a pagar conforme seu vencimento de novembro.",
+      "interpretacao": "Selecionar vendas de outro mês não paga nem elimina essa pendência. Data de competência não é prazo de pagamento."
+    }
   ]
 }

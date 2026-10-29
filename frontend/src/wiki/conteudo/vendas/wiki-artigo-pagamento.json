@@ -24,7 +24,9 @@
     {
       "nome": "Recebido (troco)",
       "preenchimento": "Dinheiro entregue pelo cliente, pelo menos o valor do pagamento.",
-      "obrigatorio": "Opcional, só dinheiro"
+      "obrigatorio": "Opcional, só dinheiro",
+      "calculo": "Troco = recebido em dinheiro − valor aplicado ao pagamento.",
+      "exemplo": "Para pagar R$ 30 com R$ 50 em dinheiro, o troco é R$ 20."
     },
     {
       "nome": "Confirmar também a entrega",
@@ -63,11 +65,31 @@
     {
       "pergunta": "Pagar é confirmar entrega?",
       "resposta": "Não. A opção do balcão confirma somente os itens prontos selecionados; mesas podem exigir conferência de reservas."
+    },
+    {
+      "pergunta": "Selecionar PIX ou cartão confirma o recebimento na operadora?",
+      "resposta": "Não. O sistema registra o meio escolhido; não cobra, não verifica o aplicativo bancário e não concilia a operadora. Confira o recebimento real antes de registrar."
+    },
+    {
+      "pergunta": "Por que o campo Valor está bloqueado no balcão?",
+      "resposta": "A venda direta usa o restante integral como valor do pagamento nessa interface. Pagamento parcial descrito para mesa não deve ser presumido para o balcão."
+    },
+    {
+      "pergunta": "Troco aumenta a receita da venda?",
+      "resposta": "Não. Recebido é o dinheiro entregue pelo cliente; troco é a diferença devolvida. O pagamento aplicado à conta segue o valor devido, não todo o dinheiro entregue."
     }
   ],
   "relacionados": [
     "fechamento-caixa",
     "reservas",
     "cancelamentos"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Pagamento parcial e troco",
+      "cenario": "Exemplo hipotético: uma conta de mesa de R$ 50 recebe R$ 20 via PIX; restam R$ 30. O cliente entrega R$ 50 em dinheiro para pagar o restante.",
+      "resultado": "Registre pagamento de R$ 30 em dinheiro e recebido de R$ 50: troco R$ 20. O pedido é quitado quando soma R$ 50 em pagamentos.",
+      "interpretacao": "O recebido de R$ 50 não vira pagamento de R$ 50 sobre um saldo de R$ 30. No balcão, o valor do restante é somente leitura; confirme também a entrega dos prontos apenas se ocorreu fisicamente."
+    }
   ]
 }

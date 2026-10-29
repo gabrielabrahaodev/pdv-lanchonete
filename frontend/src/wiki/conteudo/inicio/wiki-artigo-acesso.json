@@ -43,11 +43,27 @@
     {
       "pergunta": "Criei conta e não vejo um restaurante.",
       "resposta": "Seu login precisa ser vinculado pela gestão ou concluir um convite válido."
+    },
+    {
+      "pergunta": "O e-mail de exemplo é minha conta?",
+      "resposta": "Não. Use o endereço individual cadastrado pela gestão. O exemplo preenchido não comprova que uma conta existe para você."
+    },
+    {
+      "pergunta": "Trocar de navegador cria outro restaurante?",
+      "resposta": "Não. A conta autenticada define o acesso e o vínculo. Criar restaurante é um processo separado, protegido por convite; não o use para tentar recuperar um login existente."
     }
   ],
   "relacionados": [
     "onboarding",
     "minha-conta",
     "perfis"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Login com e-mail correto",
+      "cenario": "Exemplo hipotético: a tela mostra um e-mail de exemplo, mas sua conta usa outro endereço cadastrado pela gestão.",
+      "resultado": "Substitua pelo seu próprio e-mail antes de entrar. Se não lembrar a senha, use a recuperação desse endereço.",
+      "interpretacao": "Uma falha de login não prova que o restaurante foi excluído. Confira e-mail, senha, conexão e mensagem; não crie outro restaurante para tentar recuperar o acesso."
+    }
   ]
 }

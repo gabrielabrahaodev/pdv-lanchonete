@@ -34,11 +34,27 @@
     {
       "pergunta": "O sistema estorna cartão?",
       "resposta": "Não há integração de estorno com operadora nesta versão."
+    },
+    {
+      "pergunta": "Por que o sistema bloqueia cancelamento após pagamento?",
+      "resposta": "Para preservar a consistência comercial e financeira do pedido quitado. Não tente contornar alterando estoque ou apagando registros de pagamento; trate a situação com a gestão."
+    },
+    {
+      "pergunta": "Todos os cancelamentos devolvem saldo pronto?",
+      "resposta": "Só reservas ainda não entregues podem ser liberadas conforme o fluxo. Ingredientes já consumidos e unidades já entregues não retornam automaticamente só pelo cancelamento comercial."
     }
   ],
   "relacionados": [
     "novo-pedido",
     "pagamento",
     "movimentacoes"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Cancelamento não devolve ingrediente consumido",
+      "cenario": "Exemplo hipotético: um sanduíche já teve ingredientes baixados ao iniciar preparo e depois precisa ser cancelado antes de pagamento.",
+      "resultado": "O cancelamento comercial segue as restrições do pedido, mas os ingredientes já consumidos não retornam automaticamente ao estoque.",
+      "interpretacao": "Confira a situação física. Cancelar item após pagamento é bloqueado. Reserva não entregue de produto antecipado pode ser liberada conforme as regras próprias."
+    }
   ]
 }

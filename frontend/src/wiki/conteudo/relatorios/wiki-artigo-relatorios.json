@@ -41,11 +41,27 @@
     {
       "pergunta": "Venda aberta não apareceu.",
       "resposta": "A base aqui são pedidos pagos. Confira quitação, data de fechamento e período."
+    },
+    {
+      "pergunta": "Meu faturamento inclui pedidos ainda abertos?",
+      "resposta": "Não. Os indicadores de vendas desta tela seguem as vendas quitadas da janela consultada. Ver pedidos no atendimento não significa que todos já compõem faturamento."
+    },
+    {
+      "pergunta": "O CSV ou recibo vale como nota fiscal?",
+      "resposta": "Não. São registros gerenciais/operacionais. A emissão fiscal depende de integração fiscal específica, fora deste fluxo."
     }
   ],
   "relacionados": [
     "resultados",
     "receitas",
     "fechamento-caixa"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Mesma operação, medidas diferentes",
+      "cenario": "Exemplo hipotético: faturamento R$ 100, compras R$ 40, despesas operacionais R$ 10 e CMV R$ 20, com custos conhecidos.",
+      "resultado": "A fórmula legada de resultado é R$ 100 − R$ 50 = R$ 50; o resultado BI é R$ 100 − R$ 20 − R$ 10 = R$ 70.",
+      "interpretacao": "A diferença decorre das fórmulas. Não desconte CMV novamente das compras já deduzidas no legado. Alinhe também período e competência antes de comparar."
+    }
   ]
 }

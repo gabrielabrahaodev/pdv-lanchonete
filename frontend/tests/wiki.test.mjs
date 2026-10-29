@@ -120,12 +120,18 @@ test('estrutura, fontes, IDs, categorias e links validos', () => {
       'acoes',
       'atencao',
       'duvidas',
+      'exemplos',
       'relacionados',
     ])
       assert.ok(Array.isArray(a[key]) && a[key].length, key)
-    for (const c of a.campos)
-      for (const k of ['nome', 'preenchimento', 'obrigatorio'])
-        assert.ok(c[k]?.trim())
+    assert.equal(new Set(a.campos.map(c => c.nome)).size, a.campos.length, `${a.id}: campo repetido`)
+    for (const c of a.campos) {
+      for (const k of ['nome', 'preenchimento', 'obrigatorio']) assert.ok(c[k]?.trim())
+      for (const k of ['calculo', 'exemplo', 'indisponivel'])
+        if (c[k] !== undefined) assert.ok(typeof c[k] === 'string' && c[k].trim(), `${a.id}: ${k} inválido`)
+    }
+    for (const c of a.exemplos)
+      for (const k of ['titulo', 'cenario', 'resultado', 'interpretacao']) assert.ok(c[k]?.trim(), `${a.id}: exemplo sem ${k}`)
     for (const c of a.acoes)
       for (const k of ['nome', 'efeito']) assert.ok(c[k]?.trim())
     for (const c of a.duvidas)
@@ -202,6 +208,7 @@ test('abas reais e links contextuais tem artigo ou ancora', () => {
             'campos',
             'acoes',
             'depois',
+            'exemplos',
             'atencao',
             'duvidas',
             'veja-tambem',

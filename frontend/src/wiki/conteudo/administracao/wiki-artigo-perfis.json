@@ -50,11 +50,27 @@
     {
       "pergunta": "Admin é dono da plataforma?",
       "resposta": "Não. A plataforma tem autorização separada, fora dos papéis do restaurante."
+    },
+    {
+      "pergunta": "Por que posso consultar estoque, mas não editar?",
+      "resposta": "A visibilidade da consulta não concede permissão de escrita. Alterações de estoque exigem admin/gerente; outros papéis têm operações próprias."
+    },
+    {
+      "pergunta": "Trocar o papel transfere a loja para outro dono da plataforma?",
+      "resposta": "Não. Papel é autorização no restaurante, enquanto dono da plataforma é autorização global separada. Não compartilhe contas para contornar essa diferença."
     }
   ],
   "relacionados": [
     "usuarios",
     "minha-conta",
     "primeiros-passos"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Acesso de restaurante não é dono da plataforma",
+      "cenario": "Exemplo hipotético: uma pessoa é admin de um restaurante.",
+      "resultado": "Ela pode administrar o restaurante conforme seu papel, mas não ganha automaticamente acesso ao console da plataforma.",
+      "interpretacao": "Perfis operacionais têm limites próprios. Ver uma tela não garante autorização de escrita; peça revisão à gestão em vez de compartilhar uma conta de maior privilégio."
+    }
   ]
 }

@@ -118,3 +118,13 @@ Versionamento: veja [[Versionamento-e-Atualizacao-PWA]]. Cada build Vite emite
 cachear `/version.json`. O cliente compara em rede sem consultar o Firestore,
 exibe aviso e disponibiliza **Forçar atualização** em Configurações. A recarga
 depende de confirmação explícita para evitar perda de formulários não salvos.
+
+## Explicações e exemplos por campo
+
+Os 47 artigos foram ampliados para explicar o que os dados significam e como tomar uma decisão, além da sequência de cliques. Cada artigo contém exemplos práticos fictícios, com situação, resultado e interpretação, e dúvidas específicas do fluxo. Campos calculados podem incluir fórmula, exemplo e condições de disponibilidade. A apresentação dos campos usa blocos com rótulos no celular e alinhamento em colunas no desktop; sumário e âncoras existentes são preservados e foi acrescentada a seção Exemplos práticos.
+
+Lucratividade detalha os 12 indicadores, cobertura por quantidade, referências históricas, divisores e exigência de cobertura completa na comparação de margens. O indicador geral de cobertura do Financeiro usa receita. Indisponível não é custo zero; corrigir cadastros não recompõe automaticamente vendas antigas. Sob pedido pode ter referência e realizado iguais; não há medição automática de todas as perdas. No Caixa, os totais da sessão são creditados na quitação, não em cada pagamento parcial isolado.
+
+Padrão editorial para novas alterações: explicar significado, origem/base do cálculo, fórmula quando aplicável, exemplo com unidade/valor, motivo de ausência e ação de diagnóstico possível. Nunca prometer uma correção retroativa inexistente nem tratar fórmula BI e legado como a mesma medida. Evitar fórmulas artificiais para campos de texto. Exemplos não consultam o banco, não usam credenciais de clientes e não são uma simulação executável de estoque/venda.
+
+Validação: tipos/índice de busca, estrutura de todos os artigos, renderização dos 47 artigos, responsividade detalhada em 320/360/390/430/768/1440px, temas, navegação, busca e PWA. Guia complementar em `docs/04-testes/wiki-explicacoes-detalhadas.md`. Nenhuma regra financeira ou de estoque alterada.

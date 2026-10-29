@@ -18,6 +18,39 @@
       "nome": "7 / 30 / 90 dias",
       "preenchimento": "Atalhos para janela de consulta.",
       "obrigatorio": "Opcional"
+    },
+    {
+      "nome": "Receita reconhecida",
+      "preenchimento": "Receita atribuída às vendas quitadas, não aos pedidos abertos nem à produção.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Vendas quitadas",
+      "preenchimento": "Número de pedidos pagos no período.",
+      "obrigatorio": "Consulta",
+      "calculo": "Contagem de vendas, não soma de unidades.",
+      "exemplo": "3 pedidos com 2 produtos cada são 3 vendas e 6 unidades."
+    },
+    {
+      "nome": "Ticket médio",
+      "preenchimento": "Receita média de um pedido quitado.",
+      "obrigatorio": "Consulta",
+      "calculo": "Receita ÷ quantidade de vendas quitadas.",
+      "exemplo": "R$ 90 em 3 pedidos = R$ 30 por pedido.",
+      "indisponivel": "Sem vendas quitadas, não há base para dividir."
+    },
+    {
+      "nome": "Variação sobre período anterior",
+      "preenchimento": "Mudança da receita contra período anterior de igual duração.",
+      "obrigatorio": "Consulta",
+      "calculo": "(Receita atual − anterior) ÷ anterior × 100.",
+      "exemplo": "De R$ 100 para R$ 80 representa −20%.",
+      "indisponivel": "Base anterior zero impede o cálculo percentual."
+    },
+    {
+      "nome": "Receitas por forma de pagamento",
+      "preenchimento": "Distribuição da receita registrada entre os meios de pagamento. Não verifica recebimento pela operadora nem concilia extrato.",
+      "obrigatorio": "Consulta"
     }
   ],
   "acoes": [
@@ -38,11 +71,27 @@
     {
       "pergunta": "Pedido aberto conta como receita?",
       "resposta": "Não como venda quitada neste painel."
+    },
+    {
+      "pergunta": "Fiz a produção, mas a receita não aumentou. Por quê?",
+      "resposta": "Produzir transforma ingredientes em produtos prontos; não registra uma venda. A receita depende das vendas quitadas reconhecidas no fluxo de vendas."
+    },
+    {
+      "pergunta": "Um pedido marcado entregue no Delivery aparece aqui?",
+      "resposta": "O módulo Delivery atual tem fluxo separado: marcar entregue não quita automaticamente um pedido do Caixa nem reconhece receita BI. Não presuma integração de estoque ou pagamento."
     }
   ],
   "relacionados": [
     "pagamento",
     "resultados",
     "relatorios"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Vendas e unidades são contagens diferentes",
+      "cenario": "Exemplo hipotético: 3 pedidos pagos totalizam R$ 90 e contêm 8 produtos ao todo.",
+      "resultado": "Vendas quitadas 3 e ticket médio R$ 30.",
+      "interpretacao": "O ticket não é R$ 11,25 por produto. Esse outro cálculo seria receita por unidade, não receita por pedido."
+    }
   ]
 }

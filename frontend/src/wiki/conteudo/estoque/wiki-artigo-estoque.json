@@ -18,7 +18,7 @@
     },
     {
       "nome": "Somente alertas",
-      "preenchimento": "Mostra ativos com saldo menor ou igual ao mínimo.",
+      "preenchimento": "Limita a lista aos itens com saldo menor ou igual ao mínimo. Se Incluir arquivados também estiver ativo, itens arquivados de saldo baixo podem aparecer; o resumo de alertas considera apenas os ativos.",
       "obrigatorio": "Não"
     },
     {
@@ -30,6 +30,25 @@
       "nome": "Resumo do estoque",
       "preenchimento": "Contagem de ativos, em alerta e arquivados de todo o estoque carregado. Não muda com os filtros da lista.",
       "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Quantidade atual",
+      "preenchimento": "Saldo do insumo na unidade de controle; entradas somam, saídas subtraem e correção informa a contagem.",
+      "obrigatorio": "Consulta",
+      "exemplo": "Controle em g: 1.200 é 1.200 g, não 1.200 kg."
+    },
+    {
+      "nome": "Mínimo",
+      "preenchimento": "Limite de alerta do insumo.",
+      "obrigatorio": "Consulta",
+      "calculo": "Alerta quando quantidade atual ≤ mínimo, para itens ativos.",
+      "exemplo": "Saldo 1.200 g e mínimo 2.000 g ficam em alerta."
+    },
+    {
+      "nome": "Custo de referência",
+      "preenchimento": "Apresentação comercial do custo médio interno. Pode estar em R$/kg mesmo quando o saldo é em g.",
+      "obrigatorio": "Consulta",
+      "exemplo": "R$ 8/kg corresponde a R$ 0,008/g. Não multiplique gramas pelo valor de um kg."
     }
   ],
   "acoes": [
@@ -63,6 +82,14 @@
     {
       "pergunta": "Alerta significa produto acabado?",
       "resposta": "Não. Aqui é insumo. O pronto está em Produção e Estufa."
+    },
+    {
+      "pergunta": "O resumo não muda quando eu busco um insumo. Está errado?",
+      "resposta": "Não. O resumo conta ativos, alertas e arquivados de toda a coleção carregada. A busca e os filtros mudam a lista exibida; o CSV exporta essa lista filtrada."
+    },
+    {
+      "pergunta": "Saldo negativo significa que houve venda sem receita?",
+      "resposta": "Não necessariamente. Pode envolver consumo permitido com saldo insuficiente, contagem, compras não registradas ou ficha/unidade incorreta. Confira histórico, unidade e receita antes de lançar uma correção física."
     }
   ],
   "relacionados": [
@@ -70,5 +97,13 @@
     "movimentacoes",
     "reposicao",
     "unidades"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Quando um insumo entra em alerta",
+      "cenario": "Exemplo hipotético: farinha tem saldo de 1.200 g e mínimo de 2.000 g.",
+      "resultado": "O item fica em alerta porque o saldo é menor ou igual ao mínimo; com 0 g ou saldo negativo, a sinalização indica ausência de saldo.",
+      "interpretacao": "O mínimo não reserva material nem faz compra automática. O resumo considera todo o estoque carregado, enquanto a lista pode estar filtrada."
+    }
   ]
 }

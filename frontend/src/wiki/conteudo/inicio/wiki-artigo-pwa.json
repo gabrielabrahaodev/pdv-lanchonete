@@ -31,10 +31,26 @@
     {
       "pergunta": "Preciso instalar para usar?",
       "resposta": "Não. O acesso pelo navegador continua disponível."
+    },
+    {
+      "pergunta": "Os dados ficam separados entre navegador e aplicativo instalado?",
+      "resposta": "Não. Com a mesma conta, ambos acessam o mesmo restaurante. Cache local é uma cópia para leitura e pode estar desatualizado; não é um novo banco independente."
+    },
+    {
+      "pergunta": "Posso confirmar vendas sem internet?",
+      "resposta": "Não conte com isso. A instalação não cria uma fila de escrita offline. Aguarde a conexão e confira o estado confirmado antes de repetir uma venda ou pagamento."
     }
   ],
   "relacionados": [
     "acesso",
     "primeiros-passos"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Aplicativo instalado usa o mesmo banco",
+      "cenario": "Exemplo hipotético: você instala o NexoComanda no celular depois de usar o sistema no navegador.",
+      "resultado": "Ao entrar com a mesma conta, continua usando o mesmo restaurante e permissões.",
+      "interpretacao": "Instalar não cria uma cópia isolada nem habilita escrita offline. Conclua lançamentos antes de aceitar uma atualização que recarrega a tela."
+    }
   ]
 }

@@ -19,6 +19,47 @@
       "nome": "7 / 30 / 90 dias",
       "preenchimento": "Atalhos para janela de consulta.",
       "obrigatorio": "Opcional"
+    },
+    {
+      "nome": "Receita reconhecida",
+      "preenchimento": "Soma das vendas quitadas no período, independentemente de haver custo conhecido.",
+      "obrigatorio": "Consulta",
+      "exemplo": "Uma venda aberta de R$ 50 não soma à receita reconhecida até ser quitada."
+    },
+    {
+      "nome": "Vendas quitadas",
+      "preenchimento": "Quantidade de pedidos pagos; um pedido com vários produtos continua contando como uma venda.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Ticket médio",
+      "preenchimento": "Receita média por pedido quitado.",
+      "obrigatorio": "Consulta",
+      "calculo": "Receita ÷ vendas quitadas.",
+      "exemplo": "R$ 150 em 5 vendas resulta em R$ 30 por venda.",
+      "indisponivel": "Sem vendas quitadas, não há divisor; aparece Indisponível."
+    },
+    {
+      "nome": "Resultado gerencial",
+      "preenchimento": "Sobra após CMV e despesas operacionais, com cobertura completa.",
+      "obrigatorio": "Consulta",
+      "calculo": "Receita − CMV − operacionais.",
+      "exemplo": "R$ 100 − R$ 20 − R$ 10 = R$ 70.",
+      "indisponivel": "Sem custos/vendas com cobertura completa, não pode afirmar o resultado integral."
+    },
+    {
+      "nome": "Margem bruta realizada / Margem da parcela coberta",
+      "preenchimento": "Com cobertura completa, mostra a margem integral; caso contrário, usa somente a receita das unidades com custo conhecido.",
+      "obrigatorio": "Consulta",
+      "calculo": "Lucro bruto da base considerada ÷ receita dessa base × 100.",
+      "exemplo": "R$ 60 cobertos e custo conhecido R$ 24 resultam em 60% de margem apenas sobre essa parcela.",
+      "indisponivel": "Sem receita coberta, a margem parcial também fica indisponível."
+    },
+    {
+      "nome": "Contas a pagar",
+      "preenchimento": "Compromissos pendentes por vencimento, independentemente do período aplicado às vendas.",
+      "obrigatorio": "Consulta",
+      "exemplo": "Uma conta de novembro pode continuar nas pendências enquanto você consulta as vendas de outubro."
     }
   ],
   "acoes": [
@@ -45,11 +86,27 @@
     {
       "pergunta": "Por que meu lucro está indisponível?",
       "resposta": "Há histórico sem coleta BI, custo confiável ausente ou base insuficiente. Não trate essa ausência como zero."
+    },
+    {
+      "pergunta": "Atualizar dados resolve um custo histórico ausente?",
+      "resposta": "Atualizar consulta a base novamente, sujeita ao cache do painel. Não cria custos, não corrige cadastros e não reconstrói vendas antigas. Se a origem continua sem custo, o indicador permanece indisponível."
+    },
+    {
+      "pergunta": "Por que contas a pagar não mudam junto com o período de vendas?",
+      "resposta": "São consultas com critérios diferentes: as vendas seguem o período aplicado; as pendências seguem vencimentos e filtros próprios. Uma conta pode ter competência fora do período e continuar sem pagamento."
     }
   ],
   "relacionados": [
     "resultados",
     "lucratividade",
     "contas-pagar"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Leia os indicadores em conjunto",
+      "cenario": "Exemplo hipotético: 5 vendas quitadas somam R$ 150; parte das unidades está sem custo histórico.",
+      "resultado": "Receita R$ 150 e ticket médio R$ 30 podem estar disponíveis enquanto resultado gerencial permanece Indisponível.",
+      "interpretacao": "Conhecer quanto vendeu não garante conhecer quanto custou. Use Lucratividade para localizar produtos com cobertura incompleta."
+    }
   ]
 }

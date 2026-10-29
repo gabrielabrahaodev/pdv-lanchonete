@@ -33,11 +33,27 @@
     {
       "pergunta": "Cancelar a solicitação apaga uma entrada?",
       "resposta": "Não. O cancelamento é do pedido ainda não recebido, sem estorno de estoque."
+    },
+    {
+      "pergunta": "Como faço se agora quero receber uma solicitação cancelada?",
+      "resposta": "Gere uma solicitação nova para a nova compra. O histórico de cancelados é consulta, não um recebimento oculto ou reabertura automática."
+    },
+    {
+      "pergunta": "Cancelado prova que não houve entrega física?",
+      "resposta": "O estado mostra a decisão registrada no sistema. Se houver divergência com o que chegou fisicamente, investigue os registros e a mercadoria; não faça ajustes duplicados só para conciliar o rótulo."
     }
   ],
   "relacionados": [
     "reposicao",
     "aguardando",
     "recebidos"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Solicitação cancelada sem entrada física",
+      "cenario": "Exemplo hipotético: o fornecedor não consegue entregar uma solicitação e você a cancela antes do recebimento.",
+      "resultado": "A solicitação fica no histórico de cancelados e não aumenta o estoque.",
+      "interpretacao": "Se a compra voltar a ser necessária, gere nova solicitação. Este histórico não é uma ação para estornar mercadoria já recebida."
+    }
   ]
 }

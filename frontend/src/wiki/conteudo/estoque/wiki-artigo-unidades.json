@@ -45,11 +45,27 @@
     {
       "pergunta": "Entrada retroativa muda custo passado?",
       "resposta": "Não. Atualiza saldo e custo atuais; snapshots históricos de vendas não são recalculados."
+    },
+    {
+      "pergunta": "Qual é a média de compras com quantidades diferentes?",
+      "resposta": "Ela é ponderada pelas quantidades, quando aplicável: 1 kg a R$ 10/kg e 3 kg a R$ 20/kg somam R$ 70 em 4 kg, ou R$ 17,50/kg. A média simples de R$ 15/kg estaria errada."
+    },
+    {
+      "pergunta": "Posso converter automaticamente kg em litros?",
+      "resposta": "Não. Massa e volume não são intercambiáveis sem informação específica. Use unidades compatíveis ou configure a embalagem conforme o conteúdo real."
     }
   ],
   "relacionados": [
     "precificacao",
     "recebimento",
     "movimentacoes"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Compra convertida e custo da receita",
+      "cenario": "Exemplo hipotético: estoque controla g e recebe 2 kg por R$ 16.",
+      "resultado": "Entram 2.000 g; custo desta compra R$ 0,008/g. Uma receita com 150 g dessa referência custa R$ 1,20.",
+      "interpretacao": "Se já havia saldo, o custo médio segue a média ponderada aplicável. Não use R$ 16 como custo de cada kg quando esse é o valor total dos 2 kg."
+    }
   ]
 }

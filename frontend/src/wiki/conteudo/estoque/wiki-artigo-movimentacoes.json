@@ -13,7 +13,8 @@
     {
       "nome": "Operação",
       "preenchimento": "Entrada soma; saída subtrai; correção substitui o saldo pela contagem informada.",
-      "obrigatorio": "Sim"
+      "obrigatorio": "Sim",
+      "exemplo": "Com saldo 10 un.: entrada 3 termina em 13; saída 3 termina em 7; correção para 3 termina em 3."
     },
     {
       "nome": "Quantidade / Novo saldo",
@@ -28,7 +29,8 @@
     {
       "nome": "Valor total da compra (R$)",
       "preenchimento": "Total pago pela quantidade desta entrada, não preço por g.",
-      "obrigatorio": "Entrada / compra"
+      "obrigatorio": "Entrada / compra",
+      "exemplo": "Se recebeu 2 kg por R$ 16 no total, informe R$ 16, não R$ 8 nem R$ 16 por grama."
     },
     {
       "nome": "Motivo / observação",
@@ -55,11 +57,27 @@
     {
       "pergunta": "Contagem passou de 10 para 8. O que digito?",
       "resposta": "Em Corrigir saldo para, digite 8. Em saída seria 2; são operações diferentes."
+    },
+    {
+      "pergunta": "Entrada manual paga o fornecedor?",
+      "resposta": "Não. Entrada manual altera o estoque e pode atualizar o custo; não cria automaticamente o débito da Reposição nem registra pagamento. Controle a obrigação sem repetir o recebimento físico."
+    },
+    {
+      "pergunta": "A confirmação falhou. Devo começar outro lançamento?",
+      "resposta": "Use a tentativa prevista na tela e preserve os dados da operação enquanto ela estiver bloqueada. Confira o histórico antes de lançar outra entrada para a mesma mercadoria; uma resposta incerta não prova ausência de gravação."
     }
   ],
   "relacionados": [
     "estoque",
     "unidades",
     "recebimento"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Correção usa o saldo contado",
+      "cenario": "Exemplo hipotético: o sistema mostra 800 g, mas a contagem física encontrou 650 g.",
+      "resultado": "Na operação de correção, informe Novo saldo de 650 g. Uma saída de 150 g teria finalidade diferente, embora produza o mesmo saldo neste exemplo.",
+      "interpretacao": "Não preencha −150 ou 150 como novo saldo. A correção substitui o saldo pela contagem; a saída registra consumo/retirada."
+    }
   ]
 }

@@ -24,6 +24,32 @@
       "nome": "Compromissos conhecidos",
       "preenchimento": "Somente obrigações pendentes e vencimentos registrados.",
       "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Observações",
+      "preenchimento": "Número de datas com faturamento registrado consideradas na janela histórica de até 56 dias. Uma data sem agregado não é assumida como venda zero.",
+      "obrigatorio": "Consulta"
+    },
+    {
+      "nome": "Cenário base",
+      "preenchimento": "Estimativa por dia futuro, a partir de médias do mesmo dia da semana e tendência recente limitada a ±20%.",
+      "obrigatorio": "Consulta",
+      "calculo": "Média observada do dia da semana × fator de tendência, entre 0,8 e 1,2.",
+      "exemplo": "Com média de R$ 100 para uma segunda-feira e tendência de 1, o cenário base desse dia é R$ 100.",
+      "indisponivel": "Para horizonte de 7/30 dias exige ao menos 28 observações; para 90 dias, 56, além de pelo menos 3 observações de cada dia da semana."
+    },
+    {
+      "nome": "Conservador e otimista",
+      "preenchimento": "Cenários hipotéticos em torno da estimativa base, não limites de confiança estatística.",
+      "obrigatorio": "Consulta",
+      "calculo": "Conservador = base × 0,8; otimista = base × 1,2.",
+      "exemplo": "Base R$ 100 gera conservador R$ 80 e otimista R$ 120.",
+      "indisponivel": "Dependem de previsão base disponível."
+    },
+    {
+      "nome": "Saldo de caixa futuro",
+      "preenchimento": "A tela não calcula projeção de saldo bancário ou de gaveta: falta conciliação e saldo inicial confiável.",
+      "obrigatorio": "Consulta"
     }
   ],
   "acoes": [
@@ -46,11 +72,27 @@
     {
       "pergunta": "Por que previsão indisponível?",
       "resposta": "Ainda não há observações suficientes no histórico coletado. Leia o motivo exibido; não preencha dados fictícios."
+    },
+    {
+      "pergunta": "Passaram 28 dias e a previsão ainda está indisponível. É normal?",
+      "resposta": "Pode acontecer: são exigidas observações registradas, não apenas dias de calendário, e distribuição mínima por dia da semana. Confira o motivo exibido. Não crie vendas fictícias para atingir o mínimo."
+    },
+    {
+      "pergunta": "O cenário considera feriados e eventos especiais?",
+      "resposta": "Não. A regra atual usa médias semanais e tendência limitada. Feriados, eventos, sazonalidade anual e mudanças da operação precisam de avaliação externa antes de usar a estimativa."
     }
   ],
   "relacionados": [
     "contas-pagar",
     "financeiro",
     "resultados"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Previsão de receita não é saldo disponível",
+      "cenario": "Exemplo hipotético: cenário base de um dia R$ 100, conservador R$ 80 e otimista R$ 120.",
+      "resultado": "São hipóteses de receita; compromissos pendentes são mostrados separadamente.",
+      "interpretacao": "Não prometa ter R$ 100 disponíveis para pagar uma conta. Vendas futuras, repasses de cartão, saldo inicial e despesas não lançadas podem alterar a disponibilidade."
+    }
   ]
 }

@@ -29,7 +29,9 @@
     {
       "nome": "Valor total da linha (R$)",
       "preenchimento": "Total da quantidade recebida, por exemplo 2 kg por R$ 16.",
-      "obrigatorio": "Sim"
+      "obrigatorio": "Sim",
+      "calculo": "Custo unitário da compra = total da linha ÷ quantidade convertida.",
+      "exemplo": "R$ 16 ÷ 2.000 g = R$ 0,008/g; com saldo anterior, o custo médio usa a regra aplicável de ponderação."
     }
   ],
   "acoes": [
@@ -56,11 +58,27 @@
     {
       "pergunta": "Posso editar a despesa de reposição?",
       "resposta": "Valor e vínculos são protegidos. Pagar e reabrir continuam disponíveis."
+    },
+    {
+      "pergunta": "Informo preço unitário ou valor total da linha?",
+      "resposta": "Valor total da quantidade recebida naquela linha. Se 2 kg custaram R$ 16 ao todo, informe 2 kg e R$ 16. O sistema converte a quantidade e calcula o custo correspondente."
+    },
+    {
+      "pergunta": "Uma data retroativa recalcula o custo das vendas antigas?",
+      "resposta": "Não. Ela informa a competência do recebimento e da despesa vinculada. Não reconstitui automaticamente o saldo de cada dia nem substitui custos já guardados em vendas."
     }
   ],
   "relacionados": [
     "recebidos",
     "despesas",
     "unidades"
+  ],
+  "exemplos": [
+    {
+      "titulo": "Quantidade e valor do que chegou",
+      "cenario": "Exemplo hipotético: chegaram 2 kg de farinha e o valor total dessa linha foi R$ 16.",
+      "resultado": "Com controle em g, o saldo recebe 2.000 g. A operação gera o débito vinculado de R$ 16, pendente de pagamento.",
+      "interpretacao": "Valor da linha é o total dos 2 kg. Receber não é pagar; localize a despesa vinculada, evitando um segundo lançamento da compra."
+    }
   ]
 }
