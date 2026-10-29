@@ -60,7 +60,7 @@ export default function MinhaContaPage() {
     onError: (e) => setErro(erroConta(e)),
   })
   return (
-    <div className="mx-auto max-w-4xl space-y-5 p-3 sm:p-6">
+    <div className="mx-auto max-w-4xl space-y-5 pdv-page p-3 sm:p-5 lg:p-6">
       <PageHeader
         title="Minha conta"
         subtitle="Dados pessoais e segurança do seu login"
@@ -76,7 +76,7 @@ export default function MinhaContaPage() {
       {ok && (
         <p
           role="status"
-          className="rounded-lg bg-emerald-50 p-3 text-emerald-800"
+          className="rounded-lg bg-emerald-50 p-3 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
         >
           {ok}
         </p>
@@ -91,7 +91,7 @@ export default function MinhaContaPage() {
             <br />
             Restaurante: {me?.restaurantNome}
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Administrador do restaurante e dono da plataforma são permissões
             diferentes.
           </p>
@@ -109,7 +109,7 @@ export default function MinhaContaPage() {
         </Card>
         <Card className="space-y-4 p-4 sm:p-6">
           <h2 className="font-bold">Alterar credenciais</h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Informe sua senha atual para autorizar uma mudança. O novo e-mail só
             passa a valer após verificação.
           </p>

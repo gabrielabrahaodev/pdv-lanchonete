@@ -154,7 +154,7 @@ export default function AppLayout() {
               to={item.to}
               onClick={() => setDrawerAberto(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                `flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 text-sm font-medium transition-colors lg:min-h-10 lg:rounded-lg ${
                   isActive
                     ? 'bg-brand-50 text-brand-700 ring-1 ring-brand-200 dark:bg-brand-500/10 dark:text-brand-300 dark:ring-brand-500/30'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
@@ -182,7 +182,7 @@ export default function AppLayout() {
                 to="/plataforma"
                 onClick={() => setDrawerAberto(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                  `flex items-center gap-3 min-h-11 rounded-xl px-3 py-2 text-sm font-medium transition-colors lg:min-h-10 lg:rounded-lg ${
                     isActive
                       ? 'bg-brand-50 text-brand-700 ring-1 ring-brand-200 dark:bg-brand-500/10 dark:text-brand-300 dark:ring-brand-500/30'
                       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
@@ -212,7 +212,7 @@ export default function AppLayout() {
             </div>
             <button
               onClick={handleLogout}
-              className="w-full rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-rose-400"
+              className="action-button w-full rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-rose-400"
             >
               Sair
             </button>
@@ -237,9 +237,9 @@ export default function AppLayout() {
 
 export function PageHeader({ title, subtitle, actions, ajuda }: { title: string; subtitle?: string; actions?: React.ReactNode; ajuda?: string }) {
   return (
-    <div className="mb-4 flex min-w-0 flex-col gap-3 sm:mb-6 md:flex-row md:items-start md:justify-between">
+    <div className="mb-4 flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between">
       <div className="min-w-0 pl-14 md:pl-0">
-        <h1 className="break-words text-xl font-bold text-slate-800 dark:text-slate-100">{title}</h1>
+        <h1 className="break-words text-xl font-semibold tracking-tight text-slate-800 dark:text-slate-100">{title}</h1>
         {subtitle && <p className="text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>}
         <AjudaContextual artigo={ajuda} />
       </div>

@@ -249,7 +249,7 @@ export default function ProdutoFormPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl p-3 sm:p-6">
+    <div className="mx-auto w-full max-w-3xl pdv-page p-3 sm:p-5 lg:p-6">
       <div className="pl-14 md:pl-0">
         <Link
           to="/produtos"
@@ -345,7 +345,7 @@ export default function ProdutoFormPage() {
               </Field>
             )}
             {form.modoEstoque === 'antecipado' && (
-              <p className="text-sm text-slate-500 sm:col-span-2">
+              <p className="text-sm text-slate-500 sm:col-span-2 dark:text-slate-400">
                 Produza os lotes em Produção e Estufa. Os ingredientes são
                 consumidos na produção; o pedido reserva produtos prontos até a
                 entrega. Aquecer não consome a receita novamente.
@@ -391,7 +391,7 @@ export default function ProdutoFormPage() {
               />
             </Field>
             <div className="sm:col-span-2">
-              <span className="mb-1 block text-sm font-medium text-slate-600">
+              <span className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-300">
                 Foto
               </span>
               <div className="flex items-center gap-3">
@@ -405,7 +405,7 @@ export default function ProdutoFormPage() {
                     className="h-16 w-16 rounded-lg border border-slate-200 object-cover dark:border-slate-700"
                   />
                 ) : (
-                  <span className="grid h-16 w-16 place-items-center rounded-lg border border-dashed border-slate-300 text-xl text-slate-500">
+                  <span className="grid h-16 w-16 place-items-center rounded-lg border border-dashed border-slate-300 text-xl text-slate-500 dark:text-slate-400">
                     🖼️
                   </span>
                 )}
@@ -428,13 +428,13 @@ export default function ProdutoFormPage() {
                       Remover
                     </button>
                   )}
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                     JPG/PNG · comprimida automaticamente (~140 KB)
                   </p>
                 </div>
               </div>
             </div>
-            <label className="flex items-end gap-2 pb-1 text-sm font-medium text-slate-600">
+            <label className="flex items-end gap-2 pb-1 text-sm font-medium text-slate-600 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={form.ativo}
@@ -444,7 +444,7 @@ export default function ProdutoFormPage() {
               Produto ativo
             </label>
             <label
-              className="flex items-end gap-2 pb-1 text-sm font-medium text-slate-600"
+              className="flex items-end gap-2 pb-1 text-sm font-medium text-slate-600 dark:text-slate-300"
               title="Na estufa, desmarcado significa pronto para entregar; marcado permite aquecer na cozinha"
             >
               <input
@@ -461,7 +461,7 @@ export default function ProdutoFormPage() {
 
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Variações
               </span>
               <Button
@@ -515,7 +515,7 @@ export default function ProdutoFormPage() {
                 </div>
               ))}
               {variacoes.length === 0 && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Sem variações — o produto é vendido pelo preço base.
                 </p>
               )}
@@ -525,7 +525,7 @@ export default function ProdutoFormPage() {
         <div hidden={aba !== 'precificacao'} className="space-y-4">
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Ingredientes da receita
               </span>
               <Button
@@ -536,7 +536,7 @@ export default function ProdutoFormPage() {
                 + ingrediente
               </Button>
             </div>
-            <p className="mb-2 text-xs text-slate-500">
+            <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
               {form.modoEstoque === 'antecipado'
                 ? `Quantidades para uma receita completa, que rende ${form.rendimentoReceita} ${form.unidadeVenda}. Na produção você informa o rendimento real.`
                 : 'Informe a quantidade por unidade vendida e escolha a unidade usada. O sistema converte para o estoque.'}
@@ -623,7 +623,7 @@ export default function ProdutoFormPage() {
                 )
               })}
               {ingredientes.length === 0 && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Sem receita cadastrada. Para produção antecipada, cadastre
                   ingredientes; revenda utiliza o item vinculado.
                 </p>
@@ -654,7 +654,7 @@ export default function ProdutoFormPage() {
                 <span className="min-w-0 break-words">
                   {linha.item?.nome ?? 'Selecione um ingrediente'}
                   <br />
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     {linha.item
                       ? formatarPrecoReferencia(linha.item)
                       : 'Item não encontrado'}
@@ -745,7 +745,7 @@ export default function ProdutoFormPage() {
               %
             </p>
           )}
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             A estimativa considera apenas os ingredientes do produto base. Não
             inclui despesas, taxas, impostos ou ingredientes extras das
             variações. Cadastre custos maiores que zero para todos os
@@ -774,7 +774,7 @@ export default function ProdutoFormPage() {
         </div>
 
         {erro && (
-          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
             {erro}
           </p>
         )}

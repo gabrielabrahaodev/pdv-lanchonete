@@ -28,8 +28,8 @@ export default function SelectRestaurantPage() {
 
   return (
     <div className="grid min-h-full place-items-center bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 p-4">
-      <Card className="w-full max-w-md p-8 text-center">
-        <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-200">
+      <Card className="w-full max-w-md p-5 sm:p-6 text-center">
+        <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-brand-600 text-white shadow-sm">
           <Store className="h-7 w-7" aria-hidden="true" />
         </div>
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
@@ -51,7 +51,7 @@ export default function SelectRestaurantPage() {
 
         <button
           onClick={() => logout()}
-          className="mt-4 text-xs font-semibold text-slate-500 hover:text-rose-600 dark:hover:text-rose-400"
+          className="mt-4 text-xs font-semibold text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 dark:text-slate-400"
         >
           Sair da conta
         </button>

@@ -39,13 +39,13 @@ export default function ConfiguracoesPage() {
   if (config.isError) return <ErrorState error={config.error} />
 
   return (
-    <div className="p-3 sm:p-6">
+    <div className="pdv-page p-3 sm:p-5 lg:p-6">
       <PageHeader
         title="Configurações"
         subtitle="Dados do restaurante, impressão, aparência e usuários"
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <AparenciaCard />
         <VersaoAppCard />
         <Card className="space-y-3 p-5">
@@ -67,7 +67,7 @@ export default function ConfiguracoesPage() {
               <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                 <div><h3 className="font-bold text-slate-700 dark:text-slate-200">Usuários</h3><AjudaContextual artigo="usuarios" rotulo="Como gerenciar usuários?" /></div>
                 {(usuarios.data ?? []).length > 0 && (
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     {usuarios.data!.length} usuário(s)
                   </span>
                 )}
@@ -80,7 +80,7 @@ export default function ConfiguracoesPage() {
                 </div>
               ) : (
                 <>
-                  <ul className="divide-y divide-slate-100">
+                  <ul className="divide-y divide-slate-100 dark:divide-slate-800">
                     {(usuarios.data ?? []).map((u) => (
                       <UsuarioRow key={u.id} usuario={u} />
                     ))}
@@ -117,11 +117,11 @@ function AparenciaCard() {
   const { tema, setTema } = useTheme()
 
   return (
-    <Card className="space-y-4 p-6">
+    <Card className="space-y-4 p-4 sm:p-5">
       <h3 className="font-bold text-slate-700 dark:text-slate-200">
         Aparência
       </h3>
-      <p className="-mt-2 text-xs text-slate-500">
+      <p className="-mt-2 text-xs text-slate-500 dark:text-slate-400">
         Salvo por usuário — cada pessoa do restaurante pode ter o seu tema.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -138,7 +138,7 @@ function AparenciaCard() {
             <span className="block text-sm font-semibold text-slate-700 dark:text-slate-100">
               {t.label}
             </span>
-            <span className="mt-1 block text-xs text-slate-500">{t.desc}</span>
+            <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">{t.desc}</span>
             {tema === t.valor && (
               <span className="mt-2 inline-block text-xs font-bold text-brand-600 dark:text-brand-300">
                 ✓ em uso
@@ -204,7 +204,7 @@ function ConfigForm({ initial }: { initial: ConfigType }) {
   }
 
   return (
-    <Card className="space-y-4 p-6">
+    <Card className="space-y-4 p-4 sm:p-5">
       <h3 className="font-bold text-slate-700 dark:text-slate-200">
         Restaurante & impressora
       </h3>
@@ -263,7 +263,7 @@ function ConfigForm({ initial }: { initial: ConfigType }) {
           🖨 Testar impressora
         </Button>
         {testeImpressora && (
-          <span className="text-xs font-semibold text-slate-500">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
             {testeImpressora}
           </span>
         )}
@@ -282,7 +282,7 @@ function ConfigForm({ initial }: { initial: ConfigType }) {
           <span className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
             Cardápio digital (QR na mesa)
           </span>
-          <span className="mt-0.5 block text-xs text-slate-500">
+          <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
             Cliente escaneia o QR e vê o cardápio — pedidos só com o atendente.
           </span>
         </span>
@@ -301,7 +301,7 @@ function ConfigForm({ initial }: { initial: ConfigType }) {
           <span className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
             Descontar estoque ao iniciar preparo
           </span>
-          <span className="mt-0.5 block text-xs text-slate-500">
+          <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
             Quando ligado, os ingredientes da receita de cada produto são
             baixados automaticamente do estoque no início do preparo.
             Admin/gerente podem alterar.
@@ -364,7 +364,7 @@ function UsuarioRow({ usuario }: { usuario: AppUser }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="break-words font-semibold">{usuario.nome}</p>
-          <p className="break-all text-xs text-slate-500">
+          <p className="break-all text-xs text-slate-500 dark:text-slate-400">
             {usuario.email ?? usuario.id}
           </p>
           <p className="text-xs">{usuario.ativo ? 'Ativo' : 'Desativado'}</p>
@@ -542,7 +542,7 @@ function NovoUsuarioButton() {
             </Select>
           </Field>
           {erro && (
-            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
+            <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
               {erro}
             </p>
           )}

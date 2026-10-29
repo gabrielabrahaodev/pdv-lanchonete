@@ -6,7 +6,7 @@ import { api } from '../../lib/api'
 import { useCategorias, useProdutos } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
 import type { Product } from '../../types'
-import { Button, Card, EmptyState, ErrorState, Input, LoadingScreen, Select } from '../../components/ui'
+import { ButtonLink, Button, FilterBar, SummaryStrip, Card, EmptyState, ErrorState, Input, LoadingScreen, Select } from '../../components/ui'
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl } from '../../lib/format'
 import { urlImagemProduto } from '../../lib/imagem'
@@ -81,18 +81,21 @@ export default function ProdutosPage() {
   if (produtos.isError) return <ErrorState error={produtos.error} />
 
   return (
-    <div className="p-3 text-slate-800 sm:p-6 dark:text-slate-100">
+    <div className="pdv-page p-3 text-slate-800 sm:p-5 lg:p-6 dark:text-slate-100">
       <PageHeader
         title="Produtos"
         subtitle={`${lista.length} produto(s)`}
         actions={
-          <Link to="/produtos/novo">
-            <Button>+ Novo produto</Button>
-          </Link>
+          <ButtonLink to="/produtos/novo">+ Novo produto</ButtonLink>
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <SummaryStrip items={[
+        {label: 'Produtos', value: produtos.data?.length ?? 0},
+        {label: 'Ativos', value: (produtos.data ?? []).filter(p => p.ativo).length},
+        {label: 'Categorias', value: categorias.data?.length ?? 0},
+      ]} />
+      <FilterBar>
         <Input aria-label="Buscar produto" placeholder="Buscar…" value={busca} onChange={(e) => setBusca(e.target.value)} className="w-full sm:w-64" />
         <Select aria-label="Filtrar por categoria" value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)} className="w-full sm:w-56">
           <option value="">Todas as categorias</option>
@@ -100,7 +103,7 @@ export default function ProdutosPage() {
             <option key={c.id} value={c.id}>{c.nome}</option>
           ))}
         </Select>
-      </div>
+      </FilterBar>
 
       {(toggleAtivo.isError || remover.isError) && (
         <p role="alert" className="mb-3 text-sm text-rose-600 dark:text-rose-400">
@@ -109,7 +112,7 @@ export default function ProdutosPage() {
       )}
       <Card className="min-w-0 overflow-hidden">
         <div className="hidden overflow-x-auto lg:block">
-          <table className="w-full text-left text-sm">
+          <table className="pdv-table w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
               <tr>
                 {['Produto', 'Categoria', 'Preço', 'Variações', 'Status', 'Ações'].map((titulo) => (

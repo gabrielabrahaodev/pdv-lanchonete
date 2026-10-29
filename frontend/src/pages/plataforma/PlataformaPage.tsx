@@ -66,7 +66,7 @@ export default function PlataformaPage() {
           </div>
           <button
             onClick={() => logout()}
-            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-rose-300"
+            className="action-button rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-rose-300"
           >
             Sair
           </button>
@@ -166,47 +166,47 @@ function ListaConvitesCard() {
   return (
     <Card className="overflow-hidden p-0">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] text-left text-sm">
-        <thead className="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-900/60">
+        <table className="pdv-table pdv-records w-full min-w-[560px] text-left text-sm">
+        <thead className="border-b border-slate-100 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
           <tr>
-            <th className="px-4 py-3">Código</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="hidden px-4 py-3 sm:table-cell">Expira em</th>
-            <th className="px-4 py-3 text-right">Ação</th>
+            <th scope="col" className="px-4 py-3">Código</th>
+            <th scope="col" className="px-4 py-3">Status</th>
+            <th scope="col" className="hidden px-4 py-3 sm:table-cell">Expira em</th>
+            <th scope="col" className="px-4 py-3 text-right">Ação</th>
           </tr>
         </thead>
         <tbody>
           {itens.length === 0 && (
             <tr>
-              <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
+              <td colSpan={4} className="px-4 py-6 text-center text-slate-500 dark:text-slate-400">
                 Nenhum convite gerado ainda.
               </td>
             </tr>
           )}
           {itens.map((c) => (
             <tr key={c.id} className="border-b border-slate-50 last:border-0 dark:border-slate-800/60">
-              <td className="max-w-[180px] truncate px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-300" title={c.id}>
+              <td data-label="Código" className="max-w-[180px] truncate px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-300" title={c.id}>
                 {c.id}
               </td>
-              <td className="px-4 py-3">
+              <td data-label="Status" className="px-4 py-3">
                 <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${CORES_STATUS[c.status]}`}>
                   {c.status}
                 </span>
               </td>
-              <td className="hidden px-4 py-3 text-xs text-slate-500 sm:table-cell">{dataCurta(c.expiraEm)}</td>
-              <td className="px-4 py-3 text-right">
+              <td data-label="Expira em" className="hidden px-4 py-3 text-xs text-slate-500 sm:table-cell dark:text-slate-400">{dataCurta(c.expiraEm)}</td>
+              <td data-label="Ação" className="px-4 py-3 text-right">
                 {c.status === 'ativa' && (
                   <span className="inline-flex items-center gap-1">
                     <button
                       onClick={() => copiarLink(c.id)}
-                      className="grid h-11 min-w-11 place-items-center px-2 text-xs font-semibold text-brand-600 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-100"
+                      className="action-button grid h-11 min-w-11 place-items-center px-2 text-xs font-semibold text-brand-600 hover:text-brand-800 dark:text-brand-300 dark:hover:text-brand-100"
                     >
                       {copiadoId === c.id ? '✓ Copiado!' : 'Copiar link'}
                     </button>
                     <button
                       onClick={() => revogar.mutate(c.id)}
                       disabled={revogar.isPending}
-                      className="grid h-11 min-w-11 place-items-center px-2 text-xs font-semibold text-rose-500 hover:text-rose-700 disabled:opacity-50"
+                      className="action-button grid h-11 min-w-11 place-items-center px-2 text-xs font-semibold text-rose-500 hover:text-rose-700 disabled:opacity-50"
                     >
                       Revogar
                     </button>

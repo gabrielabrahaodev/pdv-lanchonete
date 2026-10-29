@@ -6,7 +6,7 @@ import { api, ApiError } from '../../lib/api'
 import { usePedido, useProdutos, useSessaoAtual } from '../../hooks/useFirestore'
 import { useAuth } from '../../context/AuthContext'
 import type { Order } from '../../types'
-import { Badge, Button, Card, ErrorState, Field, Input, LoadingScreen } from '../../components/ui'
+import { Badge, ButtonLink, Button, Card, ErrorState, Field, Input, LoadingScreen } from '../../components/ui'
 import { brl, dataHora } from '../../lib/format'
 import { imprimir, linhasRecibo, identificacaoPedido } from '../../lib/impressora'
 
@@ -113,19 +113,19 @@ export default function PagamentoPage() {
       : null
 
   return (
-    <div className="mx-auto w-full max-w-2xl p-3 sm:p-6">
+    <div className="mx-auto w-full max-w-2xl pdv-page p-3 sm:p-5 lg:p-6">
       <Link to="/caixa" className="text-xs font-semibold text-brand-600 action-button">
         ← Voltar ao caixa
       </Link>
       <h1 className="mt-1 text-xl font-bold text-slate-800 dark:text-slate-100">{balcao ? 'Pagamento — venda direta' : 'Pagamento'}</h1>
         <AjudaContextual />
-      <p className="text-sm text-slate-500">{identificacaoPedido(p)} · {dataHora(p.criadoEm)} · <Badge value={p.status} /></p>
+      <p className="text-sm text-slate-500 dark:text-slate-400">{identificacaoPedido(p)} · {dataHora(p.criadoEm)} · <Badge value={p.status} /></p>
 
-      <Card className="mt-4 divide-y divide-slate-100">
+      <Card className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
         <ul>
           {p.itens.filter((i) => i.status !== 'cancelado').map((i) => (
             <li key={i.id} className="flex items-start justify-between gap-3 px-5 py-2 text-sm">
-              <span className="min-w-0 break-words text-slate-700">{i.qtd}× {i.produtoNome ?? produtos.data?.find(prod => prod.id === i.produtoId)?.nome ?? 'Produto'} · {i.status}</span>
+              <span className="min-w-0 break-words text-slate-700 dark:text-slate-100">{i.qtd}× {i.produtoNome ?? produtos.data?.find(prod => prod.id === i.produtoId)?.nome ?? 'Produto'} · {i.status}</span>
               <span className="shrink-0 font-semibold">{brl(i.qtd * i.precoUnitario)}</span>
             </li>
           ))}
@@ -136,14 +136,14 @@ export default function PagamentoPage() {
         </div>
         {p.pagamentos.length > 0 && (
           <div className="space-y-1 px-5 py-3">
-            <p className="text-xs font-semibold uppercase text-slate-500">Pagamentos registrados</p>
+            <p className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">Pagamentos registrados</p>
             {p.pagamentos.map((pg) => (
               <div key={pg.id} className="flex justify-between text-sm">
-                <span className="capitalize text-slate-600">{pg.tipo}</span>
+                <span className="capitalize text-slate-600 dark:text-slate-300">{pg.tipo}</span>
                 <span className="font-semibold text-emerald-600">− {brl(pg.valor)}</span>
               </div>
             ))}
-            <div className="flex justify-between border-t border-dashed pt-2 text-sm font-bold text-slate-700">
+            <div className="flex justify-between border-t border-dashed pt-2 text-sm font-bold text-slate-700 dark:text-slate-100">
               <span>Restante</span>
               <span>{brl(restante)}</span>
             </div>
@@ -153,15 +153,15 @@ export default function PagamentoPage() {
 
       {!balcao && p.mesaId && !quitado && <p className="mt-4 rounded-lg bg-slate-100 p-3 text-sm dark:bg-slate-800">Ao quitar todo o saldo, a mesa será liberada e sairá da cozinha. O estado físico dos itens será preservado; reservas da estufa sem entrega confirmada ficarão aguardando conferência.</p>}
       {p.reservaConferenciaPendente && <p role="status" className="mt-3 text-sm text-amber-700 dark:text-amber-300">Existem reservas aguardando conferência em Produção e Estufa.</p>}
-      {erro && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{erro}</p>}
+      {erro && <p role="alert" className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{erro}</p>}
       {quitado ? (
-        <Card className="mt-4 bg-emerald-50 p-8 text-center">
+        <Card className="mt-4 bg-emerald-50 p-8 text-center dark:bg-emerald-950/40">
           <p className="text-3xl">✅</p>
-          <p className="mt-2 font-bold text-emerald-700">Pedido quitado!</p>
+          <p className="mt-2 font-bold text-emerald-700 dark:text-emerald-300">Pedido quitado!</p>
           {balcao && p.itens.some(i => ['pendente','preparo'].includes(i.status)) && <p className="mt-2 text-sm">O preparo continua na cozinha como {identificacaoPedido(p)}.</p>}
           {balcao && prontos.length > 0 && <Button className="mt-3" loading={entregar.isPending} onClick={() => entregar.mutate()}>Confirmar entrega dos itens prontos</Button>}
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {balcao && <Link to="/caixa/venda-direta"><Button>Nova venda</Button></Link>}
+            {balcao && <ButtonLink to="/caixa/venda-direta">Nova venda</ButtonLink>}
             <Button variant="secondary" onClick={() => imprimirRecibo()}>
               🖨 Recibo
             </Button>
@@ -236,7 +236,7 @@ export default function PagamentoPage() {
             </Button>
             {balcao && jaPago === 0 && <Button variant="secondary" disabled={bloqueado} loading={cancelar.isPending} onClick={() => window.confirm('Cancelar esta venda? Reservas da estufa serão liberadas. Insumos já consumidos não serão estornados.') && cancelar.mutate()}>Cancelar venda</Button>}
           </Card>
-          <p className="mt-3 text-xs text-slate-500">Confirme apenas após receber o dinheiro ou verificar a aprovação do PIX/cartão.</p>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">Confirme apenas após receber o dinheiro ou verificar a aprovação do PIX/cartão.</p>
           {forma === 'pix' && <PixHint />}
         </>
       )}
@@ -246,8 +246,8 @@ export default function PagamentoPage() {
 
 function PixHint() {
   return (
-    <Card className="mt-4 p-5 text-center text-sm text-slate-500">
-      <p className="font-semibold text-slate-700">PIX</p>
+    <Card className="mt-4 p-5 text-center text-sm text-slate-500 dark:text-slate-400">
+      <p className="font-semibold text-slate-700 dark:text-slate-100">PIX</p>
       <p>A chave PIX configurada nas Configurações aparecerá aqui com QR Code (próxima fase).</p>
     </Card>
   )

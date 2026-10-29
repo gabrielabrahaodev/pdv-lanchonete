@@ -75,7 +75,7 @@ export default function FornecedoresPage() {
               </button>
 </div>
   const lista = (fornecedores.data ?? []).filter(f => (situacao === 'todos' || (situacao === 'ativos' ? f.ativo !== false : f.ativo === false)) && [f.nome, f.nomeFantasia, f.documento, f.telefone, f.whatsapp, f.email].join(' ').toLowerCase().includes(busca.toLowerCase()))
-  return (<div className="p-3 sm:p-6 text-slate-800 dark:text-slate-100"><PageHeader title="Fornecedores" subtitle="Cadastros e contatos do restaurante" />
+  return (<div className="pdv-page p-3 sm:p-5 lg:p-6 text-slate-800 dark:text-slate-100"><PageHeader title="Fornecedores" subtitle="Cadastros e contatos do restaurante" />
     <div className="mb-3 flex flex-wrap gap-2"><Input aria-label="Buscar fornecedor" placeholder="Nome, documento ou contato" value={busca} onChange={e=>setBusca(e.target.value)} className="sm:!w-80"/><Select aria-label="Situação" value={situacao} onChange={e=>setSituacao(e.target.value)} className="sm:!w-48"><option value="ativos">Ativos</option><option value="inativos">Inativos</option><option value="todos">Todos</option></Select></div>
     {erro && <p role="alert" className="mb-3 text-rose-600">{erro}</p>}
     <Card className="overflow-hidden">
@@ -100,14 +100,14 @@ export default function FornecedoresPage() {
       ) : fornecedores.isError ? (
         <div className="p-5"><ErrorState error={fornecedores.error} /></div>
       ) : lista.length === 0 ? (
-        <p className="px-5 py-10 text-center text-sm text-slate-500">Nenhum fornecedor cadastrado.</p>
+        <p className="px-5 py-10 text-center text-sm text-slate-500 dark:text-slate-400">Nenhum fornecedor cadastrado.</p>
       ) : (
         <ul className="lg:hidden divide-y divide-slate-100 dark:divide-slate-800">
           {lista.map((f) => (
             <li key={f.id} className="flex min-w-0 flex-wrap items-center gap-3 px-3 py-3 sm:flex-nowrap sm:px-5">
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{f.nome}</p>
-                <p className="truncate text-xs text-slate-500">
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
                   {[f.documento, f.telefone].filter(Boolean).join(' · ') || '—'}
                 </p>
               </div>
@@ -117,7 +117,7 @@ export default function FornecedoresPage() {
         </ul>
       )}
 
-      <div className="hidden overflow-x-auto lg:block"><table className="w-full text-left text-sm"><thead className="bg-slate-50 text-xs text-slate-500 dark:bg-slate-800"><tr>{['Fornecedor','Documento / contato','Situação','Ações'].map(t=><th key={t} className="p-3" scope="col">{t}</th>)}</tr></thead><tbody>{lista.map(f=><tr key={f.id} className="border-t border-slate-200 dark:border-slate-700"><td className="p-3 font-semibold">{f.nome}<p className="text-xs font-normal text-slate-500">{f.nomeFantasia}</p></td><td className="p-3">{[f.documento, f.whatsapp || f.telefone, f.email].filter(Boolean).join(' · ')}</td><td className="p-3">{f.ativo===false?'Inativo':'Ativo'}</td><td className="p-2">{acoes(f)}</td></tr>)}</tbody></table></div>
+      <div className="hidden overflow-x-auto lg:block"><table className="pdv-table w-full text-left text-sm"><thead className="bg-slate-50 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400"><tr>{['Fornecedor','Documento / contato','Situação','Ações'].map(t=><th key={t} className="p-3" scope="col">{t}</th>)}</tr></thead><tbody>{lista.map(f=><tr key={f.id} className="border-t border-slate-200 dark:border-slate-700"><td className="p-3 font-semibold">{f.nome}<p className="text-xs font-normal text-slate-500 dark:text-slate-400">{f.nomeFantasia}</p></td><td className="p-3">{[f.documento, f.whatsapp || f.telefone, f.email].filter(Boolean).join(' · ')}</td><td className="p-3">{f.ativo===false?'Inativo':'Ativo'}</td><td className="p-2">{acoes(f)}</td></tr>)}</tbody></table></div>
       <Modal title={editandoId ? 'Editar fornecedor' : 'Novo fornecedor'} open={aberto} onClose={() => setAberto(false)}>
         <div className="space-y-3">
           <Field label="Nome"><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></Field>
@@ -141,7 +141,7 @@ export default function FornecedoresPage() {
         </div>
       </Modal>
     </Card>
-    <Modal title={detalhe?.nome ?? 'Fornecedor'} open={!!detalhe} onClose={()=>setDetalhe(null)}>{detalhe && <dl className="space-y-3 break-words">{Object.entries({Fantasia:detalhe.nomeFantasia,Documento:detalhe.documento,Telefone:detalhe.telefone,WhatsApp:detalhe.whatsapp,Email:detalhe.email,Endereço:detalhe.endereco,Pagamento:detalhe.condicaoPagamento,'Entrega (dias)':detalhe.prazoEntregaDias,Observações:detalhe.observacoes}).map(([k,v])=><div key={k}><dt className="text-xs text-slate-500">{k}</dt><dd>{v ?? 'Não informado'}</dd></div>)}</dl>}</Modal>
+    <Modal title={detalhe?.nome ?? 'Fornecedor'} open={!!detalhe} onClose={()=>setDetalhe(null)}>{detalhe && <dl className="space-y-3 break-words">{Object.entries({Fantasia:detalhe.nomeFantasia,Documento:detalhe.documento,Telefone:detalhe.telefone,WhatsApp:detalhe.whatsapp,Email:detalhe.email,Endereço:detalhe.endereco,Pagamento:detalhe.condicaoPagamento,'Entrega (dias)':detalhe.prazoEntregaDias,Observações:detalhe.observacoes}).map(([k,v])=><div key={k}><dt className="text-xs text-slate-500 dark:text-slate-400">{k}</dt><dd>{v ?? 'Não informado'}</dd></div>)}</dl>}</Modal>
     </div>
   )
 }

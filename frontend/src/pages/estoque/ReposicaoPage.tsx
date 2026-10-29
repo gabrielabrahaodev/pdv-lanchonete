@@ -183,7 +183,7 @@ export default function ReposicaoPage() {
   const contagemGerados = pedidos.data?.items.length ?? 0
 
   return (
-    <div className="space-y-5 p-3 sm:p-6">
+    <div className="space-y-5 pdv-page p-3 sm:p-5 lg:p-6">
       <PageHeader ajuda={artigoDaSecao('reposicao', filtro)} title="Reposição de insumos" subtitle="Solicitações a fornecedores e recebimento de mercadorias" />
       <ReposicaoNavegacao atual="gerado"/>
       <div className="flex flex-wrap gap-2" role="tablist" aria-label="Filtrar reposição">
@@ -213,7 +213,7 @@ export default function ReposicaoPage() {
             <Card className="p-8 text-center">
               <CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-emerald-500" />
               <p className="font-bold">Nenhuma solicitação a gerar</p>
-              <p className="mt-1 text-sm text-slate-500">Verifique alertas, cadastre o fornecedor habitual nos insumos ou consulte pedidos já gerados.</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Verifique alertas, cadastre o fornecedor habitual nos insumos ou consulte pedidos já gerados.</p>
               <Link to="/estoque" className="action-button mt-4">Ver estoque</Link>
             </Card>
           )}
@@ -223,8 +223,8 @@ export default function ReposicaoPage() {
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <h2 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">{grupo.fornecedorNome}</h2>
-                    <p className="text-xs text-slate-500">{grupo.itens.length} insumo(s) com saldo baixo</p>
-                    <p className="mt-1 text-xs text-slate-500">{grupo.telefone || 'Fornecedor sem telefone cadastrado'}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{grupo.itens.length} insumo(s) com saldo baixo</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{grupo.telefone || 'Fornecedor sem telefone cadastrado'}</p>
                   </div>
                   <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">Reposição necessária</span>
                 </div>
@@ -235,7 +235,7 @@ export default function ReposicaoPage() {
                         <p className="break-words text-sm font-semibold">{item.nome}</p>
                         <p className="text-xs text-rose-600 dark:text-rose-300">Em estoque: {item.saldo} {item.unidade} · Mínimo: {item.minimo} {item.unidade}</p>
                       </div>
-                      <label className="text-xs font-medium text-slate-500">
+                      <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
                         Pedir ({item.unidade})
                         <Input type="text" inputMode="decimal" className="mt-1 w-28"
                           value={quantidade(grupo, item)}
@@ -249,7 +249,7 @@ export default function ReposicaoPage() {
                   onClick={() => abrirWhatsApp(grupo)}>
                   <MessageCircle className="h-5 w-5" /> Enviar pedido por WhatsApp
                 </Button>
-                <p className="text-xs leading-5 text-slate-500">O WhatsApp abrirá com uma mensagem pronta. Ao voltar, confirme se deseja registrar o pedido no sistema; o envio não é verificado automaticamente.</p>
+                <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">O WhatsApp abrirá com uma mensagem pronta. Ao voltar, confirme se deseja registrar o pedido no sistema; o envio não é verificado automaticamente.</p>
               </Card>
             ))}
           </div>
@@ -261,9 +261,9 @@ export default function ReposicaoPage() {
           {pedidos.isLoading && <LoadingScreen />}
           {pedidos.isError && <ErrorState error={pedidos.error} />}
           {pedidos.isSuccess && pedidos.data.items.length === 0 && (
-            <Card className="p-8 text-center text-sm text-slate-500">Nenhum pedido aguardando recebimento nesta página.</Card>
+            <Card className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">Nenhum pedido aguardando recebimento nesta página.</Card>
           )}
-          {(pedidos.data?.items ?? []).map(pedido => <Card key={pedido.id} className="space-y-3 p-4"><div className="flex flex-wrap justify-between gap-2"><h2 className="font-bold">{pedido.fornecedorNome}</h2><span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800">Aguardando recebimento</span></div><p className="text-xs text-slate-500">Gerado em {dataHora(pedido.criadoEm)} · {pedido.itens.length} insumo(s)</p><p className="text-xs text-slate-500">Entrega: {pedido.enderecoEntrega}</p><ul className="grid gap-2 text-sm sm:grid-cols-2">{pedido.itens.map(i=><li key={i.itemId} className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800"><strong>{i.nome}</strong> · {i.quantidade} {i.unidade}</li>)}</ul><div className="flex flex-wrap gap-2"><Button onClick={()=>setPedidoReceber(pedido)}><PackageCheck className="h-4 w-4"/>Receber mercadorias</Button><Button variant="secondary" disabled={cancelar.isPending} onClick={()=>window.confirm('Cancelar este pedido? O estoque não será alterado.')&&cancelar.mutate(pedido.id)}>Cancelar pedido</Button></div></Card>)}
+          {(pedidos.data?.items ?? []).map(pedido => <Card key={pedido.id} className="space-y-3 p-4"><div className="flex flex-wrap justify-between gap-2"><h2 className="font-bold">{pedido.fornecedorNome}</h2><span className="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800 dark:text-amber-300">Aguardando recebimento</span></div><p className="text-xs text-slate-500 dark:text-slate-400">Gerado em {dataHora(pedido.criadoEm)} · {pedido.itens.length} insumo(s)</p><p className="text-xs text-slate-500 dark:text-slate-400">Entrega: {pedido.enderecoEntrega}</p><ul className="grid gap-2 text-sm sm:grid-cols-2">{pedido.itens.map(i=><li key={i.itemId} className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800"><strong>{i.nome}</strong> · {i.quantidade} {i.unidade}</li>)}</ul><div className="flex flex-wrap gap-2"><Button onClick={()=>setPedidoReceber(pedido)}><PackageCheck className="h-4 w-4"/>Receber mercadorias</Button><Button variant="secondary" disabled={cancelar.isPending} onClick={()=>window.confirm('Cancelar este pedido? O estoque não será alterado.')&&cancelar.mutate(pedido.id)}>Cancelar pedido</Button></div></Card>)}
           <div className="flex gap-2"><Button variant="secondary" disabled={cursores.length===1} onClick={()=>setCursores(c=>c.slice(0,-1))}>Anterior</Button><Button variant="secondary" disabled={!pedidos.data?.nextCursor} onClick={()=>setCursores(c=>[...c,pedidos.data!.nextCursor])}>Próxima página</Button></div>
         </div>
       )}
@@ -383,7 +383,7 @@ function ReceberPedido({ pedido, onClose, onSuccess }: {
     <Modal open title={`Reabastecer: ${pedido.fornecedorNome}`} onClose={onClose}>
       <AjudaContextual artigo="recebimento" rotulo="Como registrar este recebimento?" />
       <div className="space-y-4">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Informe a quantidade comprada e o valor TOTAL de cada produto. Não é
           necessário calcular o custo por grama: ele será atualizado automaticamente.
         </p>
@@ -396,7 +396,7 @@ function ReceberPedido({ pedido, onClose, onSuccess }: {
           const prev = entrada.find(i => i.itemId === item.itemId)!
           return (
             <div key={item.itemId} className="space-y-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-              <p className="font-semibold">{item.nome} <span className="text-xs font-normal text-slate-500">(estoque: {item.unidade})</span></p>
+              <p className="font-semibold">{item.nome} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">(estoque: {item.unidade})</span></p>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Qtd. comprada">
                   <Input inputMode="decimal" value={linha.quantidadeCompra}
@@ -434,7 +434,7 @@ function ReceberPedido({ pedido, onClose, onSuccess }: {
           )
         })}
         <p className="text-sm font-bold">Total da compra: {brl(valorTotal)}</p>
-        <p className="text-xs text-slate-500">Ao confirmar, o Financeiro registrará uma despesa de insumos pendente de pagamento, na data escolhida. O custo médio do estoque será recalculado pelas quantidades convertidas, sem arredondar o preço por grama antes da operação.</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Ao confirmar, o Financeiro registrará uma despesa de insumos pendente de pagamento, na data escolhida. O custo médio do estoque será recalculado pelas quantidades convertidas, sem arredondar o preço por grama antes da operação.</p>
         {erro && <p role="alert" className="text-sm text-rose-600">{erro}</p>}
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="secondary" disabled={receber.isPending} onClick={onClose}>Voltar</Button>

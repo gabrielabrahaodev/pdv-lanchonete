@@ -41,7 +41,7 @@ export default function MesaDetailPage() {
   const aberto = pedidoAberto.data ?? null
 
   return (
-    <div className="mx-auto w-full max-w-3xl p-3 sm:p-6">
+    <div className="mx-auto w-full max-w-3xl pdv-page p-3 sm:p-5 lg:p-6">
       <div className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Link to="/caixa" className="text-xs font-semibold text-brand-600 action-button">
@@ -72,7 +72,7 @@ export default function MesaDetailPage() {
       {aberto ? (
         <PedidoCard pedido={aberto} produtos={produtos.data ?? []} onCancel={() => cancelar.mutate(aberto.id)} cancelando={cancelar.isPending} />
       ) : (
-        <Card className="p-10 text-center text-sm text-slate-500">
+        <Card className="p-10 text-center text-sm text-slate-500 dark:text-slate-400">
           Nenhum pedido aberto nesta mesa.
         </Card>
       )}
@@ -82,7 +82,7 @@ export default function MesaDetailPage() {
         .slice(0, 5)
         .map((p) => (
           <details key={p.id} className="mt-3 rounded-xl border border-slate-200 bg-white text-sm dark:border-slate-700 dark:bg-slate-900">
-            <summary className="cursor-pointer px-4 py-3 font-semibold text-slate-600">
+            <summary className="cursor-pointer px-4 py-3 font-semibold text-slate-600 dark:text-slate-300">
               Pedido anterior — {dataHora(p.criadoEm)}{' '}
               <Badge value={p.status} />
             </summary>
@@ -95,9 +95,9 @@ export default function MesaDetailPage() {
 
 function PedidoCard({ pedido, produtos, onCancel, cancelando }: { pedido: Order; produtos: Product[]; onCancel: () => void; cancelando: boolean }) {
   return (
-    <Card className="divide-y divide-slate-100">
+    <Card className="divide-y divide-slate-100 dark:divide-slate-800">
       <div className="flex items-center justify-between px-5 py-4">
-        <span className="text-sm font-semibold text-slate-500">Pedido aberto · {dataHora(pedido.criadoEm)}</span>
+        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Pedido aberto · {dataHora(pedido.criadoEm)}</span>
         <button
           onClick={onCancel}
           disabled={cancelando}
@@ -129,10 +129,10 @@ function ItensList({ pedido, produtos }: { pedido: Order; produtos: Product[] })
           <li key={item.id} className="flex items-center justify-between px-5 py-2.5">
             <div>
               <ItemNome item={item} produtos={produtos} />
-              {item.observacoes && <p className="text-xs italic text-slate-500">“{item.observacoes}”</p>}
+              {item.observacoes && <p className="text-xs italic text-slate-500 dark:text-slate-400">“{item.observacoes}”</p>}
             </div>
             <div className="text-right">
-              <p className="text-sm font-semibold text-slate-700">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-100">
                 {item.qtd}× {brl(item.precoUnitario)}
               </p>
               <Badge value={item.status} />

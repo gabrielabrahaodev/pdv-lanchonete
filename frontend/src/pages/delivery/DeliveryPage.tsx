@@ -50,7 +50,7 @@ export default function DeliveryPage() {
   const historico = lista.filter((p) => ['delivered', 'cancelled'].includes(p.status))
 
   return (
-    <div className="p-3 sm:p-6">
+    <div className="pdv-page p-3 sm:p-5 lg:p-6">
       <PageHeader
         title="Delivery"
         subtitle={`${ativos.length} pedido(s) em andamento`}
@@ -64,17 +64,17 @@ export default function DeliveryPage() {
               <span className="font-bold text-slate-800 dark:text-slate-100">{p.clienteNome}</span>
               <Badge value={p.status} />
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {dataHora(p.criadoEm)} · {p.platform}
             </p>
-            <ul className="my-3 flex-1 space-y-0.5 text-sm text-slate-600">
+            <ul className="my-3 flex-1 space-y-0.5 text-sm text-slate-600 dark:text-slate-300">
               {p.itens.map((i) => (
                 <li key={i.id}>
                   {i.qtd}× {i.nome}
                 </li>
               ))}
             </ul>
-            {p.clienteEndereco && <p className="mb-2 text-xs text-slate-500">📍 {p.clienteEndereco}</p>}
+            {p.clienteEndereco && <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">📍 {p.clienteEndereco}</p>}
               <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
                 <span className="font-bold tabular-nums text-brand-600">{brl(p.total)}</span>
                 <div className="flex items-center gap-1">
@@ -109,17 +109,17 @@ export default function DeliveryPage() {
 
       {historico.length > 0 && (
         <>
-          <h2 className="mb-2 mt-8 text-sm font-bold uppercase tracking-wide text-slate-500">Histórico</h2>
+          <h2 className="mb-2 mt-8 text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Histórico</h2>
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-sm">
-              <tbody className="divide-y divide-slate-100">
+              <table className="pdv-table pdv-records w-full min-w-[560px] text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {historico.slice(0, 10).map((p) => (
                   <tr key={p.id}>
-                    <td className="px-5 py-2.5 font-semibold text-slate-700">{p.clienteNome}</td>
-                    <td className="px-5 py-2.5 text-xs text-slate-500">{dataHora(p.criadoEm)}</td>
-                    <td className="px-5 py-2.5"><Badge value={p.status} /></td>
-                    <td className="px-5 py-2.5 text-right font-semibold">{brl(p.total)}</td>
+                    <td data-label="Cliente" className="px-5 py-2.5 font-semibold text-slate-700 dark:text-slate-100">{p.clienteNome}</td>
+                    <td data-label="Data" className="px-5 py-2.5 text-xs text-slate-500 dark:text-slate-400">{dataHora(p.criadoEm)}</td>
+                    <td data-label="Status" className="px-5 py-2.5"><Badge value={p.status} /></td>
+                    <td data-label="Total" className="px-5 py-2.5 text-right font-semibold">{brl(p.total)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -183,7 +183,7 @@ function NovoDeliveryModal({ open, onClose }: { open: boolean; onClose: () => vo
             {(produtos.data ?? []).map((p) => {
               const item = itens.find((i) => i.produtoId === p.id)
               return (
-                <div key={p.id} className="flex items-center justify-between rounded px-2 py-1 text-sm hover:bg-slate-50">
+                <div key={p.id} className="flex items-center justify-between rounded px-2 py-1 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50">
                   <label className="flex flex-1 items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -191,7 +191,7 @@ function NovoDeliveryModal({ open, onClose }: { open: boolean; onClose: () => vo
                       onChange={() => toggleProduto(p.id)}
                       className="h-4 w-4 accent-brand-600"
                     />
-                    {p.nome} <span className="text-xs text-slate-500">{brl(p.preco)}</span>
+                    {p.nome} <span className="text-xs text-slate-500 dark:text-slate-400">{brl(p.preco)}</span>
                   </label>
                   {item && (
                     <input

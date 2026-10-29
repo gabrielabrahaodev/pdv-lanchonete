@@ -233,7 +233,7 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
       {/* Catálogo */}
       <div id="catalogo-pedido" className="min-w-0 flex-1 p-3 pb-32 sm:p-6 sm:pb-32 lg:min-h-0 lg:overflow-y-auto lg:pb-6">
         <div className="min-w-0 pl-14 md:pl-0">
-        <Link to={adicionando ? `/caixa/mesa/${mesaId}` : '/caixa'} className="text-xs font-semibold text-brand-600 hover:underline">
+        <Link to={adicionando ? `/caixa/mesa/${mesaId}` : '/caixa'} className="action-button text-xs font-semibold text-brand-600">
           ← Voltar
         </Link>
         <h1 className="mt-1 break-words text-xl font-bold text-slate-800 dark:text-slate-100">
@@ -242,15 +242,15 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
         <AjudaContextual />
         </div>
 
-        {balcao && <p className="mt-3 text-sm text-slate-500">Escolha os produtos e prossiga para o pagamento. Nenhuma mesa será ocupada.</p>}
+        {balcao && <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Escolha os produtos e prossiga para o pagamento. Nenhuma mesa será ocupada.</p>}
         {balcao && !sessao.isLoading && !sessao.data && <p role="alert" className="mt-3 text-rose-600">Abra o caixa para iniciar uma venda direta.</p>}
         {erro && (
-          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
             {erro}
           </div>
         )}
 
-        <div className="mt-4 flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <div className="mt-4 flex min-w-0 flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 sm:flex-row sm:flex-wrap dark:border-slate-800 dark:bg-slate-900">
           <Input placeholder="Buscar produto…" value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar produto" className="min-w-0 !w-full sm:!w-56" />
           <Select value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)} aria-label="Categoria" className="min-w-0 !w-full sm:!w-52">
             <option value="">Todas as categorias</option>
@@ -282,7 +282,7 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
                       {temVariacoes ? `A partir de ${brl(p.preco)}` : brl(p.preco)}
                     </p>
                     {p.modoEstoque === 'antecipado' && (
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         Estufa: {lotes.isError ? 'saldo indisponível' : lotes.isLoading ? 'consultando…' : `${disponivel(p.id)} disponíveis`}
                       </p>
                     )}
@@ -312,7 +312,7 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
             )
           })}
         </div>
-        {produtosFiltrados.length === 0 && <p className="mt-10 text-center text-sm text-slate-500">Nenhum produto encontrado.</p>}
+        {produtosFiltrados.length === 0 && <p className="mt-10 text-center text-sm text-slate-500 dark:text-slate-400">Nenhum produto encontrado.</p>}
       </div>
 
       {/* Barra móvel fixa: o usuário acessa a comanda sem rolar o catálogo. */}
@@ -360,7 +360,7 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
             <h2 className="font-bold text-slate-700 dark:text-slate-100">Comanda</h2>
             {adicionando && pedidoAberto && <Badge value="aberto" label={`pedido ${pedidoAberto.id.slice(0, 8)}…`} />}
           </div>
-          <button data-fechar-comanda type="button" onClick={fecharComanda} className="grid h-11 w-11 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 lg:hidden dark:hover:bg-slate-800" aria-label="Fechar comanda">
+          <button data-fechar-comanda type="button" onClick={fecharComanda} className="grid h-11 w-11 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 lg:hidden dark:hover:bg-slate-800 dark:text-slate-400" aria-label="Fechar comanda">
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
@@ -373,14 +373,14 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
                 {produto?.temImagem && rid ? (
                   <img src={urlImagemProduto(rid, produto.id)} alt="" loading="lazy" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
                 ) : (
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                     <UtensilsCrossed className="h-5 w-5" aria-hidden="true" />
                   </span>
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="break-words text-sm font-semibold text-slate-700 dark:text-slate-200">{item.nome}</p>
                   <p className="text-xs font-bold text-brand-600">{brl(item.precoUnitario)}</p>
-                  {item.observacoes && <p className="mt-1 break-words text-xs italic text-slate-500">✏️ {item.observacoes}</p>}
+                  {item.observacoes && <p className="mt-1 break-words text-xs italic text-slate-500 dark:text-slate-400">✏️ {item.observacoes}</p>}
                   <div className="mt-2">
                     <QtyStepper disabled={bloqueado} onDec={() => changeQtd(item.key, -1)} onInc={() => changeQtd(item.key, 1)} qtd={item.qtd} />
                   </div>
@@ -388,13 +388,13 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
               </li>
             )
           })}
-          {cart.length === 0 && <li className="px-5 py-10 text-center text-sm text-slate-500">Adicione produtos para montar a comanda.</li>}
+          {cart.length === 0 && <li className="px-5 py-10 text-center text-sm text-slate-500 dark:text-slate-400">Adicione produtos para montar a comanda.</li>}
         </ul>
 
         <div className="shrink-0 space-y-3 border-t border-slate-100 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] lg:pb-5 dark:border-slate-800">
-          {erro && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{erro}</p>}
+          {erro && <p role="alert" className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{erro}</p>}
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-500">Total</span>
+            <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">Total</span>
             <span className="text-xl font-bold text-brand-600">{brl(total)}</span>
           </div>
           <Button
@@ -423,9 +423,9 @@ export default function NovoPedidoPage({ balcao = false }: { balcao?: boolean })
 function QtyStepper({ qtd, onInc, onDec, disabled }: { qtd: number; onInc: () => void; onDec: () => void; disabled?: boolean }) {
   return (
     <div className="flex shrink-0 items-center gap-1 rounded-lg bg-slate-100 px-1 dark:bg-slate-800">
-      <button disabled={disabled} aria-label="Diminuir quantidade" onClick={onDec} className="min-h-11 min-w-11 px-2 text-slate-500 hover:text-rose-600">−</button>
+      <button disabled={disabled} aria-label="Diminuir quantidade" onClick={onDec} className="min-h-11 min-w-11 px-2 text-slate-500 hover:text-rose-600 dark:text-slate-400">−</button>
       <span className="min-w-5 text-center text-sm font-bold">{qtd}</span>
-      <button disabled={disabled} aria-label="Aumentar quantidade" onClick={onInc} className="min-h-11 min-w-11 px-2 text-slate-500 hover:text-emerald-600">+</button>
+      <button disabled={disabled} aria-label="Aumentar quantidade" onClick={onInc} className="min-h-11 min-w-11 px-2 text-slate-500 hover:text-emerald-600 dark:text-slate-400">+</button>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { PageHeader } from '../../components/layout/AppLayout'
 import { artigoDaSecao } from '../../wiki/navegacao/contexto'
 import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useEffect, useRef, useState } from 'react'
@@ -15,6 +16,7 @@ import {
   useReservasConferencia,
 } from '../../hooks/useFirestore'
 import {
+  SummaryStrip,
   Button,
   Card,
   ErrorState,
@@ -176,37 +178,17 @@ export default function ProducaoPage() {
     return <ErrorState error={lotes.error ?? produtos.error} />
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-5 p-3 sm:p-6">
-      <header className="pl-14 md:pl-0">
-        <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-          Produção e Estufa
-        </h1>
-        <AjudaContextual artigo={artigoDaSecao('producao', aba)} />
-        <p className="mt-1 text-sm text-slate-500">
-          Prepare os lotes, acompanhe a validade e entregue sem consumir
-          ingredientes duas vezes.
-        </p>
-      </header>
-      <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-3">
-        {[
-          [
-            'Lotes com saldo livre',
-            lista.filter((l) => !vencido(l.validade) && l.saldo > l.reservado)
-              .length,
-          ],
-          ['Lotes com reservas', lista.filter((l) => l.reservado > 0).length],
-          ['Lotes vencidos', lista.filter((l) => vencido(l.validade)).length],
-        ].map(([nome, valor]) => (
-          <Card key={nome} className="p-4">
-            <p className="text-xs text-slate-500">{nome}</p>
-            <p className="mt-1 text-2xl font-bold">{valor}</p>
-          </Card>
-        ))}
-      </div>
+    <div className="mx-auto w-full max-w-6xl space-y-5 pdv-page p-3 sm:p-5 lg:p-6">
+      <PageHeader title="Produção e Estufa" ajuda={artigoDaSecao('producao', aba)} subtitle="Prepare lotes, acompanhe validade e saldo disponível." />
+      <SummaryStrip items={[
+        {label: 'Lotes livres', value: lista.filter(l => !vencido(l.validade) && l.saldo > l.reservado).length},
+        {label: 'Com reservas', value: lista.filter(l => l.reservado > 0).length},
+        {label: 'Vencidos', value: lista.filter(l => vencido(l.validade)).length, alert: true},
+      ]} />
       {baixos.length > 0 && (
         <p
           role="status"
-          className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900"
+          className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-300"
         >
           Saldo disponível no mínimo ou esgotado:{' '}
           {baixos.map((p) => p.nome).join(', ')}.
@@ -214,7 +196,7 @@ export default function ProducaoPage() {
       )}
       <nav className="flex flex-wrap gap-2" aria-label="Seções de produção">
         <Button
-          variant={aba === 'disponiveis' ? 'primary' : 'secondary'}
+          variant={aba === 'disponiveis' ? 'selected' : 'secondary'}
           onClick={() => setAba('disponiveis')}
         >
           Estufa
@@ -222,13 +204,13 @@ export default function ProducaoPage() {
         {operar && (
           <>
             <Button
-              variant={aba === 'produzir' ? 'primary' : 'secondary'}
+              variant={aba === 'produzir' ? 'selected' : 'secondary'}
               onClick={() => setAba('produzir')}
             >
               Produzir
             </Button>
             <Button
-              variant={aba === 'historico' ? 'primary' : 'secondary'}
+              variant={aba === 'historico' ? 'selected' : 'secondary'}
               onClick={() => setAba('historico')}
             >
               Histórico
@@ -239,7 +221,7 @@ export default function ProducaoPage() {
       {erro && (
         <div
           role="alert"
-          className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800"
+          className="rounded-lg bg-rose-50 p-3 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-300"
         >
           {erro}
           {bloqueado && !salvar.isPending && (
@@ -255,7 +237,7 @@ export default function ProducaoPage() {
       {sucesso && (
         <p
           role="status"
-          className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800"
+          className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
         >
           {sucesso}
         </p>
@@ -266,7 +248,7 @@ export default function ProducaoPage() {
             <Card className="space-y-3 p-4">
               <h2 className="font-bold">Conferência de mesas encerradas</h2>
               <AjudaContextual artigo="reservas" rotulo="Como conferir reservas?" />
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Reservas não entregues continuam bloqueadas. Confirme o destino
                 físico antes de liberar ou baixar o saldo.
               </p>
@@ -359,7 +341,7 @@ export default function ProducaoPage() {
             </Select>
           </div>
           {filtrados.length === 0 && (
-            <Card className="p-6 text-center text-sm text-slate-500">
+            <Card className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">
               Nenhum lote disponível neste filtro. Cadastre um produto com o
               modo “Produzido antecipadamente” e registre sua produção.
             </Card>
@@ -385,7 +367,7 @@ export default function ProducaoPage() {
                             : 'Disponível'}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {l.local} · Lote {l.id.slice(0, 8)} · {l.unidade}
                   </p>
                   <p className="text-2xl font-bold">
@@ -525,7 +507,7 @@ export default function ProducaoPage() {
                         }
                       />
                     </Field>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
                       Ex.: 1 bolo vira 12 fatias. A conversão preserva o custo
                       total, o local e a validade; não consome ingredientes
                       novamente.
@@ -665,7 +647,7 @@ export default function ProducaoPage() {
                 })}
             </div>
           )}
-          <p className="mb-4 text-sm text-slate-500">
+          <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
             Informe as receitas utilizadas e a quantidade realmente aproveitada.
             Registrar produção sempre consome os ingredientes, mesmo com a baixa
             automática de pedidos desligada.
@@ -855,7 +837,7 @@ export default function ProducaoPage() {
                         : '—'}
                     </p>
                   )}
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                     O custo é registrado com os valores do estoque no momento da
                     produção. Custos não cadastrados entram como zero.
                   </p>
@@ -903,7 +885,7 @@ export default function ProducaoPage() {
       )}
       {aba === 'historico' && operar && (
         <div className="space-y-3">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Últimos 100 movimentos. Reservas não são perdas nem vendas; a
             entrega confirma a saída física.
           </p>
@@ -925,7 +907,7 @@ export default function ProducaoPage() {
                     {produtos.data?.find((p) => p.id === m.produtoId)?.nome ??
                       m.produtoId}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {dataHora(m.criadoEm)} · Lote {m.loteId.slice(0, 8)} ·
                     Responsável: {m.usuarioId}
                   </p>

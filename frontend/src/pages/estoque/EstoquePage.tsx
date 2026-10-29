@@ -1,11 +1,19 @@
 import {
-  AlertTriangle,
+  Search,
+  Plus,
+  Download,
+  ChevronDown,
+  X,
+  Package,
+  ClipboardList,
+  SlidersHorizontal,
   Archive,
   ArrowUpDown,
   History,
   Pencil,
   ArchiveRestore,
 } from 'lucide-react'
+import { BotaoEstoque, SituacaoEstoque } from './EstoqueVisual'
 import { AjudaContextual } from '../../wiki/componentes/AjudaContextual'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -27,7 +35,14 @@ import {
 import { PageHeader } from '../../components/layout/AppLayout'
 import { brl, dataHora, custoUnitario } from '../../lib/format'
 import { numeroDecimal } from '../../lib/precificacao'
-import { custoPorUnidadeControle, precoPorReferencia, unidadeReferencia, formatarPrecoReferencia, simularCompra, converterCustoControle } from '../../lib/custosInsumos'
+import {
+  custoPorUnidadeControle,
+  precoPorReferencia,
+  unidadeReferencia,
+  formatarPrecoReferencia,
+  simularCompra,
+  converterCustoControle,
+} from '../../lib/custosInsumos'
 import {
   converterQuantidade,
   UNIDADES,
@@ -40,7 +55,11 @@ export default function EstoquePage() {
   const gestao = ['admin', 'gerente'].includes(me?.papel ?? '')
   const estoque = useEstoque(me?.restaurantId)
   const movimentos = useMovimentacoes(me?.restaurantId)
-  const fornecedores = useQuery({ queryKey: ['fornecedores'], queryFn: () => api<Fornecedor[]>('/fornecedores'), enabled: gestao })
+  const fornecedores = useQuery({
+    queryKey: ['fornecedores'],
+    queryFn: () => api<Fornecedor[]>('/fornecedores'),
+    enabled: gestao,
+  })
   const [busca, setBusca] = useState('')
   const [arquivados, setArquivados] = useState(false)
   const [alertas, setAlertas] = useState(false)
@@ -83,50 +102,60 @@ export default function EstoquePage() {
       : emAlerta(i)
         ? 'text-rose-600 dark:text-rose-300'
         : 'text-emerald-700 dark:text-emerald-400'
-  function acoes(i: InventoryItem, texto = false) {
+  const ativos = (estoque.data ?? []).filter((i) => i.ativo !== false)
+  const totalAlertas = ativos.filter(emAlerta).length
+  const totalArquivados = (estoque.data ?? []).length - ativos.length
+  function limparFiltros() {
+    setBusca('')
+    setAlertas(false)
+    setArquivados(false)
+  }
+  function acoes(i: InventoryItem, mobile = false) {
     return (
-      <div className="flex flex-wrap items-center gap-1">
+      <div
+        className={
+          mobile && gestao
+            ? 'grid grid-cols-[minmax(0,1fr)_2.75rem_2.75rem_2.75rem] gap-1.5'
+            : 'flex items-center gap-1'
+        }
+      >
         {gestao && (
-          <>
-            <Button
-              variant="ghost"
-              className="min-w-11 !px-2 !text-xs"
-              aria-label={`Editar ${i.nome}`}
-              title="Editar"
-              onClick={() => setEditar(i)}
-            >
-              <Pencil className="h-4 w-4" aria-hidden="true" />
-              {texto && 'Editar'}
-            </Button>
-            <Button
-              variant="secondary"
-              className="min-w-11 !px-2 !text-xs"
-              aria-label={`Movimentar ${i.nome}`}
-              title="Movimentar"
-              disabled={i.ativo === false}
-              onClick={() => setMovItem(i)}
-            >
-              <ArrowUpDown className="h-4 w-4" aria-hidden="true" />
-              {texto && 'Movimentar'}
-            </Button>
-          </>
+          <BotaoEstoque
+            aria-label={`Movimentar ${i.nome}`}
+            title="Movimentar estoque"
+            realce
+            somenteIcone={!mobile}
+            disabled={i.ativo === false}
+            onClick={() => setMovItem(i)}
+          >
+            <ArrowUpDown className="h-4 w-4 shrink-0" aria-hidden="true" />
+            {mobile && 'Movimentar'}
+          </BotaoEstoque>
         )}
-        <Button
-          variant="ghost"
-          className="min-w-11 !px-2 !text-xs"
+        {gestao && (
+          <BotaoEstoque
+            aria-label={`Editar ${i.nome}`}
+            title="Editar insumo"
+            somenteIcone
+            onClick={() => setEditar(i)}
+          >
+            <Pencil className="h-4 w-4" aria-hidden="true" />
+          </BotaoEstoque>
+        )}
+        <BotaoEstoque
           aria-label={`Histórico de ${i.nome}`}
-          title="Histórico"
+          title="Histórico do insumo"
+          somenteIcone={gestao}
           onClick={() => setHistItem(i)}
         >
           <History className="h-4 w-4" aria-hidden="true" />
-          {texto && 'Histórico'}
-        </Button>
+          {mobile && !gestao && 'Histórico'}
+        </BotaoEstoque>
         {gestao && (
-          <Button
-            variant="ghost"
-            className="min-w-11 !px-2 !text-xs"
+          <BotaoEstoque
             aria-label={`${i.ativo === false ? 'Reativar' : 'Arquivar'} ${i.nome}`}
-            title={i.ativo === false ? 'Reativar' : 'Arquivar'}
+            title={i.ativo === false ? 'Reativar insumo' : 'Arquivar insumo'}
+            somenteIcone
             disabled={arquivar.isPending}
             onClick={() =>
               window.confirm(
@@ -141,182 +170,324 @@ export default function EstoquePage() {
             ) : (
               <Archive className="h-4 w-4" aria-hidden="true" />
             )}
-            {texto && (i.ativo === false ? 'Reativar' : 'Arquivar')}
-          </Button>
+          </BotaoEstoque>
         )}
       </div>
     )
   }
+  const fornecedorNome = (i: InventoryItem) =>
+    (fornecedores.data ?? []).find((f) => f.id === i.fornecedorId)?.nome ??
+    (i.fornecedorId ? 'Fornecedor vinculado' : 'Sem fornecedor')
+  const corLinha = (i: InventoryItem) =>
+    emAlerta(i)
+      ? i.quantidadeAtual <= 0
+        ? 'bg-rose-50/40 dark:bg-rose-950/15'
+        : 'bg-amber-50/50 dark:bg-amber-950/15'
+      : ''
   return (
-    <div className="space-y-4 p-3 text-slate-800 sm:p-6 dark:text-slate-200">
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 pdv-page p-3 text-slate-800 sm:p-5 lg:p-6 dark:text-slate-200">
       <PageHeader
         title="Estoque"
-        subtitle="Insumos, compras e movimentações"
+        subtitle="Saldos, compras e consumo."
         actions={
           gestao && (
-            <div className="flex flex-wrap gap-2">
-              <Link to="/reposicao" className="action-button">Reposição de insumos</Link>
-              <Button onClick={() => setEditar('novo')}>Novo insumo</Button>
+            <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+              <Link
+                to="/reposicao"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 lg:min-h-9 lg:rounded-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                <ClipboardList className="h-4 w-4" aria-hidden="true" />
+                Reposição de insumos
+              </Link>
+              <BotaoEstoque destaque onClick={() => setEditar('novo')}>
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Novo insumo
+              </BotaoEstoque>
             </div>
           )
         }
       />
-      <div className="flex flex-wrap items-center gap-3">
-        <Input
-          className="sm:max-w-xs"
-          aria-label="Buscar insumo"
-          placeholder="Buscar insumo"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-        />
-        <label className="flex min-h-11 items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-          <input
-            type="checkbox"
-            checked={alertas}
-            onChange={(e) => setAlertas(e.target.checked)}
-          />
-          Somente alertas
-        </label>
-        <label className="flex min-h-11 items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-          <input
-            type="checkbox"
-            checked={arquivados}
-            onChange={(e) => setArquivados(e.target.checked)}
-          />
-          Incluir arquivados
-        </label>
-        <Button
-          variant="secondary"
-          onClick={() =>
-            baixarCsv(
-              'estoque',
-              ['Nome', 'Saldo', 'Unidade', 'Mínimo', 'Custo médio', 'Ativo'],
-              itens.map((i) => [
-                i.nome,
-                i.quantidadeAtual,
-                i.unidade,
-                i.minimo,
-                i.custoMedio,
-                i.ativo !== false ? 'Sim' : 'Não',
-              ]),
-            )
-          }
-        >
-          Exportar CSV
-        </Button>
-      </div>
-      {erro && (
-        <p role="alert" className="text-rose-600">
-          {erro}
-        </p>
-      )}
-      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_19rem]">
-        <Card className="min-w-0 overflow-hidden">
-          <div className="hidden overflow-x-auto lg:block">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                <tr>
-                  <th className="px-3 py-2.5">Insumo</th>
-                  <th className="px-3 py-2.5">Saldo</th>
-                  <th className="px-3 py-2.5">Mínimo</th>
-                  <th className="px-3 py-2.5">Custo médio</th>
-                  <th className="px-2 py-2.5">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {itens.map((i) => (
-                  <tr
-                    key={i.id}
-                    className={
-                      emAlerta(i) ? 'bg-amber-50 dark:bg-amber-500/10' : ''
-                    }
-                  >
-                    <td className="px-3 py-2">
-                      <span className="block font-semibold text-slate-800 dark:text-slate-100">{i.nome}</span>
-                      {i.fornecedorId && <span className="block text-xs text-slate-500">{(fornecedores.data ?? []).find(f => f.id === i.fornecedorId)?.nome ?? 'Fornecedor vinculado'}</span>}
-                      {i.ativo === false ? (
-                        <span className="text-xs text-slate-500">
-                          Arquivado
-                        </span>
-                      ) : (
-                        emAlerta(i) && (
-                          <span className="mt-0.5 flex items-center gap-1 text-xs text-amber-800 dark:text-amber-300">
-                            <AlertTriangle
-                              className="h-3.5 w-3.5"
-                              aria-hidden="true"
-                            />
-                            Saldo baixo
-                          </span>
-                        )
-                      )}
-                    </td>
-                    <td
-                      className={`whitespace-nowrap px-3 py-2 font-bold ${corSaldo(i)}`}
-                    >
-                      {i.quantidadeAtual.toLocaleString('pt-BR')} {i.unidade}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2 text-slate-500 dark:text-slate-400">
-                      {i.minimo} {i.unidade}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2">
-                      {formatarPrecoReferencia(i)}
-                    </td>
-                    <td className="px-2 py-1">{acoes(i)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <section
+        aria-label="Resumo do estoque"
+        className="grid grid-cols-3 divide-x divide-slate-200 rounded-xl border border-slate-200 bg-white py-3 dark:divide-slate-700 dark:border-slate-800 dark:bg-slate-900"
+      >
+        {[
+          [
+            'Insumos ativos',
+            ativos.length,
+            'text-slate-800 dark:text-slate-100',
+          ],
+          [
+            'Em alerta',
+            totalAlertas,
+            totalAlertas
+              ? 'text-amber-700 dark:text-amber-300'
+              : 'text-slate-800 dark:text-slate-100',
+          ],
+          ['Arquivados', totalArquivados, 'text-slate-500 dark:text-slate-400'],
+        ].map(([nome, total, cor]) => (
+          <div key={nome} className="min-w-0 px-3 sm:px-5">
+            <p className="text-[11px] font-medium text-slate-500 sm:text-xs dark:text-slate-400">
+              {nome}
+            </p>
+            <p className={`mt-0.5 text-xl font-semibold tabular-nums ${cor}`}>
+              {total}
+            </p>
           </div>
-          <ul className="divide-y divide-slate-100 lg:hidden dark:divide-slate-800">
-            {itens.map((i) => (
-              <li
-                key={i.id}
-                className={`min-w-0 border-l-4 px-3 py-2.5 ${emAlerta(i) ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'border-transparent'}`}
+        ))}
+      </section>
+      <section
+        aria-label="Lista de insumos"
+        className="min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+      >
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 p-3 dark:border-slate-800">
+          <div className="relative w-full min-w-0 sm:w-72 sm:flex-1 sm:max-w-md">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              aria-hidden="true"
+            />
+            <Input
+              className="min-h-11 pl-9 pr-10 lg:min-h-10"
+              aria-label="Buscar insumo"
+              placeholder="Buscar insumo pelo nome…"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+            {busca && (
+              <button
+                type="button"
+                aria-label="Limpar busca"
+                className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-lg text-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-slate-400"
+                onClick={() => setBusca('')}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      {i.nome}
-                    </h2>
-                    {i.fornecedorId && <p className="text-xs text-slate-500">{(fornecedores.data ?? []).find(f => f.id === i.fornecedorId)?.nome ?? 'Fornecedor vinculado'}</p>}
-                    {i.ativo === false ? (
-                      <p className="text-xs text-slate-500">Arquivado</p>
-                    ) : (
-                      emAlerta(i) && (
-                        <p className="mt-0.5 flex items-center gap-1 text-xs text-amber-800 dark:text-amber-300">
-                          <AlertTriangle
-                            className="h-3.5 w-3.5 shrink-0"
-                            aria-hidden="true"
-                          />
-                          Saldo baixo
-                        </p>
-                      )
-                    )}
-                  </div>
-                  <p className={`shrink-0 text-sm font-bold ${corSaldo(i)}`}>
-                    {i.quantidadeAtual.toLocaleString('pt-BR')} {i.unidade}
+                <X className="h-4 w-4" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+          <div className="grid w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 sm:flex sm:w-auto sm:flex-wrap">
+            <BotaoEstoque
+              compacto
+              aria-label="Somente alertas"
+              ativo={alertas}
+              aria-pressed={alertas}
+              onClick={() => setAlertas(!alertas)}
+            >
+              <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+              <span className="sm:hidden">Alertas</span>
+              <span className="hidden sm:inline">Somente alertas</span>
+              {totalAlertas > 0 && (
+                <span className="rounded-md bg-amber-100 px-1.5 text-xs text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                  {totalAlertas}
+                </span>
+              )}
+            </BotaoEstoque>
+            <BotaoEstoque
+              compacto
+              aria-label="Incluir arquivados"
+              ativo={arquivados}
+              aria-pressed={arquivados}
+              onClick={() => setArquivados(!arquivados)}
+            >
+              <Archive className="h-4 w-4" aria-hidden="true" />
+              <span className="sm:hidden">Arquivados</span>
+              <span className="hidden sm:inline">Incluir arquivados</span>
+            </BotaoEstoque>
+            <BotaoEstoque
+              somenteIcone
+              aria-label="Exportar CSV"
+              title="Exportar CSV"
+              onClick={() =>
+                baixarCsv(
+                  'estoque',
+                  [
+                    'Nome',
+                    'Saldo',
+                    'Unidade',
+                    'Mínimo',
+                    'Custo médio',
+                    'Ativo',
+                  ],
+                  itens.map((i) => [
+                    i.nome,
+                    i.quantidadeAtual,
+                    i.unidade,
+                    i.minimo,
+                    i.custoMedio,
+                    i.ativo !== false ? 'Sim' : 'Não',
+                  ]),
+                )
+              }
+            >
+              <Download className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Exportar CSV</span>
+            </BotaoEstoque>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-3 py-2 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          <p role="status">
+            {itens.length}{' '}
+            {itens.length === 1 ? 'insumo exibido' : 'insumos exibidos'}
+            {busca && ` para “${busca}”`}
+          </p>
+          {busca || alertas || arquivados ? (
+            <button
+              type="button"
+              className="min-h-9 rounded-lg px-2 font-medium text-brand-700 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-brand-300 dark:hover:bg-slate-800"
+              onClick={limparFiltros}
+            >
+              Limpar filtros
+            </button>
+          ) : (
+            <span className="hidden sm:inline">
+              Saldo na unidade de controle
+            </span>
+          )}
+        </div>
+        {erro && (
+          <div className="m-3">
+            <ErrorState error={new Error(erro)} />
+          </div>
+        )}
+        <div className="hidden overflow-x-auto lg:block">
+          <table className="pdv-table w-full text-left text-sm">
+            <thead className="bg-slate-50 text-xs font-medium text-slate-500 dark:bg-slate-950/40 dark:text-slate-400">
+              <tr>
+                <th scope="col" className="w-[36%] px-4 py-3 font-medium">
+                  Insumo
+                </th>
+                <th scope="col" className="px-3 py-3 text-right font-medium">
+                  Saldo
+                </th>
+                <th scope="col" className="px-3 py-3 text-right font-medium">
+                  Mínimo
+                </th>
+                <th scope="col" className="px-3 py-3 text-right font-medium">
+                  Custo de referência
+                </th>
+                <th scope="col" className="px-3 py-3 font-medium">
+                  <span className="sr-only">Ações</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {itens.map((i) => (
+                <tr
+                  key={i.id}
+                  className={`${corLinha(i)} transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50`}
+                >
+                  <th
+                    scope="row"
+                    className="max-w-xs px-4 py-3 text-left font-normal"
+                  >
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="break-words font-semibold [overflow-wrap:anywhere] dark:text-slate-100">
+                        {i.nome}
+                      </span>
+                      <SituacaoEstoque item={i} />
+                    </div>
+                    <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">
+                      {fornecedorNome(i)}
+                    </span>
+                  </th>
+                  <td
+                    className={`whitespace-nowrap px-3 py-3 text-right font-semibold tabular-nums ${corSaldo(i)}`}
+                  >
+                    {i.quantidadeAtual.toLocaleString('pt-BR')}{' '}
+                    <span className="text-xs font-normal">{i.unidade}</span>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3 text-right tabular-nums text-slate-500 dark:text-slate-400">
+                    {i.minimo.toLocaleString('pt-BR')}{' '}
+                    <span className="text-xs">{i.unidade}</span>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-3 text-right text-xs tabular-nums">
+                    {formatarPrecoReferencia(i)}
+                  </td>
+                  <td className="px-3 py-2">{acoes(i)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <ul className="divide-y divide-slate-100 lg:hidden dark:divide-slate-800">
+          {itens.map((i) => (
+            <li key={i.id} className={`space-y-3 p-3 sm:p-4 ${corLinha(i)}`}>
+              <div className="flex items-start gap-3">
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                  <Package className="h-4 w-4" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="break-words text-sm font-semibold [overflow-wrap:anywhere] dark:text-slate-100">
+                    {i.nome}
+                  </h2>
+                  <p className="mt-0.5 break-words text-xs text-slate-500 dark:text-slate-400">
+                    {fornecedorNome(i)}
                   </p>
                 </div>
-                <p className="mt-1 flex flex-wrap gap-x-3 text-xs text-slate-500 dark:text-slate-400">
-                  <span>
-                    Mín.: {i.minimo} {i.unidade}
-                  </span>
-                  <span>
-                    Custo: {formatarPrecoReferencia(i)}
-                  </span>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <SituacaoEstoque item={i} />
+                <p
+                  className={`text-lg font-semibold tabular-nums ${corSaldo(i)}`}
+                >
+                  {i.quantidadeAtual.toLocaleString('pt-BR')}{' '}
+                  <span className="text-xs font-normal">{i.unidade}</span>
                 </p>
-                <div className="mt-1">{acoes(i, true)}</div>
-              </li>
-            ))}
-          </ul>
-          {!itens.length && (
-            <p className="p-5 text-sm text-slate-500">
-              Nenhum insumo encontrado.
+              </div>
+              <div className="flex flex-wrap justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <span>
+                  Mínimo:{' '}
+                  <strong className="font-medium">
+                    {i.minimo.toLocaleString('pt-BR')} {i.unidade}
+                  </strong>
+                </span>
+                <span>
+                  Custo:{' '}
+                  <strong className="font-medium text-slate-700 dark:text-slate-200">
+                    {formatarPrecoReferencia(i)}
+                  </strong>
+                </span>
+              </div>
+              {acoes(i, true)}
+            </li>
+          ))}
+        </ul>
+        {!itens.length && (
+          <div className="space-y-2 px-4 py-10 text-center">
+            <Package
+              className="mx-auto h-7 w-7 text-slate-400"
+              aria-hidden="true"
+            />
+            <h2 className="font-semibold">
+              {(estoque.data ?? []).length
+                ? 'Nenhum insumo neste filtro'
+                : 'Seu estoque começa aqui'}
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {(estoque.data ?? []).length
+                ? 'Tente outro nome ou remova os filtros para ver mais insumos.'
+                : 'Cadastre os insumos para acompanhar saldos, compras e consumo.'}
             </p>
-          )}
-        </Card>
-        <Card className="min-w-0 p-4">
-          <h2 className="mb-3 font-bold text-slate-800 dark:text-slate-100">Últimas movimentações</h2>
+            {(busca || alertas || arquivados) && (
+              <BotaoEstoque onClick={limparFiltros}>
+                Ver todos os insumos
+              </BotaoEstoque>
+            )}
+          </div>
+        )}
+      </section>
+      <details className="group min-w-0 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center gap-2 rounded-xl px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-600 [&::-webkit-details-marker]:hidden">
+          <History className="h-4 w-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+          Últimas movimentações
+          <span className="ml-auto text-xs font-normal text-slate-500 dark:text-slate-400">
+            {movimentos.data?.length ?? 0} {(movimentos.data?.length ?? 0) === 1 ? 'recente' : 'recentes'}
+          </span>
+          <ChevronDown
+            className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180"
+            aria-hidden="true"
+          />
+        </summary>
+        <div className="border-t border-slate-100 p-4 dark:border-slate-800">
           {movimentos.isError ? (
             <ErrorState error={movimentos.error} />
           ) : (
@@ -325,8 +496,8 @@ export default function EstoquePage() {
               itens={estoque.data ?? []}
             />
           )}
-        </Card>
-      </div>
+        </div>
+      </details>
       {editar && (
         <Cadastro
           item={editar === 'novo' ? null : editar}
@@ -349,7 +520,7 @@ export default function EstoquePage() {
             <ErrorState error={historico.error} />
           ) : (
             <>
-              <p className="mb-3 text-sm text-slate-500">
+              <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
                 Até 100 movimentos mais recentes deste insumo.
               </p>
               <Movimentos lista={historico.data ?? []} itens={[histItem]} />
@@ -393,14 +564,19 @@ function Movimentos({
               {custoUnitario(m.custoUnitario ?? 0)} por unidade de controle
             </p>
           )}
-          <p className="text-xs text-slate-500">
-            {dataHora(m.dataMovimentacao ?? m.criadoEm)} · {m.observacao ?? 'Sem observação'}
-            {m.dataMovimentacao && <span className="block text-xs">Registrado no sistema: {dataHora(m.criadoEm)}</span>}
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {dataHora(m.dataMovimentacao ?? m.criadoEm)} ·{' '}
+            {m.observacao ?? 'Sem observação'}
+            {m.dataMovimentacao && (
+              <span className="block text-xs">
+                Registrado no sistema: {dataHora(m.criadoEm)}
+              </span>
+            )}
           </p>
         </li>
       ))}
       {!lista.length && (
-        <li className="text-sm text-slate-500">Sem movimentações.</li>
+        <li className="text-sm text-slate-500 dark:text-slate-400">Sem movimentações.</li>
       )}
     </ul>
   )
@@ -419,7 +595,7 @@ function Cadastro({
     fornecedorId: item?.fornecedorId ?? '',
     unidade: item?.unidade ?? 'un',
     minimo: String(item?.minimo ?? 0),
-    custoMedio: String(item ? precoPorReferencia(item) ?? 0 : 0),
+    custoMedio: String(item ? (precoPorReferencia(item) ?? 0) : 0),
     quantidadeAtual: '0',
     unidadeCompra: item?.unidadeCompra ?? item?.unidade ?? 'un',
     fatorCompra: String(item?.fatorCompra ?? 1),
@@ -428,45 +604,78 @@ function Cadastro({
   const qc = useQueryClient()
   // Formulário edita preço de referência comercial, nunca o custo pequeno por g.
   const [novoFornecedor, setNovoFornecedor] = useState(false)
-  const [fornecedorForm, setFornecedorForm] = useState({ nome: '', telefone: '' })
+  const [fornecedorForm, setFornecedorForm] = useState({
+    nome: '',
+    telefone: '',
+  })
   const [cadastrado, setCadastrado] = useState<Fornecedor | null>(null)
   const cadastrarFornecedor = useMutation({
-    mutationFn: () => api<Fornecedor>('/fornecedores', {
-      method: 'POST',
-      body: {
-        nome: fornecedorForm.nome.trim(),
-        telefone: fornecedorForm.telefone.trim(),
-      },
-    }),
+    mutationFn: () =>
+      api<Fornecedor>('/fornecedores', {
+        method: 'POST',
+        body: {
+          nome: fornecedorForm.nome.trim(),
+          telefone: fornecedorForm.telefone.trim(),
+        },
+      }),
     onSuccess: (fornecedor) => {
       setCadastrado(fornecedor)
-      setForm(prev => ({ ...prev, fornecedorId: fornecedor.id }))
+      setForm((prev) => ({ ...prev, fornecedorId: fornecedor.id }))
       setNovoFornecedor(false)
       setErro('')
       void qc.invalidateQueries({ queryKey: ['fornecedores'] })
     },
-    onError: (e) => setErro(e instanceof Error ? e.message : 'Não foi possível cadastrar o fornecedor'),
+    onError: (e) =>
+      setErro(
+        e instanceof Error
+          ? e.message
+          : 'Não foi possível cadastrar o fornecedor',
+      ),
   })
   function alterarUnidades(modificacoes: Partial<typeof form>) {
-    const anterior = { unidade: form.unidade, unidadeCompra: form.unidadeCompra, fatorCompra: numeroDecimal(form.fatorCompra) }
-    const custoAtual = custoPorUnidadeControle(numeroDecimal(form.custoMedio), unidadeReferencia(anterior), anterior)
+    const anterior = {
+      unidade: form.unidade,
+      unidadeCompra: form.unidadeCompra,
+      fatorCompra: numeroDecimal(form.fatorCompra),
+    }
+    const custoAtual = custoPorUnidadeControle(
+      numeroDecimal(form.custoMedio),
+      unidadeReferencia(anterior),
+      anterior,
+    )
     const proximo = { ...form, ...modificacoes }
     // Converter também o custo na troca g ↔ kg ou ml ↔ L.
     // Não aproveitar preço de unidades incompatíveis.
-    const custoConvertido = custoAtual == null
-      ? 0 : converterCustoControle(custoAtual, anterior.unidade, proximo.unidade) ?? 0
+    const custoConvertido =
+      custoAtual == null
+        ? 0
+        : (converterCustoControle(
+            custoAtual,
+            anterior.unidade,
+            proximo.unidade,
+          ) ?? 0)
     const refProxima = {
-      unidade: proximo.unidade, unidadeCompra: proximo.unidadeCompra,
-      fatorCompra: numeroDecimal(proximo.fatorCompra), custoMedio: custoConvertido,
+      unidade: proximo.unidade,
+      unidadeCompra: proximo.unidadeCompra,
+      fatorCompra: numeroDecimal(proximo.fatorCompra),
+      custoMedio: custoConvertido,
     }
     const ref = precoPorReferencia(refProxima)
-    setForm({ ...proximo, custoMedio: ref == null ? form.custoMedio : String(ref) })
+    setForm({
+      ...proximo,
+      custoMedio: ref == null ? form.custoMedio : String(ref),
+    })
   }
   const unidadeAtual = {
-    unidade: form.unidade, unidadeCompra: form.unidadeCompra,
+    unidade: form.unidade,
+    unidadeCompra: form.unidadeCompra,
     fatorCompra: numeroDecimal(form.fatorCompra),
   }
-  const custoInterno = custoPorUnidadeControle(numeroDecimal(form.custoMedio), unidadeReferencia(unidadeAtual), unidadeAtual)
+  const custoInterno = custoPorUnidadeControle(
+    numeroDecimal(form.custoMedio),
+    unidadeReferencia(unidadeAtual),
+    unidadeAtual,
+  )
   const salvar = useMutation({
     mutationFn: () =>
       api(item ? `/estoque/itens/${item.id}` : '/estoque/itens', {
@@ -504,40 +713,92 @@ function Cadastro({
         disabled={salvar.isPending || excluir.isPending}
         className="space-y-4"
       >
-        <AjudaContextual artigo="insumos" rotulo="Como cadastrar este insumo?" />
+        <AjudaContextual
+          artigo="insumos"
+          rotulo="Como cadastrar este insumo?"
+        />
         <Field label="Nome">
           <Input
             value={form.nome}
             onChange={(e) => setForm({ ...form, nome: e.target.value })}
           />
         </Field>
-        <Field label="Fornecedor habitual" hint="Selecione um fornecedor cadastrado ou crie um novo nesta tela.">
-          <Select value={form.fornecedorId} onChange={(e) => setForm({ ...form, fornecedorId: e.target.value })}>
+        <Field
+          label="Fornecedor habitual"
+          hint="Selecione um fornecedor cadastrado ou crie um novo nesta tela."
+        >
+          <Select
+            value={form.fornecedorId}
+            onChange={(e) => setForm({ ...form, fornecedorId: e.target.value })}
+          >
             <option value="">Sem fornecedor definido</option>
-            {[...fornecedores, ...(cadastrado && !fornecedores.some(f => f.id === cadastrado.id) ? [cadastrado] : [])]
-              .filter(f => f.ativo !== false || f.id === form.fornecedorId).map(f => (
-                <option key={f.id} value={f.id}>{f.nome}{f.ativo === false ? ' (inativo)' : ''}</option>
+            {[
+              ...fornecedores,
+              ...(cadastrado &&
+              !fornecedores.some((f) => f.id === cadastrado.id)
+                ? [cadastrado]
+                : []),
+            ]
+              .filter((f) => f.ativo !== false || f.id === form.fornecedorId)
+              .map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.nome}
+                  {f.ativo === false ? ' (inativo)' : ''}
+                </option>
               ))}
           </Select>
         </Field>
-        <button type="button" className="text-xs font-semibold text-brand-600 underline dark:text-brand-400"
-          onClick={() => setNovoFornecedor(v => !v)}>
-          {novoFornecedor ? 'Cancelar novo fornecedor' : '+ Cadastrar fornecedor'}
+        <button
+          type="button"
+          className="text-xs font-semibold text-brand-600 underline dark:text-brand-400"
+          onClick={() => setNovoFornecedor((v) => !v)}
+        >
+          {novoFornecedor
+            ? 'Cancelar novo fornecedor'
+            : '+ Cadastrar fornecedor'}
         </button>
         {novoFornecedor && (
           <div className="space-y-3 rounded-xl border border-brand-200 bg-brand-50/60 p-3 dark:border-brand-800 dark:bg-slate-800">
             <Field label="Nome do fornecedor">
-              <Input value={fornecedorForm.nome} maxLength={150}
-                onChange={e => setFornecedorForm(prev => ({ ...prev, nome: e.target.value }))} />
+              <Input
+                value={fornecedorForm.nome}
+                maxLength={150}
+                onChange={(e) =>
+                  setFornecedorForm((prev) => ({
+                    ...prev,
+                    nome: e.target.value,
+                  }))
+                }
+              />
             </Field>
-            <Field label="Telefone / WhatsApp com DDD" hint="Necessário para enviar pedidos de reposição pelo wa.me.">
-              <Input value={fornecedorForm.telefone} inputMode="tel" type="tel" maxLength={22}
+            <Field
+              label="Telefone / WhatsApp com DDD"
+              hint="Necessário para enviar pedidos de reposição pelo wa.me."
+            >
+              <Input
+                value={fornecedorForm.telefone}
+                inputMode="tel"
+                type="tel"
+                maxLength={22}
                 placeholder="(11) 99999-9999"
-                onChange={e => setFornecedorForm(prev => ({ ...prev, telefone: e.target.value }))} />
+                onChange={(e) =>
+                  setFornecedorForm((prev) => ({
+                    ...prev,
+                    telefone: e.target.value,
+                  }))
+                }
+              />
             </Field>
-            <Button type="button" variant="secondary" loading={cadastrarFornecedor.isPending}
-              disabled={fornecedorForm.nome.trim().length < 2 || fornecedorForm.telefone.replace(/\D/g, '').length < 10}
-              onClick={() => cadastrarFornecedor.mutate()}>
+            <Button
+              type="button"
+              variant="secondary"
+              loading={cadastrarFornecedor.isPending}
+              disabled={
+                fornecedorForm.nome.trim().length < 2 ||
+                fornecedorForm.telefone.replace(/\D/g, '').length < 10
+              }
+              onClick={() => cadastrarFornecedor.mutate()}
+            >
               Salvar e selecionar fornecedor
             </Button>
           </div>
@@ -583,9 +844,14 @@ function Cadastro({
             />
           </Field>
           {custoInterno != null && Number.isFinite(custoInterno) && (
-            <p className="text-xs text-slate-500 sm:col-span-2">
-              Referência: {formatarPrecoReferencia({ ...unidadeAtual, custoMedio: custoInterno })}
-              {['g', 'ml'].includes(form.unidade) && ' · Custo proporcional detalhado é calculado internamente.'}
+            <p className="text-xs text-slate-500 sm:col-span-2 dark:text-slate-400">
+              Referência:{' '}
+              {formatarPrecoReferencia({
+                ...unidadeAtual,
+                custoMedio: custoInterno,
+              })}
+              {['g', 'ml'].includes(form.unidade) &&
+                ' · Custo proporcional detalhado é calculado internamente.'}
             </p>
           )}
           {!item && (
@@ -634,7 +900,8 @@ function Cadastro({
           loading={salvar.isPending}
           disabled={
             !form.nome.trim() ||
-            custoInterno === null || !Number.isFinite(custoInterno) ||
+            custoInterno === null ||
+            !Number.isFinite(custoInterno) ||
             ![
               form.minimo,
               form.custoMedio,
@@ -693,9 +960,10 @@ function Movimentar({
     item.unidadeCompra,
     item.fatorCompra,
   )
-  const simulacao = tipo === 'entrada'
-    ? simularCompra(item, numeroDecimal(qtd), unidade, numeroDecimal(valor))
-    : null
+  const simulacao =
+    tipo === 'entrada'
+      ? simularCompra(item, numeroDecimal(qtd), unidade, numeroDecimal(valor))
+      : null
   const salvar = useMutation({
     mutationFn: () =>
       api('/estoque/movimentacoes', {
@@ -738,7 +1006,10 @@ function Movimentar({
       onClose={() => !travado && onClose()}
     >
       <fieldset disabled={travado} className="space-y-4">
-        <AjudaContextual artigo="movimentacoes" rotulo="Como movimentar o estoque?" />
+        <AjudaContextual
+          artigo="movimentacoes"
+          rotulo="Como movimentar o estoque?"
+        />
         <Field label="Operação">
           <Select value={tipo} onChange={(e) => setTipo(e.target.value)}>
             <option value="entrada">Entrada / compra</option>
@@ -792,8 +1063,12 @@ function Movimentar({
             convertido > 0 && (
               <>
                 <br />
-                Preço da compra: {simulacao
-                  ? formatarPrecoReferencia({ ...item, custoMedio: simulacao.custoPorControle })
+                Preço da compra:{' '}
+                {simulacao
+                  ? formatarPrecoReferencia({
+                      ...item,
+                      custoMedio: simulacao.custoPorControle,
+                    })
                   : 'Valor inválido'}
               </>
             )}
